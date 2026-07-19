@@ -4,90 +4,61 @@
   "title": "Slice Record",
   "description": "Records a vertical integration slice in the Fates ecosystem.",
   "type": "object",
-  "required": ["sliceId", "title", "status", "objective"],
+  "required": ["sliceId", "title", "implementationStatus", "sealStatus", "objective"],
   "properties": {
-    "$schema": {
-      "type": "string"
-    },
-    "sliceId": {
+    "$schema": { "type": "string" },
+    "sliceId": { "type": "string", "pattern": "^(FATES-SLICE-\\d{3}|_template)$" },
+    "title": { "type": "string" },
+    "implementationStatus": {
       "type": "string",
-      "pattern": "^(FATES-SLICE-\\d{3}|_template)$"
+      "enum": ["template", "planned", "active", "implemented", "completed", "superseded"]
     },
-    "title": {
-      "type": "string"
-    },
-    "status": {
+    "sealStatus": {
       "type": "string",
-      "enum": ["template", "planned", "active", "completed", "superseded"]
+      "enum": ["provisional", "sealed", "superseded"]
     },
-    "objective": {
-      "type": "string"
+    "integrationLevel": {
+      "type": ["string", "null"],
+      "enum": ["inspection_only", "partial_runtime", "runtime_validated", null]
     },
-    "owners": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
+    "objective": { "type": "string" },
+    "owners": { "type": "array", "items": { "type": "string" } },
     "repositoriesInvolved": {
-      "type": "array"
-    },
-    "startingCheckpoints": {
-      "type": "object"
-    },
-    "contractChanges": {
       "type": "array",
       "items": {
-        "type": "string"
+        "type": "object",
+        "required": ["name", "url", "role"],
+        "properties": {
+          "name": { "type": "string" },
+          "url": { "type": "string", "pattern": "^https://" },
+          "role": { "type": "string" }
+        },
+        "additionalProperties": false
       }
     },
-    "repositoryOrder": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "requiredConsumerTests": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "integrationTests": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "breakingChanges": {
-      "type": "array"
-    },
-    "deferredWork": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "stopConditions": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
+    "startingCheckpoints": { "type": "object" },
+    "contractChanges": { "type": "array", "items": { "type": "string" } },
+    "repositoryOrder": { "type": "array", "items": { "type": "string" } },
+    "requiredConsumerTests": { "type": "array", "items": { "type": "string" } },
+    "integrationTests": { "type": "array", "items": { "type": "string" } },
+    "breakingChanges": { "type": "array" },
+    "deferredWork": { "type": "array", "items": { "type": "string" } },
+    "stopConditions": { "type": "array", "items": { "type": "string" } },
     "finalEvidence": {
       "type": "object",
       "properties": {
-        "acceptance": {
-          "type": "string"
-        },
-        "limitations": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
+        "acceptance": { "type": "string" },
+        "limitations": { "type": "array", "items": { "type": "string" } }
       }
     }
   },
-  "additionalProperties": false
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": { "properties": { "implementationStatus": { "const": "completed" } } },
+      "then": {
+        "required": ["owners", "repositoriesInvolved", "startingCheckpoints", "finalEvidence"]
+      }
+    }
+  ]
 }

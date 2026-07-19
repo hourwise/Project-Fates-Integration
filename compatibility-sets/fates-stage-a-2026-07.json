@@ -1,17 +1,18 @@
 {
-  "$schema": "./schemas/fates-lock.schema.json",
+  "$schema": "../schemas/fates-lock.schema.json",
+  "_note": "Immutable historical snapshot of the fates-stage-a-2026-07 compatibility set. Do not modify except to correct verified recording errors.",
   "schemaVersion": "1.0.0",
   "compatibilitySetId": "fates-stage-a-2026-07",
   "snapshotPath": "compatibility-sets/fates-stage-a-2026-07.json",
   "previousCompatibilitySet": null,
   "updatedAt": "2026-07-19T00:00:00Z",
-  "sealStatus": "provisional",
-  "integrationLevel": "inspection_only",
   "protocol": {
     "current": "1.4.0",
     "minimum": "1.0.0",
     "maximum": "1.4.0"
   },
+  "sealStatus": "provisional",
+  "integrationLevel": "inspection_only",
   "repositories": {
     "adrasteia": {
       "url": "https://github.com/hourwise/Project-Adrasteia",

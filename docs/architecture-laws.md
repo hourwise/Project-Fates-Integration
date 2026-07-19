@@ -3,20 +3,24 @@
 The Fates ecosystem is governed by the following architectural laws. No integration
 slice may violate them.
 
-1. **Adrasteia defines portable representation.**
-   All portable contracts, data shapes, and representation formats originate in Adrasteia.
+1. **Adrasteia owns portable cross-runtime representation and structural validation.**
+   It does not own every project-specific data shape.
 
-2. **Ananke governs action authority, policy, approvals, and execution decisions.**
+2. **Ananke owns action authority, policy, approvals, governed execution decisions,
+   action outcomes, and authoritative action audit.**
    No governed action may execute without Ananke's authority.
 
-3. **Mnemosyne governs memory, provenance, reliability, and qualified context.**
-   All persistent state, audit trails, and context retrieval flow through Mnemosyne.
+3. **Mnemosyne owns memory, provenance, reliability, conflicts, qualified context,
+   and authoritative memory audit.**
+   It does not own all persistent state or all audit trails.
 
-4. **Horae governs discovery, composition, capability reduction, and orchestration state.**
+4. **Horae owns discovery, composition, capability reduction, orchestration state,
+   freshness, and degradation coordination.**
    Service discovery, capability negotiation, and orchestration are Horae's domain.
 
-5. **Moirae Code is the governed host and user-facing surface.**
-   All user interaction and host-level governance occurs through Moirae Code.
+5. **Moirae Code is the governed host and user-facing integration surface.**
+   It does not make currently ungoverned terminal, Git, debugger, task, extension,
+   or direct-provider paths governed.
 
 6. **This repository records compatibility; it governs no runtime behaviour.**
    The Integration repository is a control plane, not a runtime.

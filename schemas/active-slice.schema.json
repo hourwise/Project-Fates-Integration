@@ -4,49 +4,43 @@
   "title": "Active Slice",
   "description": "Records the currently active vertical integration slice.",
   "type": "object",
-  "required": ["status", "activeSliceId", "baselineCompatibilitySet"],
+  "required": ["status", "activeSliceId", "baselineCompatibilitySet", "activationRequirements"],
   "properties": {
-    "$schema": {
-      "type": "string"
-    },
-    "status": {
-      "type": "string",
-      "enum": ["idle", "active"]
-    },
+    "$schema": { "type": "string" },
+    "status": { "type": "string", "enum": ["idle", "active"] },
     "activeSliceId": {
-      "type": ["string", "null"]
+      "type": ["string", "null"],
+      "pattern": "^(FATES-SLICE-\\d{3}|null)$"
     },
-    "baselineCompatibilitySet": {
-      "type": "string"
-    },
-    "nextRecommendedSlice": {
-      "type": "string"
-    },
+    "baselineCompatibilitySet": { "type": "string" },
+    "nextRecommendedSlice": { "type": ["string", "null"] },
     "activationRequirements": {
-      "type": "object"
+      "type": "object",
+      "required": ["acceptedScope", "ownerOrder", "acceptanceCriteria", "startingCheckpoints", "userAuthorisation"],
+      "properties": {
+        "acceptedScope": { "type": "string" },
+        "ownerOrder": { "type": "string" },
+        "acceptanceCriteria": { "type": "string" },
+        "startingCheckpoints": { "type": "string" },
+        "userAuthorisation": { "type": "string" }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false,
-  "if": {
-    "properties": {
-      "status": {
-        "const": "idle"
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "idle" } } },
+      "then": { "properties": { "activeSliceId": { "type": "null" } } }
+    },
+    {
+      "if": { "properties": { "status": { "const": "active" } } },
+      "then": {
+        "required": ["nextRecommendedSlice"],
+        "properties": {
+          "activeSliceId": { "type": "string", "pattern": "^FATES-SLICE-\\d{3}$" }
+        }
       }
     }
-  },
-  "then": {
-    "properties": {
-      "activeSliceId": {
-        "type": "null"
-      }
-    }
-  },
-  "else": {
-    "properties": {
-      "activeSliceId": {
-        "type": "string",
-        "minLength": 1
-      }
-    }
-  }
+  ]
 }

@@ -11,43 +11,89 @@ or incomplete work. Not suitable for integration.
 
 A stable point in a single Fate repository suitable for cross-repository reference.
 
-Requirements:
+Requirements for a **sealed** repository checkpoint:
 
 - All tests pass
 - Worktree is clean (no uncommitted changes)
 - Commit is pushed to the remote repository
 - CI pipeline is green
-- Annotated tag is present (unless the repository is in `pushed_untagged` state)
+- Annotated tag is present
 - Handoff packet is produced and reviewed
 
-A repository checkpoint may be `sealed_tagged` (tag present, ready for integration)
-or `pushed_untagged` (commit pushed but not yet tagged — e.g., Moirae Code in the
-current compatibility set).
+A **pushed but untagged** commit is a provisional reference, not a sealed repository
+checkpoint. It may be used as a starting reference for a slice but cannot seal an
+integration checkpoint.
 
 ### Integration Checkpoint
 
 A point where all involved Fates are mutually compatible at specific repository
 checkpoints.
 
-Requirements:
+Requirements for a **sealed** integration checkpoint:
 
-- All involved Fate repositories have valid repository checkpoints
+- All involved Fate repositories have sealed repository checkpoints
 - Consumer tests pass for all downstream Fates
 - Integration validation passes
 - `fates-lock.json` is updated with exact checkpoints
-- `compatibility-matrix.json` is updated to reflect the slice status
+- `compatibility-matrix.json` is updated to reflect completed slice status
+- Historical compatibility-set snapshot is created and committed
+
+An integration checkpoint with one or more provisional repository checkpoints is
+**provisional** — it records compatibility evidence but cannot be considered sealed.
 
 ## Checkpoint States
 
 | State | Meaning |
 |-------|---------|
-| `sealed_tagged` | Repository checkpoint with an annotated tag. Ready for integration. |
-| `pushed_untagged` | Commit is pushed but no tag exists. May be used as a reference point. |
+| `sealed_tagged` | Repository checkpoint with an annotated tag. Ready to seal an integration checkpoint. |
+| `pushed_untagged` | Commit is pushed but no tag exists. Provisional reference only. |
 | `planned` | Checkpoint is planned but not yet created. |
 | `superseded` | Previously sealed checkpoint that has been replaced by a newer one. |
+
+## Seal Status Model
+
+This repository uses a two-axis status model for compatibility sets and slices:
+
+- **implementationStatus**: `planned` | `active` | `implemented` | `completed` | `superseded`
+  — What work has been done.
+- **sealStatus**: `provisional` | `sealed` | `superseded`
+  — Whether every required checkpoint has a verified annotated tag.
+- **integrationLevel**: `inspection_only` | `partial_runtime` | `runtime_validated`
+  — The depth of integration validation achieved.
+
+A slice may be `implementationStatus: completed` while `sealStatus: provisional` if
+one or more repository checkpoints lack verified annotated tags.
 
 ## Current State
 
 - Adrasteia, Ananke, Mnemosyne, and Horae are `sealed_tagged`.
 - Moirae Code is `pushed_untagged`. No checkpoint tag has been confirmed for
   Moirae Code in the current compatibility set.
+- Stage-A integration checkpoint is `sealStatus: provisional`.
+
+## Lock Advancement Transaction
+
+When a new vertical slice is completed:
+
+1. Active slice is approved with explicit scope and acceptance criteria
+2. Starting lock state is copied as the reference baseline
+3. Owner repository checkpoint is produced (tag, clean worktree, green CI)
+4. Handoff packet is committed to the slice's handoffs directory
+5. Consumer checkpoints are produced for downstream Fates
+6. Consumer tests pass against the new checkpoints
+7. Integration tests pass
+8. New compatibility-set snapshot is created from the current lock state
+9. `fates-lock.json` is switched to reference the new snapshot
+10. Matrix and slice evidence are updated
+11. Full validation passes
+12. Integration checkpoint is committed and tagged
+
+Not every Fate needs a new checkpoint when not involved in the slice.
+
+No peer `main` branch becomes authoritative at any point.
+
+## Rollback
+
+To roll back to a prior compatibility set, copy the corresponding historical
+snapshot from `compatibility-sets/` over `fates-lock.json`. Rollback must be a
+deliberate, reviewed action with documented rationale.

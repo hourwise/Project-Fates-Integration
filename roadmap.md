@@ -2,13 +2,16 @@
 
 ## Completed
 
-- **FATES-SLICE-001** — Adrasteia Stage-A adoption. Establishes the portable representation
-  baseline across all Fates.
+- **FATES-SLICE-001** — Adrasteia Stage-A adoption. Implementation completed.
+  Establishes the portable representation baseline across all Fates.
+  **Seal status: provisional.** Moirae Code awaits a verified annotated tag
+  before the integration checkpoint can be sealed.
 
 ## Recommended (inactive)
 
-- **FATES-SLICE-002** — Governed action handoff. Requires explicit scope definition, owner order,
-  acceptance criteria, starting checkpoints, and user authorisation before activation.
+- **FATES-SLICE-002** — Governed action handoff. Requires explicit scope definition,
+  owner order, acceptance criteria, starting checkpoints, and user authorisation
+  before activation.
 
 ## Later
 

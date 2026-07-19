@@ -5,7 +5,9 @@
     {
       "sliceId": "FATES-SLICE-001",
       "title": "Adrasteia Stage-A adoption",
-      "status": "implemented_with_inspection_limits",
+      "implementationStatus": "completed",
+      "sealStatus": "provisional",
+      "integrationLevel": "inspection_only",
       "compatibilitySet": "fates-stage-a-2026-07",
       "repositories": {
         "adrasteia": {
@@ -13,7 +15,7 @@
           "tag": "adrasteia-adoption-v0.4.0-protocol-1.4.0",
           "commit": "124b6aee2629a3147739934ad5f1b45b32c8ba46",
           "checkpointState": "sealed_tagged",
-          "role": "portable-representation — defines the runtime contracts package"
+          "role": "portable-representation — publishes the runtime contracts package"
         },
         "ananke": {
           "url": "https://github.com/hourwise/Project-Ananke",
@@ -41,7 +43,7 @@
           "tag": null,
           "commit": "a4783db271a61848c66ac4f6652a539bdb515e28",
           "checkpointState": "pushed_untagged",
-          "role": "governed-host — inspection-only reference"
+          "role": "governed-host — inspection-only reference; untagged provisional checkpoint"
         }
       },
       "explicitLimits": [
@@ -54,27 +56,37 @@
     {
       "sliceId": "FATES-SLICE-002",
       "title": "Governed action handoff",
-      "status": "planned"
+      "implementationStatus": "planned",
+      "sealStatus": "provisional",
+      "integrationLevel": null
     },
     {
       "sliceId": "FATES-SLICE-003",
       "title": "Qualified context retrieval",
-      "status": "planned"
+      "implementationStatus": "planned",
+      "sealStatus": "provisional",
+      "integrationLevel": null
     },
     {
       "sliceId": "FATES-SLICE-004",
       "title": "Governed execution",
-      "status": "planned"
+      "implementationStatus": "planned",
+      "sealStatus": "provisional",
+      "integrationLevel": null
     },
     {
       "sliceId": "FATES-SLICE-005",
       "title": "Persistent idempotency and recovery",
-      "status": "planned"
+      "implementationStatus": "planned",
+      "sealStatus": "provisional",
+      "integrationLevel": null
     },
     {
       "sliceId": "FATES-SLICE-006",
       "title": "Content preflight",
-      "status": "planned"
+      "implementationStatus": "planned",
+      "sealStatus": "provisional",
+      "integrationLevel": null
     }
   ]
 }

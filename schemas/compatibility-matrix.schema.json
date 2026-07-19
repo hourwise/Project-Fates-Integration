@@ -6,43 +6,54 @@
   "type": "object",
   "required": ["compatibilitySetId", "rows"],
   "properties": {
-    "$schema": {
-      "type": "string"
-    },
-    "compatibilitySetId": {
-      "type": "string"
-    },
+    "$schema": { "type": "string" },
+    "compatibilitySetId": { "type": "string" },
     "rows": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["sliceId", "title", "status"],
+        "required": ["sliceId", "title", "implementationStatus", "sealStatus"],
         "properties": {
-          "sliceId": {
+          "sliceId": { "type": "string", "pattern": "^FATES-SLICE-\\d{3}$" },
+          "title": { "type": "string" },
+          "implementationStatus": {
             "type": "string",
-            "pattern": "^FATES-SLICE-\\d{3}$"
+            "enum": ["planned", "active", "implemented", "completed", "superseded"]
           },
-          "title": {
-            "type": "string"
-          },
-          "status": {
+          "sealStatus": {
             "type": "string",
-            "enum": ["planned", "active", "implemented_with_inspection_limits", "completed", "superseded"]
+            "enum": ["provisional", "sealed", "superseded"]
           },
-          "compatibilitySet": {
-            "type": "string"
+          "integrationLevel": {
+            "type": ["string", "null"],
+            "enum": ["inspection_only", "partial_runtime", "runtime_validated", null]
           },
-          "repositories": {
-            "type": "object"
+          "compatibilitySet": { "type": "string" },
+          "repositories": { "type": "object" },
+          "explicitLimits": { "type": "array", "items": { "type": "string" } }
+        },
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": { "properties": { "implementationStatus": { "const": "planned" } } },
+            "then": {
+              "properties": {
+                "repositories": { "type": "null" },
+                "compatibilitySet": { "type": "null" },
+                "explicitLimits": { "type": "null" },
+                "integrationLevel": { "type": "null" }
+              }
+            }
           },
-          "explicitLimits": {
-            "type": "array",
-            "items": {
-              "type": "string"
+          {
+            "if": {
+              "properties": { "implementationStatus": { "enum": ["completed", "implemented"] } }
+            },
+            "then": {
+              "required": ["compatibilitySet", "integrationLevel"]
             }
           }
-        },
-        "additionalProperties": false
+        ]
       }
     }
   },

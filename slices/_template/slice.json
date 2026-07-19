@@ -1,8 +1,10 @@
 {
-  "$schema": "../../../schemas/slice.schema.json",
+  "$schema": "../../schemas/slice.schema.json",
   "sliceId": "_template",
   "title": "Slice Template",
-  "status": "template",
+  "implementationStatus": "template",
+  "sealStatus": "provisional",
+  "integrationLevel": null,
   "objective": "Describe the vertical slice objective in one or two sentences.",
   "owners": [],
   "repositoriesInvolved": [],

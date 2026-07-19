@@ -1,5 +1,6 @@
 // scripts/validate.mjs
-// Runs all validation steps in order. Exits on first failure.
+// Runs all validation steps including tests. Exits on first failure.
+// Does not recurse: npm test runs node:test directly, not npm run validate.
 
 import { spawnSync } from 'node:child_process';
 import { resolve, dirname } from 'node:path';
@@ -14,16 +15,25 @@ const steps = [
   { name: 'verify:matrix', script: 'scripts/verify-compatibility-matrix.mjs' },
   { name: 'verify:slices', script: 'scripts/verify-slices.mjs' },
   { name: 'verify:boundaries', script: 'scripts/verify-boundaries.mjs' },
+  { name: 'test', args: ['--test'], isTest: true },
 ];
 
 let failed = false;
 
 for (const step of steps) {
   console.log(`\n--- ${step.name} ---`);
-  const result = spawnSync(process.execPath, [resolve(root, step.script)], {
-    cwd: root,
-    stdio: 'inherit',
-  });
+  let result;
+  if (step.isTest) {
+    result = spawnSync(process.execPath, step.args, {
+      cwd: root,
+      stdio: 'inherit',
+    });
+  } else {
+    result = spawnSync(process.execPath, [resolve(root, step.script)], {
+      cwd: root,
+      stdio: 'inherit',
+    });
+  }
   if (result.status !== 0) {
     failed = true;
     break;

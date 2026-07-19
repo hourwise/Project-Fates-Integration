@@ -2,57 +2,24 @@
   "$schema": "../../schemas/slice.schema.json",
   "sliceId": "FATES-SLICE-001",
   "title": "Adrasteia Stage-A adoption",
-  "status": "completed",
+  "implementationStatus": "completed",
+  "sealStatus": "provisional",
+  "integrationLevel": "inspection_only",
   "objective": "Establish the Adrasteia portable representation baseline across all Fates. Each Fate adopts the project-runtime-contracts@0.4.0 package at protocol 1.4.0.",
   "owners": ["Fates Integration"],
   "repositoriesInvolved": [
-    {
-      "name": "adrasteia",
-      "url": "https://github.com/hourwise/Project-Adrasteia",
-      "role": "portable-representation — publish runtime contracts package"
-    },
-    {
-      "name": "ananke",
-      "url": "https://github.com/hourwise/Project-Ananke",
-      "role": "action-authority — adopt Adrasteia contracts"
-    },
-    {
-      "name": "mnemosyne",
-      "url": "https://github.com/hourwise/Project-Mnemosyne",
-      "role": "memory-provenance — adopt Adrasteia contracts"
-    },
-    {
-      "name": "horae",
-      "url": "https://github.com/hourwise/Project-Horae",
-      "role": "discovery-composition — adopt Adrasteia contracts"
-    },
-    {
-      "name": "moirae-code",
-      "url": "https://github.com/hourwise/Project-Moirae-Code",
-      "role": "governed-host — inspection-only reference"
-    }
+    { "name": "adrasteia", "url": "https://github.com/hourwise/Project-Adrasteia", "role": "portable-representation — publish runtime contracts package" },
+    { "name": "ananke", "url": "https://github.com/hourwise/Project-Ananke", "role": "action-authority — adopt Adrasteia contracts" },
+    { "name": "mnemosyne", "url": "https://github.com/hourwise/Project-Mnemosyne", "role": "memory-provenance — adopt Adrasteia contracts" },
+    { "name": "horae", "url": "https://github.com/hourwise/Project-Horae", "role": "discovery-composition — adopt Adrasteia contracts" },
+    { "name": "moirae-code", "url": "https://github.com/hourwise/Project-Moirae-Code", "role": "governed-host — inspection-only reference" }
   ],
   "startingCheckpoints": {
-    "adrasteia": {
-      "tag": "adrasteia-adoption-v0.4.0-protocol-1.4.0",
-      "commit": "124b6aee2629a3147739934ad5f1b45b32c8ba46"
-    },
-    "ananke": {
-      "tag": "ananke-adrasteia-adoption-v0.1.0-protocol-1.4.0",
-      "commit": "dcbb115c5798072221afdd2e4fdd36e786defddf"
-    },
-    "mnemosyne": {
-      "tag": "mnemosyne-adrasteia-adoption-v0.1.0-protocol-1.4.0",
-      "commit": "f4ab76a9760f856d78908d35facceb068d78c8e5"
-    },
-    "horae": {
-      "tag": "horae-adrasteia-adoption-v0.1.0-protocol-1.4.0",
-      "commit": "52e14fa574f7427f62747fe84d2789aec25b94e3"
-    },
-    "moirae-code": {
-      "tag": null,
-      "commit": "a4783db271a61848c66ac4f6652a539bdb515e28"
-    }
+    "adrasteia": { "tag": "adrasteia-adoption-v0.4.0-protocol-1.4.0", "commit": "124b6aee2629a3147739934ad5f1b45b32c8ba46" },
+    "ananke": { "tag": "ananke-adrasteia-adoption-v0.1.0-protocol-1.4.0", "commit": "dcbb115c5798072221afdd2e4fdd36e786defddf" },
+    "mnemosyne": { "tag": "mnemosyne-adrasteia-adoption-v0.1.0-protocol-1.4.0", "commit": "f4ab76a9760f856d78908d35facceb068d78c8e5" },
+    "horae": { "tag": "horae-adrasteia-adoption-v0.1.0-protocol-1.4.0", "commit": "52e14fa574f7427f62747fe84d2789aec25b94e3" },
+    "moirae-code": { "tag": null, "commit": "a4783db271a61848c66ac4f6652a539bdb515e28" }
   },
   "contractChanges": [
     "Adrasteia publishes project-runtime-contracts@0.4.0",
@@ -87,13 +54,14 @@
     "Compatibility matrix reflects the completed slice"
   ],
   "finalEvidence": {
-    "acceptance": "All five Fates have adopted the Adrasteia portable representation baseline. Checkpoints are sealed and recorded in fates-lock.json. This is an inspection-only integration — no governed execution, memory handoff, durable recovery, or content preflight is available.",
+    "acceptance": "All five Fates have adopted the Adrasteia portable representation baseline. Four Fates have sealed tagged checkpoints; Moirae Code has a pushed but untagged commit. The integration checkpoint is provisional until Moirae Code has a verified annotated tag. This is an inspection-only integration — no governed execution, memory handoff, durable recovery, or content preflight is available.",
     "limitations": [
       "Inspection only — no runtime integration exercised",
       "No governed execution path validated",
       "No qualified memory handoff validated",
       "No durable recovery validated",
-      "No content preflight validated"
+      "No content preflight validated",
+      "Moirae Code checkpoint is provisional (pushed_untagged)"
     ]
   }
 }

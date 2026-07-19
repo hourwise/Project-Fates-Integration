@@ -1,5 +1,12 @@
 node_modules/
-*.tgz
-*.tar.gz
+coverage/
+.idea/
+.vscode/
 .DS_Store
 Thumbs.db
+*.tmp
+*.log
+reports/local/
+.peer-checkouts/
+*.tgz
+*.tar.gz

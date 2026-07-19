@@ -4,111 +4,84 @@
   "title": "Fates Lock",
   "description": "Records exact compatible checkpoints across the Fates ecosystem.",
   "type": "object",
-  "required": ["schemaVersion", "compatibilitySetId", "protocol", "repositories"],
+  "required": [
+    "schemaVersion",
+    "compatibilitySetId",
+    "snapshotPath",
+    "updatedAt",
+    "sealStatus",
+    "integrationLevel",
+    "protocol",
+    "repositories"
+  ],
   "properties": {
-    "$schema": {
-      "type": "string"
-    },
-    "schemaVersion": {
-      "type": "string",
-      "description": "Version of this schema."
-    },
-    "compatibilitySetId": {
-      "type": "string",
-      "description": "Identifier for this compatibility set."
-    },
+    "$schema": { "type": "string" },
+    "_note": { "type": "string" },
+    "schemaVersion": { "type": "string" },
+    "compatibilitySetId": { "type": "string" },
+    "snapshotPath": { "type": "string" },
+    "previousCompatibilitySet": { "type": ["string", "null"] },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "sealStatus": { "type": "string", "enum": ["provisional", "sealed", "superseded"] },
+    "integrationLevel": { "type": "string", "enum": ["inspection_only", "partial_runtime", "runtime_validated"] },
     "protocol": {
       "type": "object",
       "required": ["current", "minimum", "maximum"],
       "properties": {
-        "current": {
-          "type": "string",
-          "pattern": "^\\d+\\.\\d+\\.\\d+$"
-        },
-        "minimum": {
-          "type": "string",
-          "pattern": "^\\d+\\.\\d+\\.\\d+$"
-        },
-        "maximum": {
-          "type": "string",
-          "pattern": "^\\d+\\.\\d+\\.\\d+$"
-        }
+        "current": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+        "minimum": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+        "maximum": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" }
       },
       "additionalProperties": false
     },
     "repositories": {
       "type": "object",
-      "additionalProperties": {
-        "type": "object",
-        "required": ["url", "commit", "checkpointState", "role"],
-        "properties": {
-          "url": {
-            "type": "string",
-            "format": "uri",
-            "pattern": "^https://"
-          },
-          "tag": {
-            "type": ["string", "null"]
-          },
-          "commit": {
-            "type": "string",
-            "pattern": "^[0-9a-f]{40}$"
-          },
-          "checkpointState": {
-            "type": "string",
-            "enum": ["sealed_tagged", "pushed_untagged", "planned", "superseded"]
-          },
-          "package": {
-            "type": "string"
-          },
-          "artifact": {
-            "type": "object",
-            "required": ["url", "sha256"],
-            "properties": {
-              "url": {
-                "type": "string",
-                "format": "uri",
-                "pattern": "^https://"
-              },
-              "sha256": {
-                "type": "string",
-                "pattern": "^[0-9a-f]{64}$"
-              }
-            },
-            "additionalProperties": false
-          },
-          "role": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "if": {
-          "properties": {
-            "checkpointState": {
-              "const": "sealed_tagged"
-            }
-          }
-        },
-        "then": {
-          "required": ["tag"],
-          "properties": {
-            "tag": {
-              "type": "string",
-              "minLength": 1
-            }
-          }
-        }
+      "required": ["adrasteia", "ananke", "mnemosyne", "horae", "moirae-code"],
+      "additionalProperties": false,
+      "properties": {
+        "adrasteia": { "$ref": "#/$defs/repositoryEntry" },
+        "ananke": { "$ref": "#/$defs/repositoryEntry" },
+        "mnemosyne": { "$ref": "#/$defs/repositoryEntry" },
+        "horae": { "$ref": "#/$defs/repositoryEntry" },
+        "moirae-code": { "$ref": "#/$defs/repositoryEntry" }
       }
     },
-    "notes": {
-      "type": "string"
-    },
-    "knownLimits": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    }
+    "notes": { "type": "string" },
+    "knownLimits": { "type": "array", "items": { "type": "string" } }
   },
-  "additionalProperties": false
+  "additionalProperties": false,
+  "$defs": {
+    "repositoryEntry": {
+      "type": "object",
+      "required": ["url", "commit", "checkpointState", "role"],
+      "properties": {
+        "url": { "type": "string", "pattern": "^https://github\\.com/hourwise/Project-[A-Za-z-]+$" },
+        "tag": { "type": ["string", "null"] },
+        "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "checkpointState": { "type": "string", "enum": ["sealed_tagged", "pushed_untagged", "planned", "superseded"] },
+        "package": { "type": "string" },
+        "artifact": {
+          "type": "object",
+          "required": ["url", "sha256"],
+          "properties": {
+            "url": { "type": "string", "pattern": "^https://" },
+            "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+          },
+          "additionalProperties": false
+        },
+        "role": { "type": "string" }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": { "properties": { "checkpointState": { "const": "sealed_tagged" } } },
+          "then": { "required": ["tag"], "properties": { "tag": { "type": "string", "minLength": 1 } } }
+        },
+        {
+          "if": { "properties": { "checkpointState": { "const": "pushed_untagged" } } },
+          "then": { "properties": { "tag": { "type": "null" } } }
+        }
+      ]
+    }
+  }
 }
