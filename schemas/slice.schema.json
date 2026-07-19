@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "./slice.schema.json",
+  "title": "Slice Record",
+  "description": "Records a vertical integration slice in the Fates ecosystem.",
+  "type": "object",
+  "required": ["sliceId", "title", "status", "objective"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "sliceId": {
+      "type": "string",
+      "pattern": "^(FATES-SLICE-\\d{3}|_template)$"
+    },
+    "title": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["template", "planned", "active", "completed", "superseded"]
+    },
+    "objective": {
+      "type": "string"
+    },
+    "owners": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "repositoriesInvolved": {
+      "type": "array"
+    },
+    "startingCheckpoints": {
+      "type": "object"
+    },
+    "contractChanges": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "repositoryOrder": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "requiredConsumerTests": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "integrationTests": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "breakingChanges": {
+      "type": "array"
+    },
+    "deferredWork": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "stopConditions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "finalEvidence": {
+      "type": "object",
+      "properties": {
+        "acceptance": {
+          "type": "string"
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

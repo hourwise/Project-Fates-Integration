@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "./active-slice.schema.json",
+  "title": "Active Slice",
+  "description": "Records the currently active vertical integration slice.",
+  "type": "object",
+  "required": ["status", "activeSliceId", "baselineCompatibilitySet"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["idle", "active"]
+    },
+    "activeSliceId": {
+      "type": ["string", "null"]
+    },
+    "baselineCompatibilitySet": {
+      "type": "string"
+    },
+    "nextRecommendedSlice": {
+      "type": "string"
+    },
+    "activationRequirements": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "if": {
+    "properties": {
+      "status": {
+        "const": "idle"
+      }
+    }
+  },
+  "then": {
+    "properties": {
+      "activeSliceId": {
+        "type": "null"
+      }
+    }
+  },
+  "else": {
+    "properties": {
+      "activeSliceId": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

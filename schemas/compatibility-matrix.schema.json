@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "./compatibility-matrix.schema.json",
+  "title": "Compatibility Matrix",
+  "description": "Records vertical integration slice compatibility across the Fates ecosystem.",
+  "type": "object",
+  "required": ["compatibilitySetId", "rows"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "compatibilitySetId": {
+      "type": "string"
+    },
+    "rows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["sliceId", "title", "status"],
+        "properties": {
+          "sliceId": {
+            "type": "string",
+            "pattern": "^FATES-SLICE-\\d{3}$"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["planned", "active", "implemented_with_inspection_limits", "completed", "superseded"]
+          },
+          "compatibilitySet": {
+            "type": "string"
+          },
+          "repositories": {
+            "type": "object"
+          },
+          "explicitLimits": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

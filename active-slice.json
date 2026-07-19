@@ -1,0 +1,14 @@
+{
+  "$schema": "./schemas/active-slice.schema.json",
+  "status": "idle",
+  "activeSliceId": null,
+  "baselineCompatibilitySet": "fates-stage-a-2026-07",
+  "nextRecommendedSlice": "FATES-SLICE-002",
+  "activationRequirements": {
+    "acceptedScope": "Define the governed action handoff scope before activation.",
+    "ownerOrder": "Obtain explicit owner approval to activate this slice.",
+    "acceptanceCriteria": "Document the acceptance criteria that must be met to seal this slice.",
+    "startingCheckpoints": "Confirm the starting checkpoints from fates-lock.json for all involved repositories.",
+    "userAuthorisation": "Obtain explicit user authorisation to begin implementation."
+  }
+}

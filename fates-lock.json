@@ -1,0 +1,59 @@
+{
+  "$schema": "./schemas/fates-lock.schema.json",
+  "schemaVersion": "1.0.0",
+  "compatibilitySetId": "fates-stage-a-2026-07",
+  "protocol": {
+    "current": "1.4.0",
+    "minimum": "1.0.0",
+    "maximum": "1.4.0"
+  },
+  "repositories": {
+    "adrasteia": {
+      "url": "https://github.com/hourwise/Project-Adrasteia",
+      "tag": "adrasteia-adoption-v0.4.0-protocol-1.4.0",
+      "commit": "124b6aee2629a3147739934ad5f1b45b32c8ba46",
+      "checkpointState": "sealed_tagged",
+      "package": "project-runtime-contracts@0.4.0",
+      "artifact": {
+        "url": "https://github.com/hourwise/Project-Adrasteia/releases/download/adrasteia-adoption-v0.4.0-protocol-1.4.0/project-runtime-contracts-0.4.0.tgz",
+        "sha256": "11ee062b079f74d2a4558af315c9b9b12a6aede291d409c48f038d93c416e2c2"
+      },
+      "role": "portable-representation"
+    },
+    "ananke": {
+      "url": "https://github.com/hourwise/Project-Ananke",
+      "tag": "ananke-adrasteia-adoption-v0.1.0-protocol-1.4.0",
+      "commit": "dcbb115c5798072221afdd2e4fdd36e786defddf",
+      "checkpointState": "sealed_tagged",
+      "role": "action-authority"
+    },
+    "mnemosyne": {
+      "url": "https://github.com/hourwise/Project-Mnemosyne",
+      "tag": "mnemosyne-adrasteia-adoption-v0.1.0-protocol-1.4.0",
+      "commit": "f4ab76a9760f856d78908d35facceb068d78c8e5",
+      "checkpointState": "sealed_tagged",
+      "role": "memory-provenance"
+    },
+    "horae": {
+      "url": "https://github.com/hourwise/Project-Horae",
+      "tag": "horae-adrasteia-adoption-v0.1.0-protocol-1.4.0",
+      "commit": "52e14fa574f7427f62747fe84d2789aec25b94e3",
+      "checkpointState": "sealed_tagged",
+      "role": "discovery-composition"
+    },
+    "moirae-code": {
+      "url": "https://github.com/hourwise/Project-Moirae-Code",
+      "tag": null,
+      "commit": "a4783db271a61848c66ac4f6652a539bdb515e28",
+      "checkpointState": "pushed_untagged",
+      "role": "governed-host"
+    }
+  },
+  "notes": "Stage-A compatibility set. Establishes the Adrasteia portable representation baseline across all Fates. No complete governed execution, qualified memory handoff, durable recovery, or content preflight is available in this set.",
+  "knownLimits": [
+    "No complete governed execution path",
+    "No qualified memory handoff",
+    "No durable idempotency or recovery",
+    "No content preflight capability"
+  ]
+}

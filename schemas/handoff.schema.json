@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "./handoff.schema.json",
+  "title": "Handoff Packet",
+  "description": "Records a repository handoff within a vertical integration slice.",
+  "type": "object",
+  "required": ["sliceId", "repository", "startingCommit", "pushStatus"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "_note": {
+      "type": "string"
+    },
+    "sliceId": {
+      "type": "string"
+    },
+    "repository": {
+      "type": "string"
+    },
+    "startingCommit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "endingCommit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "tag": {
+      "type": ["string", "null"]
+    },
+    "protocol": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "contractsUsed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "publicSurfacesAddedOrChanged": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "explicitlyUnavailableSurfaces": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "breakingChanges": {
+      "type": "array"
+    },
+    "migrationNotes": {
+      "type": "string"
+    },
+    "testsRun": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "consumerTestsRequired": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "knownConstraints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "pushStatus": {
+      "type": "string",
+      "enum": ["pushed", "not_pushed"]
+    },
+    "ciStatus": {
+      "type": "string"
+    },
+    "worktreeState": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

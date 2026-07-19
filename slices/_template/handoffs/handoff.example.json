@@ -1,0 +1,21 @@
+{
+  "$schema": "../../../schemas/handoff.schema.json",
+  "_note": "This is template data, not real evidence. Do not use as acceptance proof.",
+  "sliceId": "FATES-SLICE-NNN",
+  "repository": "example-repository",
+  "startingCommit": "0000000000000000000000000000000000000000",
+  "endingCommit": "0000000000000000000000000000000000000000",
+  "tag": "example-tag-v0.0.0",
+  "protocol": "1.4.0",
+  "contractsUsed": ["project-runtime-contracts@0.0.0"],
+  "publicSurfacesAddedOrChanged": ["Describe any new or changed public API surfaces."],
+  "explicitlyUnavailableSurfaces": ["Describe any surfaces that are explicitly unavailable."],
+  "breakingChanges": [],
+  "migrationNotes": "Describe any migration steps required.",
+  "testsRun": ["List tests that were executed."],
+  "consumerTestsRequired": ["List tests that consumers must run."],
+  "knownConstraints": ["List known constraints or limitations."],
+  "pushStatus": "pushed",
+  "ciStatus": "passing",
+  "worktreeState": "clean"
+}

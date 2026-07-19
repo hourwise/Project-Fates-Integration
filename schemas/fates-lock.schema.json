@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "./fates-lock.schema.json",
+  "title": "Fates Lock",
+  "description": "Records exact compatible checkpoints across the Fates ecosystem.",
+  "type": "object",
+  "required": ["schemaVersion", "compatibilitySetId", "protocol", "repositories"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "type": "string",
+      "description": "Version of this schema."
+    },
+    "compatibilitySetId": {
+      "type": "string",
+      "description": "Identifier for this compatibility set."
+    },
+    "protocol": {
+      "type": "object",
+      "required": ["current", "minimum", "maximum"],
+      "properties": {
+        "current": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "minimum": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "maximum": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "repositories": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["url", "commit", "checkpointState", "role"],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://"
+          },
+          "tag": {
+            "type": ["string", "null"]
+          },
+          "commit": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{40}$"
+          },
+          "checkpointState": {
+            "type": "string",
+            "enum": ["sealed_tagged", "pushed_untagged", "planned", "superseded"]
+          },
+          "package": {
+            "type": "string"
+          },
+          "artifact": {
+            "type": "object",
+            "required": ["url", "sha256"],
+            "properties": {
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "pattern": "^https://"
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "role": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "if": {
+          "properties": {
+            "checkpointState": {
+              "const": "sealed_tagged"
+            }
+          }
+        },
+        "then": {
+          "required": ["tag"],
+          "properties": {
+            "tag": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string"
+    },
+    "knownLimits": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false
+}

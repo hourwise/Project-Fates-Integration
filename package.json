@@ -1,0 +1,19 @@
+{
+  "name": "project-fates-integration",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Lightweight control repository for the Fates ecosystem — records exact compatible checkpoints, vertical integration slices, handoff packets, acceptance evidence, and anti-drift rules.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "test": "node --test",
+    "validate:json": "node scripts/validate-json.mjs",
+    "verify:lock": "node scripts/verify-fates-lock.mjs",
+    "verify:matrix": "node scripts/verify-compatibility-matrix.mjs",
+    "verify:slices": "node scripts/verify-slices.mjs",
+    "verify:boundaries": "node scripts/verify-boundaries.mjs",
+    "validate": "node scripts/validate.mjs"
+  }
+}

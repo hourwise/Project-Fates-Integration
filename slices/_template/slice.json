@@ -1,0 +1,21 @@
+{
+  "$schema": "../../../schemas/slice.schema.json",
+  "sliceId": "_template",
+  "title": "Slice Template",
+  "status": "template",
+  "objective": "Describe the vertical slice objective in one or two sentences.",
+  "owners": [],
+  "repositoriesInvolved": [],
+  "startingCheckpoints": {},
+  "contractChanges": [],
+  "repositoryOrder": [],
+  "requiredConsumerTests": [],
+  "integrationTests": [],
+  "breakingChanges": [],
+  "deferredWork": [],
+  "stopConditions": [],
+  "finalEvidence": {
+    "acceptance": "",
+    "limitations": []
+  }
+}

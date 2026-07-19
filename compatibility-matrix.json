@@ -1,0 +1,80 @@
+{
+  "$schema": "./schemas/compatibility-matrix.schema.json",
+  "compatibilitySetId": "fates-stage-a-2026-07",
+  "rows": [
+    {
+      "sliceId": "FATES-SLICE-001",
+      "title": "Adrasteia Stage-A adoption",
+      "status": "implemented_with_inspection_limits",
+      "compatibilitySet": "fates-stage-a-2026-07",
+      "repositories": {
+        "adrasteia": {
+          "url": "https://github.com/hourwise/Project-Adrasteia",
+          "tag": "adrasteia-adoption-v0.4.0-protocol-1.4.0",
+          "commit": "124b6aee2629a3147739934ad5f1b45b32c8ba46",
+          "checkpointState": "sealed_tagged",
+          "role": "portable-representation — defines the runtime contracts package"
+        },
+        "ananke": {
+          "url": "https://github.com/hourwise/Project-Ananke",
+          "tag": "ananke-adrasteia-adoption-v0.1.0-protocol-1.4.0",
+          "commit": "dcbb115c5798072221afdd2e4fdd36e786defddf",
+          "checkpointState": "sealed_tagged",
+          "role": "action-authority — adopts Adrasteia contracts"
+        },
+        "mnemosyne": {
+          "url": "https://github.com/hourwise/Project-Mnemosyne",
+          "tag": "mnemosyne-adrasteia-adoption-v0.1.0-protocol-1.4.0",
+          "commit": "f4ab76a9760f856d78908d35facceb068d78c8e5",
+          "checkpointState": "sealed_tagged",
+          "role": "memory-provenance — adopts Adrasteia contracts"
+        },
+        "horae": {
+          "url": "https://github.com/hourwise/Project-Horae",
+          "tag": "horae-adrasteia-adoption-v0.1.0-protocol-1.4.0",
+          "commit": "52e14fa574f7427f62747fe84d2789aec25b94e3",
+          "checkpointState": "sealed_tagged",
+          "role": "discovery-composition — adopts Adrasteia contracts"
+        },
+        "moirae-code": {
+          "url": "https://github.com/hourwise/Project-Moirae-Code",
+          "tag": null,
+          "commit": "a4783db271a61848c66ac4f6652a539bdb515e28",
+          "checkpointState": "pushed_untagged",
+          "role": "governed-host — inspection-only reference"
+        }
+      },
+      "explicitLimits": [
+        "No complete governed execution",
+        "No qualified memory handoff",
+        "No durable recovery",
+        "No content preflight"
+      ]
+    },
+    {
+      "sliceId": "FATES-SLICE-002",
+      "title": "Governed action handoff",
+      "status": "planned"
+    },
+    {
+      "sliceId": "FATES-SLICE-003",
+      "title": "Qualified context retrieval",
+      "status": "planned"
+    },
+    {
+      "sliceId": "FATES-SLICE-004",
+      "title": "Governed execution",
+      "status": "planned"
+    },
+    {
+      "sliceId": "FATES-SLICE-005",
+      "title": "Persistent idempotency and recovery",
+      "status": "planned"
+    },
+    {
+      "sliceId": "FATES-SLICE-006",
+      "title": "Content preflight",
+      "status": "planned"
+    }
+  ]
+}
