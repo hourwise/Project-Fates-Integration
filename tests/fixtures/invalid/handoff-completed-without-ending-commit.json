@@ -1,0 +1,15 @@
+{
+  "schemaKey": "handoff",
+  "expectedKeyword": "required",
+  "document": {
+    "sliceId": "FATES-SLICE-002",
+    "repository": "ananke",
+    "handoffStatus": "completed",
+    "startingCommit": "1111111111111111111111111111111111111111",
+    "tag": "ananke-slice-002",
+    "testsRun": ["npm test"],
+    "pushStatus": "pushed",
+    "ciStatus": "passing",
+    "worktreeState": "clean"
+  }
+}

@@ -38,7 +38,8 @@
       "then": {
         "required": ["nextRecommendedSlice"],
         "properties": {
-          "activeSliceId": { "type": "string", "pattern": "^FATES-SLICE-\\d{3}$" }
+          "activeSliceId": { "type": "string", "pattern": "^FATES-SLICE-\\d{3}$" },
+          "nextRecommendedSlice": { "type": "string", "pattern": "^FATES-SLICE-\\d{3}$" }
         }
       }
     }

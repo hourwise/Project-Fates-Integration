@@ -1,0 +1,18 @@
+{
+  "schemaKey": "compatibility-matrix",
+  "expectedKeyword": "type",
+  "document": {
+    "compatibilitySetId": "fixture-baseline",
+    "rows": [
+      {
+        "sliceId": "FATES-SLICE-002",
+        "title": "Invalid planned slice",
+        "implementationStatus": "planned",
+        "sealStatus": "provisional",
+        "integrationLevel": null,
+        "compatibilitySet": "fixture-baseline",
+        "repositories": {}
+      }
+    ]
+  }
+}
