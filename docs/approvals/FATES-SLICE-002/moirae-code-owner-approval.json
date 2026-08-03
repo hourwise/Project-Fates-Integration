@@ -1,0 +1,24 @@
+{
+  "sliceId": "FATES-SLICE-002",
+  "repository": "hourwise/Project-Moirae-Code",
+  "designDocument": "docs/ADR-XXXX-constrained-governed-action-request-and-result-host.md",
+  "mergedDesignCommit": "bc48c25a1a5f793d69f38b3a7a2c05e50c9427d6",
+  "mergeCommit": "9a5de8461b96db2cdb7bb85343cb48a60b5e4eb0",
+  "approverIdentity": "hourwise repository owner (explicit user authorization)",
+  "approvalDate": "2026-08-03",
+  "decision": "APPROVED",
+  "acceptedObligations": [
+    "Expose a constrained action-only host for fates.slice02.inspect-fixed-fixture.v1 and call Horae only.",
+    "Never fall back to Ananke, read the fixture locally, expose arbitrary IPC, or derive action/location input from environment or model content.",
+    "Obtain trusted host and dual-principal context outside action/model content and initiate one correlation ID.",
+    "Present typed route, authority, digest, correlation, producer-ID, and limitation evidence without rewriting Horae or Ananke decisions.",
+    "Disable or prove absent direct fixture, direct Ananke, provider/network, shell/task/child-process, and sibling-import surfaces for the constrained harness."
+  ],
+  "conditions": [],
+  "unresolvedIssues": [],
+  "review": {
+    "pullRequest": "https://github.com/hourwise/Project-Moirae-Code/pull/1",
+    "hostedValidation": "https://github.com/hourwise/Project-Moirae-Code/actions/runs/30808660658"
+  },
+  "approvalStatement": "The repository owner approves the stated Moirae Code design obligations only. This record does not implement or activate Slice 02."
+}

@@ -1,0 +1,40 @@
+{
+  "sliceId": "FATES-SLICE-002",
+  "manifestKind": "fixed-fixture-and-request-schema",
+  "manifestVersion": "1",
+  "activatesSlice": false,
+  "action": "fates.slice02.inspect-fixed-fixture.v1",
+  "fixture": {
+    "fixtureId": "fates.slice02.fixed-fixture.v1",
+    "ownerRepository": "hourwise/Project-Ananke",
+    "ownerRepositoryLocation": "packages/runtime-core/fixtures/fates-slice-002/fates.slice02.fixed-fixture.v1.txt",
+    "creationRule": "Create this exact UTF-8, no-BOM, LF-only, 43-byte text at the Ananke implementation checkpoint: FATES-SLICE-002\\nfixed-fixture\\nread-only\\nv1\\n",
+    "encoding": "UTF-8 without BOM",
+    "lineEnding": "LF",
+    "byteLength": 43,
+    "maximumSizeBytes": 4096,
+    "sha256": "7b28f52d84b07bed8b49650960607e8f8a9809cac299810aba691f7f52fe9ae8",
+    "filesystemRules": [
+      "must be a regular file",
+      "must not be a symlink, junction, hard-link substitution, or directory",
+      "must resolve only through the exact Ananke-local allowlist",
+      "must be read only by the Ananke bounded adapter on the governed route"
+    ]
+  },
+  "requestSchema": {
+    "schemaId": "urn:fates:slice02:inspect-fixed-fixture-request:v1",
+    "schemaVersion": "1",
+    "canonicalization": "UTF-8 bytes of the compact canonical JSON string below, with no trailing newline; object members appear in the displayed order.",
+    "canonicalJson": "{\"$id\":\"urn:fates:slice02:inspect-fixed-fixture-request:v1\",\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"additionalProperties\":false,\"properties\":{\"expectedSha256\":{\"pattern\":\"^[0-9a-f]{64}$\",\"type\":\"string\"},\"fixtureId\":{\"const\":\"fates.slice02.fixed-fixture.v1\",\"type\":\"string\"}},\"required\":[\"fixtureId\",\"expectedSha256\"],\"type\":\"object\"}",
+    "sha256": "db1864fdc4978d6befb4b6d3913461e4f2d2732dd0ca87e076977ab98cf6049c",
+    "acceptedProperties": [
+      "fixtureId",
+      "expectedSha256"
+    ],
+    "additionalProperties": false,
+    "expectedFixtureId": "fates.slice02.fixed-fixture.v1",
+    "expectedSha256Pattern": "^[0-9a-f]{64}$"
+  },
+  "integrationEvidenceCopy": "Integration retains this manifest, the schema digest, the expected fixture digest, and later evidence attachments only. It does not receive, host, or read a runtime fixture file.",
+  "implementationBoundary": "The physical fixture file is deliberately created only during the later Ananke implementation checkpoint. This manifest is documentation-only and does not create runtime bytes now."
+}

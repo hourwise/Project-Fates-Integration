@@ -1,0 +1,23 @@
+{
+  "sliceId": "FATES-SLICE-002",
+  "decisionKind": "initial-local-test-timeouts",
+  "decision": "APPROVED",
+  "activatesSlice": false,
+  "valuesMs": {
+    "moiraeToHoraeConnection": 500,
+    "horaeAnankeReadinessInspection": 750,
+    "horaeToAnankeRequest": 2500,
+    "totalRoundTripHardTimeout": 5000,
+    "readinessFreshnessMaximumAge": 1000,
+    "warmLocalP95Target": 1000
+  },
+  "semantics": [
+    "A failed Moirae-to-Horae connection is unavailable and does not create a direct-Ananke fallback.",
+    "Horae must finish its immediate Ananke inspection within 750 ms and refuse when the observation is older than 1,000 ms at dispatch.",
+    "The Horae-to-Ananke request limit is 2,500 ms, bounded in all cases by the 5,000 ms total round-trip hard timeout.",
+    "After confirmed dispatch, missing authoritative result becomes timed_out or indeterminate, never completed and never retried.",
+    "The warm-local p95 value is a test target, not a production SLO, availability promise, or authorization condition."
+  ],
+  "scope": "initial local harness values only",
+  "changeControl": "Any change requires all five owners to approve a replacement design decision before implementation evidence may claim conformance."
+}

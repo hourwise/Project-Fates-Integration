@@ -1,0 +1,55 @@
+{
+  "sliceId": "FATES-SLICE-002",
+  "decisionKind": "implementation-authorization",
+  "activatesSlice": false,
+  "designBaseline": {
+    "integrationDesignCommit": "bd1d211ff70a3718504bb171c08e617836cdfcd5",
+    "integrationMergeCommit": "a5c35043f420f36e76db8b7c9246a15e025d2a9f",
+    "anankeDesignCommit": "86eb983fbd16cefb3218f438d2f44a246b27c5d0",
+    "anankeMergeCommit": "a1ee37339dbb032f151120f2c342b82c324b0238",
+    "horaeDesignCommit": "c07b6300b1e5e7dcc3f977b1e6638b1f25d60b52",
+    "horaeMergeCommit": "b591bc688b64308a28bd958377dfdee2f2441985",
+    "moiraeCodeDesignCommit": "bc48c25a1a5f793d69f38b3a7a2c05e50c9427d6",
+    "moiraeCodeMergeCommit": "9a5de8461b96db2cdb7bb85343cb48a60b5e4eb0",
+    "adrasteiaAssessmentCommit": "bbf240b1fdcb9be1dbd30b13d2fe2708a22ec7b8",
+    "adrasteiaMergeCommit": "f9eeb25076e0a590f13c7bed6c8de8c9a363ce1b"
+  },
+  "ownerApprovals": {
+    "ananke": "docs/approvals/FATES-SLICE-002/ananke-owner-approval.json",
+    "horae": "docs/approvals/FATES-SLICE-002/horae-owner-approval.json",
+    "moiraeCode": "docs/approvals/FATES-SLICE-002/moirae-code-owner-approval.json",
+    "adrasteia": "docs/approvals/FATES-SLICE-002/adrasteia-owner-approval.json",
+    "integration": "docs/approvals/FATES-SLICE-002/integration-owner-approval.json"
+  },
+  "crossOwnerConsistency": "PASS",
+  "resolvedApprovalDetails": {
+    "processAttestation": "docs/decisions/FATES-SLICE-002-process-attestation-decision.json",
+    "fixtureSchemaDigestManifest": "docs/decisions/FATES-SLICE-002-fixture-schema-digest-manifest.json",
+    "timeoutDecision": "docs/decisions/FATES-SLICE-002-timeout-decision.json",
+    "acceptanceEvidenceMatrix": "docs/reviews/FATES-SLICE-002-acceptance-evidence-matrix.md"
+  },
+  "decision": "AUTHORIZED_TO_PREPARE_ACTIVATION",
+  "conditions": [
+    "This authorizes preparation of a later activation proposal only; it does not authorize runtime implementation, activate the Slice, edit peer repositories, or advance checkpoints.",
+    "Before any activation request, the owner implementation checkpoints, handoff packets, real three-process proof, cross-runtime acceptance evidence, and a separate explicit user-authorized activation task are required."
+  ],
+  "implementationOrder": [
+    "Integration evidence freeze",
+    "Ananke bounded adapter",
+    "Horae handoff and relay",
+    "Moirae constrained host",
+    "Integration cross-runtime proof"
+  ],
+  "explicitExclusions": [
+    "Slice activation",
+    "runtime implementation",
+    "slices/002-* creation",
+    "active-slice.json modification",
+    "fates-lock or compatibility advancement",
+    "snapshots or component checkpoint advancement",
+    "package or protocol version change",
+    "generic filesystem, direct Moirae-to-Ananke, retry, persistence, workflow, provider, browser, shell, credential, or global-governance expansion"
+  ],
+  "runtimeContractsChangeApproved": false,
+  "sliceRemainsInactive": true
+}

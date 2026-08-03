@@ -1,0 +1,24 @@
+{
+  "sliceId": "FATES-SLICE-002",
+  "repository": "hourwise/Project-Horae",
+  "designDocument": "docs/ADR-XXXX-fail-closed-governed-action-handoff-and-result-relay.md",
+  "mergedDesignCommit": "c07b6300b1e5e7dcc3f977b1e6638b1f25d60b52",
+  "mergeCommit": "b591bc688b64308a28bd958377dfdee2f2441985",
+  "approverIdentity": "hourwise repository owner (explicit user authorization)",
+  "approvalDate": "2026-08-03",
+  "decision": "APPROVED",
+  "acceptedObligations": [
+    "Use separate local processes over loopback HTTP, with Horae as the sole Moirae-to-Ananke relay.",
+    "Immediately reinspect Ananke identity, endpoint, registration, capability, protocol, health, and readiness; reject an observation older than 1,000 ms.",
+    "Reject identity, endpoint, capability, protocol, registration, health, readiness, origin, and schema drift before dispatch.",
+    "Relay typed outcomes without making an authority decision or physically reading the fixture.",
+    "Provide no retry, persistence, or workflow semantics and retain distinct route/event IDs with the initiating correlation."
+  ],
+  "conditions": [],
+  "unresolvedIssues": [],
+  "review": {
+    "pullRequest": "https://github.com/hourwise/Project-Horae/pull/1",
+    "hostedValidation": "https://github.com/hourwise/Project-Horae/actions/runs/30808665074"
+  },
+  "approvalStatement": "The repository owner approves the stated Horae design obligations only. This record does not implement or activate Slice 02."
+}

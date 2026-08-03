@@ -1,0 +1,24 @@
+{
+  "sliceId": "FATES-SLICE-002",
+  "repository": "hourwise/Project-Fates-Integration",
+  "designDocument": "docs/design/FATES-SLICE-002-runtime-boundary-resolution.md",
+  "mergedDesignCommit": "bd1d211ff70a3718504bb171c08e617836cdfcd5",
+  "mergeCommit": "a5c35043f420f36e76db8b7c9246a15e025d2a9f",
+  "approverIdentity": "hourwise repository owner (explicit user authorization)",
+  "approvalDate": "2026-08-03",
+  "decision": "APPROVED",
+  "acceptedObligations": [
+    "Use evidence-first order: Integration evidence freeze, Ananke adapter, Horae handoff/relay, Moirae constrained host, then Integration real proof.",
+    "Require the exact cross-runtime acceptance matrix; mocks cannot prove the real route.",
+    "Require clean, pushed, green owner checkpoints and handoff packets before each consumer and final proof.",
+    "Prevent lock advancement or sealing before proof; retain the provisional versus sealed distinction.",
+    "Limit the governance claim to the controlled route and preserve explicit bypass disclosures."
+  ],
+  "conditions": [],
+  "unresolvedIssues": [],
+  "review": {
+    "pullRequest": "https://github.com/hourwise/Project-Fates-Integration/pull/3",
+    "hostedValidation": "https://github.com/hourwise/Project-Fates-Integration/actions/runs/30808662080"
+  },
+  "approvalStatement": "The repository owner approves the stated Integration design obligations only. This record does not implement or activate Slice 02."
+}
