@@ -49,7 +49,7 @@
   ],
   "stopConditions": [
     "All Fates have adopted the Adrasteia contracts package",
-    "All tags and commits are pushed and recorded",
+    "All required commits are pushed and recorded; any missing checkpoint tag is explicitly recorded as provisional",
     "fates-lock.json is updated with exact checkpoints",
     "Compatibility matrix reflects the completed slice"
   ],

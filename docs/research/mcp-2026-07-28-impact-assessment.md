@@ -19,6 +19,10 @@ Baseline: [MCP 2026-07-28](https://modelcontextprotocol.io/specification/2026-07
 - Deprecates Roots, Sampling, Logging, legacy HTTP+SSE and Dynamic Client Registration under the stated minimum twelve-month window; DCR is moving toward Client ID Metadata Documents.
 - Adds an extension framework, OAuth Client Credentials and Enterprise-Managed Authorization; hardens issuer/audience/resource rules.
 
+### Official documentation consistency caveat
+
+The current core specification describes a stateless base protocol with self-contained requests and per-request capability negotiation, and the OAuth Client Credentials guide now declares client extension support in per-request metadata and recommends server advertisement through `server/discover`. However, the same core overview still says extensions are negotiated “during initialization,” while current SDK examples retain `connect`/client abstractions that may conceal version-dependent behaviour. Treat extension negotiation and SDK behaviour as feature- and version-dependent until confirmed against the extension schema, conformance suite and pinned SDK implementations. A legacy/modern label alone is insufficient; the compatibility matrix must record initialization, discovery, per-request metadata and each extension independently.
+
 ## 2. Current repository dependencies on pre-2026-07-28 MCP semantics
 
 Ananke's adapter imports `Client`/`StdioClientTransport` from `@modelcontextprotocol/sdk` resolved to `1.29.0` and uses connection/list/call patterns with legacy test servers (`server-everything` and `server-memory` `2026.1.26`). No modern `server/discover`, per-request capability metadata, MRTR, cache fields, routing headers or Tasks code was found.
@@ -113,4 +117,4 @@ Use the `SEC-26-*` cases in [the security catalogue](./fates-security-test-catal
 
 ## 13. Whether this blocks the next integration slice
 
-It blocks any slice whose goal is modern/remote/headless MCP execution or a claim of current-MCP compatibility. It does not block documentation, local contract-neutral cleanup, benchmark work or an explicitly legacy, non-consequential fixture. The next consequential cross-runtime slice should wait for the version-support, action-fingerprint, discovery/origin and idempotency decisions so it is not immediately invalidated by the protocol migration.
+It blocks any slice whose goal is modern/remote/headless MCP execution or a claim of current-MCP compatibility. It does not block documentation, local contract-neutral cleanup, benchmark work, or the next narrow transport-neutral Moirae/Horae → Ananke action-decision round trip. That slice must preserve origin/schema identity and correlation without claiming MCP 2026-07-28 compatibility. Version support, `server/discover`, routing headers, MRTR/Tasks and headless authorization become blocking only when the slice enables or claims those capability classes; persistent idempotency becomes blocking before any retryable external effect.

@@ -35,6 +35,19 @@ describe('slice verification', () => {
     assert.strictEqual(slice.sealStatus, 'provisional');
   });
 
+  it('Slice 001 completion conditions preserve its provisional seal', () => {
+    const slice = JSON.parse(readFileSync(resolve(root, 'slices/001-stage-a-adoption/slice.json'), 'utf-8'));
+    assert.ok(
+      slice.stopConditions.includes(
+        'All required commits are pushed and recorded; any missing checkpoint tag is explicitly recorded as provisional',
+      ),
+    );
+    assert.ok(
+      !slice.stopConditions.includes('All tags and commits are pushed and recorded'),
+      'a provisional slice must not claim every checkpoint tag exists',
+    );
+  });
+
   it('slice directory name matches sliceId', () => {
     const slice = JSON.parse(readFileSync(resolve(root, 'slices/001-stage-a-adoption/slice.json'), 'utf-8'));
     assert.strictEqual(slice.sliceId, 'FATES-SLICE-001');
