@@ -1,0 +1,17 @@
+{
+  "schemaKey": "active-slice",
+  "expectedKeyword": "type",
+  "document": {
+    "status": "active",
+    "activeSliceId": null,
+    "baselineCompatibilitySet": "fixture-baseline",
+    "nextRecommendedSlice": "FATES-SLICE-002",
+    "activationRequirements": {
+      "acceptedScope": "fixture",
+      "ownerOrder": "fixture",
+      "acceptanceCriteria": "fixture",
+      "startingCheckpoints": "fixture",
+      "userAuthorisation": "fixture"
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "schemaKey": "slice",
+  "expectedKeyword": "required",
+  "document": {
+    "sliceId": "FATES-SLICE-002",
+    "title": "Invalid completed slice",
+    "implementationStatus": "completed",
+    "sealStatus": "provisional",
+    "integrationLevel": "partial_runtime",
+    "objective": "Fixture deliberately omits completed-slice evidence."
+  }
+}
