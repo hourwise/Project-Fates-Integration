@@ -1,0 +1,124 @@
+{
+  "proposal": "FATES-SLICE-002",
+  "reviewKind": "owner-and-feasibility-review",
+  "reviewOnly": true,
+  "baseline": {
+    "integrationMain": "e2404b2693d8c82443af0ae77125a0518566d707",
+    "proposalCommit": "1f40cba94efe7a42c309f159a72eee314c39ae5e",
+    "adrasteia": "124b6aee2629a3147739934ad5f1b45b32c8ba46",
+    "ananke": "dcbb115c5798072221afdd2e4fdd36e786defddf",
+    "horae": "52e14fa574f7427f62747fe84d2789aec25b94e3",
+    "mnemosyne": "f4ab76a9760f856d78908d35facceb068d78c8e5",
+    "moiraeCode": "a4783db271a61848c66ac4f6652a539bdb515e28"
+  },
+  "decision": "BLOCKED_BY_MISSING_RUNTIME_BOUNDARY",
+  "decisionRationale": "Ananke can host a bounded local fixture adapter, but the pinned Horae and Moirae Code surfaces are inspection-only and contain no real dispatch, forwarding, or result-relay boundary for the required route.",
+  "preferredTopology": {
+    "status": "NONE_CURRENTLY_VIABLE",
+    "reason": "No existing topology crosses Moirae Code to Horae to Ananke without bypassing Horae, using a mock/direct package shortcut, or broadening the bounded fixture authority."
+  },
+  "runtimeContractsChangeRequired": false,
+  "contractAssessment": "Existing Adrasteia types cover identity, dual principals, bounded scope, capability/action identifiers, correlation, protocol compatibility, readiness and generic results. Route-specific origin/schema receipts and Ananke decision details remain domain-local unless a demonstrated multi-runtime structural gap is approved.",
+  "blockingFindings": [
+    {
+      "id": "F002-HORAE-001",
+      "owner": "Horae",
+      "finding": "The Ananke and gateway bindings expose inspect() only; SessionOrchestrator is validation/composition only and has no dispatch or result relay.",
+      "activationImpact": "Horae cannot honestly participate in the claimed route or enforce fresh readiness at dispatch."
+    },
+    {
+      "id": "F002-MOIRAE-001",
+      "owner": "Moirae Code",
+      "finding": "Stage-A Ananke mutation and Horae session methods explicitly fail closed; the extension and IPC surfaces are inspection-only/scaffolded.",
+      "activationImpact": "No constrained request origin or typed result receiver exists."
+    },
+    {
+      "id": "F002-ANANKE-001",
+      "owner": "Ananke",
+      "finding": "The Gateway has a generic executor pipeline but no registered fixed-fixture adapter that performs one controlled read and post-read digest verification.",
+      "activationImpact": "The candidate action cannot yet prove Ananke controls the physical read."
+    },
+    {
+      "id": "F002-EVIDENCE-001",
+      "owner": "Integration",
+      "finding": "No cross-runtime harness currently proves origin/schema binding, freshness before dispatch, correlation/producer preservation, or route-specific bypass closure.",
+      "activationImpact": "The six activation gates cannot receive real evidence."
+    }
+  ],
+  "requiredProposalChanges": [],
+  "requiredOwnerApprovals": [
+    "Horae owner approval for one bounded, non-durable governed-action handoff/relay boundary, including selected transport, delegation, freshness and failure semantics.",
+    "Ananke owner approval for the exact registered action, Ananke-owned immutable fixture, policy treatment, read-attempt audit and post-read digest enforcement.",
+    "Moirae Code owner approval for a restricted test host that calls Horae only and exposes remaining bypass limitations.",
+    "Adrasteia owner confirmation that no portable contract change is currently required, with escalation only for a proven shared structural gap.",
+    "Integration owner approval of acceptance evidence, negative tests, checkpoint/handoff requirements and later sealing conditions."
+  ],
+  "minimumRepositoryOrder": [
+    "Integration: freeze expected fixture digest and acceptance evidence without becoming a runtime fixture or transport.",
+    "Ananke: implement and test a local fixed-fixture adapter behind the existing authority gateway; publish a clean, green checkpoint and handoff packet.",
+    "Horae: implement and test the narrowly approved, fail-closed dispatch/readiness/relay boundary against the Ananke checkpoint; publish a clean, green checkpoint and handoff packet.",
+    "Moirae Code: implement and test a constrained origin/result host that uses Horae only; publish a clean, green checkpoint and handoff packet.",
+    "Integration: run real cross-runtime positive and negative proof against exact checkpoints before any compatibility-state advancement."
+  ],
+  "activationState": {
+    "sliceActivated": false,
+    "activeSliceModified": false,
+    "runtimeImplementationOccurred": false,
+    "peerRepositoriesModified": false,
+    "runtimeContractsModified": false
+  },
+  "evidence": [
+    {
+      "repository": "Project Ananke",
+      "commit": "dcbb115c5798072221afdd2e4fdd36e786defddf",
+      "sources": [
+        "packages/runtime-core/src/index.ts",
+        "packages/authority-engine/src/canonical-hash.ts",
+        "packages/policy-engine/src/policy-engine.ts",
+        "docs/ADR-0029-CHOKEPOINT-ENFORCEMENT.md"
+      ],
+      "finding": "Policy denial returns before executor invocation; a generic registered executor exists, but no fixed-fixture adapter exists."
+    },
+    {
+      "repository": "Project Horae",
+      "commit": "52e14fa574f7427f62747fe84d2789aec25b94e3",
+      "sources": [
+        "packages/ananke-binding/src/index.ts",
+        "packages/gateway-adapter/src/index.ts",
+        "packages/session-orchestrator/src/index.ts",
+        "docs/runtime-integration.md"
+      ],
+      "finding": "Inspection, registration, readiness and composition exist; action dispatch and result relay do not."
+    },
+    {
+      "repository": "Project Moirae Code",
+      "commit": "a4783db271a61848c66ac4f6652a539bdb515e28",
+      "sources": [
+        "integrations/ananke-client/src/index.ts",
+        "integrations/horae-client/src/index.ts",
+        "apps/moirae-core-extension/src/extension.ts",
+        "docs/governed-path.md"
+      ],
+      "finding": "Stage-A is an inspection host; mutation/session operations fail closed and bypass surfaces remain documented."
+    },
+    {
+      "repository": "Project Adrasteia",
+      "commit": "124b6aee2629a3147739934ad5f1b45b32c8ba46",
+      "sources": [
+        "src/identity/Principal.ts",
+        "src/protocol/Correlation.ts",
+        "src/runtime/RuntimeReadiness.ts",
+        "src/results/Result.ts"
+      ],
+      "finding": "Portable structural vocabulary is available; it is not a transport or policy implementation."
+    },
+    {
+      "repository": "Project Mnemosyne",
+      "commit": "f4ab76a9760f856d78908d35facceb068d78c8e5",
+      "sources": [
+        "README.md"
+      ],
+      "finding": "Memory is intentionally out of scope for this no-memory-dependency candidate."
+    }
+  ]
+}
