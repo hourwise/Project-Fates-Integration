@@ -1,0 +1,21 @@
+{
+  "draftKind": "proposed-active-slice-state",
+  "proposalOnly": true,
+  "activatesSlice": false,
+  "targetPath": "active-slice.json",
+  "schemaPath": "schemas/active-slice.schema.json",
+  "proposedDocument": {
+    "$schema": "./schemas/active-slice.schema.json",
+    "status": "active",
+    "activeSliceId": "FATES-SLICE-002",
+    "baselineCompatibilitySet": "fates-stage-a-2026-07",
+    "nextRecommendedSlice": "FATES-SLICE-003",
+    "activationRequirements": {
+      "acceptedScope": "Freeze and implement only the approved local three-process fates.slice02.inspect-fixed-fixture.v1 route under the merged owner designs and activation evidence.",
+      "ownerOrder": "Integration evidence freeze, then Ananke checkpoint and accepted handoff, then Horae checkpoint and accepted handoff, then Moirae Code checkpoint and accepted handoff, then Integration real proof.",
+      "acceptanceCriteria": "Satisfy every case and evidence field in docs/reviews/FATES-SLICE-002-acceptance-evidence-matrix.md using exact checkpointed artifacts; mocks cannot prove the route.",
+      "startingCheckpoints": "Use Stage-A fates-stage-a-2026-07 as the architectural baseline and the merged default-branch design commits recorded in docs/activation/FATES-SLICE-002-activation-proposal.md as implementation branch bases.",
+      "userAuthorisation": "A separate explicit user instruction must approve the activation transaction after all remaining conditions in docs/activation/FATES-SLICE-002-activation-readiness-decision.json are resolved."
+    }
+  }
+}

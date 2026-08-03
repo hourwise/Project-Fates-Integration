@@ -1,0 +1,239 @@
+{
+  "draftKind": "proposed-live-slice-record",
+  "proposalOnly": true,
+  "activatesSlice": false,
+  "targetPath": "slices/002-governed-action-round-trip/slice.json",
+  "schemaPath": "schemas/slice.schema.json",
+  "schemaAssessment": {
+    "currentProjectionValid": true,
+    "fullProposedDocumentValidAgainstCurrentSchema": false,
+    "classification": "LOCAL_SCHEMA_EXTENSION_REQUIRED",
+    "missingFields": [
+      "nonGoals",
+      "requiredHandoffs",
+      "activationEvidence"
+    ]
+  },
+  "proposedDocument": {
+    "$schema": "../../schemas/slice.schema.json",
+    "sliceId": "FATES-SLICE-002",
+    "title": "Governed action-decision round trip",
+    "implementationStatus": "active",
+    "sealStatus": "provisional",
+    "integrationLevel": null,
+    "objective": "Implement and prove one exact harmless read-only action from a constrained Moirae Code process through a fail-closed Horae loopback HTTP relay to Ananke authority and its immutable fixture, then return typed evidence while preserving identity, readiness, correlation, producer IDs, and route limitations.",
+    "nonGoals": [
+      "No general filesystem, caller path, URI, or command capability.",
+      "No credentials, provider, browser, shell, child process, arbitrary IPC, workflow, persistence, retry, memory dependency, fallback, or external effect.",
+      "No direct Moirae-to-Ananke route and no fixture read by Horae, Moirae, Integration, or a helper.",
+      "No global Moirae governance claim.",
+      "No Runtime Contracts, package, or protocol version change.",
+      "No lock, compatibility set, checkpoint, completion, or sealing claim at activation."
+    ],
+    "owners": [
+      "Fates Integration",
+      "Project Ananke",
+      "Project Horae",
+      "Project Moirae Code",
+      "Project Adrasteia"
+    ],
+    "repositoriesInvolved": [
+      {
+        "name": "fates-integration",
+        "url": "https://github.com/hourwise/Project-Fates-Integration",
+        "role": "evidence freeze, checkpoint gating, and real cross-runtime proof; no runtime implementation"
+      },
+      {
+        "name": "ananke",
+        "url": "https://github.com/hourwise/Project-Ananke",
+        "role": "sole action authority, immutable fixture owner, physical reader, and authoritative decision/outcome/audit producer"
+      },
+      {
+        "name": "horae",
+        "url": "https://github.com/hourwise/Project-Horae",
+        "role": "sole fail-closed Moirae-to-Ananke relay, identity/readiness admission owner, and route-event producer"
+      },
+      {
+        "name": "moirae-code",
+        "url": "https://github.com/hourwise/Project-Moirae-Code",
+        "role": "constrained action-only client host and typed result/limitation presenter"
+      },
+      {
+        "name": "adrasteia",
+        "url": "https://github.com/hourwise/Project-Adrasteia",
+        "role": "unchanged portable-contract baseline and review authority only; no implementation branch"
+      }
+    ],
+    "startingCheckpoints": {
+      "architecturalCompatibilitySet": "fates-stage-a-2026-07",
+      "architectural": {
+        "adrasteia": "124b6aee2629a3147739934ad5f1b45b32c8ba46",
+        "ananke": "dcbb115c5798072221afdd2e4fdd36e786defddf",
+        "mnemosyne": "f4ab76a9760f856d78908d35facceb068d78c8e5",
+        "horae": "52e14fa574f7427f62747fe84d2789aec25b94e3",
+        "moiraeCode": "a4783db271a61848c66ac4f6652a539bdb515e28"
+      },
+      "implementationBranchBases": {
+        "integration": "26b19e97468c0c660ef3ea4ed32f75cec84a4dee",
+        "ananke": "a1ee37339dbb032f151120f2c342b82c324b0238",
+        "horae": "b591bc688b64308a28bd958377dfdee2f2441985",
+        "moiraeCode": "9a5de8461b96db2cdb7bb85343cb48a60b5e4eb0",
+        "adrasteia": "f9eeb25076e0a590f13c7bed6c8de8c9a363ce1b"
+      }
+    },
+    "contractChanges": [],
+    "repositoryOrder": [
+      "Integration freezes expected evidence on codex/slice-002-cross-runtime-proof and publishes the Ananke handoff.",
+      "Ananke implements on codex/slice-002-bounded-read-implementation only after accepting the Integration freeze; its tagged checkpoint and handoff gate Horae.",
+      "Horae implements on codex/slice-002-governed-handoff-implementation only after accepting Ananke; its tagged checkpoint and handoff gate Moirae Code.",
+      "Moirae Code implements on codex/slice-002-constrained-host-implementation only after accepting Horae; its tagged checkpoint and handoff gate Integration proof.",
+      "Integration runs real three-process proof only against the three exact accepted artifacts."
+    ],
+    "requiredHandoffs": [
+      "Integration evidence freeze to Ananke",
+      "Ananke checkpoint to Horae",
+      "Horae checkpoint to Moirae Code",
+      "Moirae Code checkpoint to Integration",
+      "Final Integration evidence set to all owners"
+    ],
+    "requiredConsumerTests": [
+      "Ananke strict action, two-field schema, authority binding, one-read, digest, typed audit, and zero-read denial tests.",
+      "Horae identity, registration, compatibility, fresh-readiness, drift, dispatch, relay, timeout, indeterminate, correlation, producer-ID, and no-read tests.",
+      "Moirae exact-action host, no direct fallback/read, typed presentation, correlation/producer, attestation, and bypass-disclosure tests."
+    ],
+    "integrationTests": [
+      "positive-completed-read",
+      "denied-zero-read",
+      "malformed-extra-argument",
+      "digest-mismatch",
+      "principal-scope-purpose-policy-mutation",
+      "stale-readiness",
+      "startup-race",
+      "incompatible-protocol",
+      "ananke-identity-endpoint-drift",
+      "schema-origin-mutation",
+      "timeout",
+      "indeterminate-post-dispatch-loss",
+      "correlation-preservation",
+      "producer-id-preservation",
+      "no-direct-moirae-ananke-fallback",
+      "no-non-ananke-fixture-read",
+      "bypass-limitation-report"
+    ],
+    "breakingChanges": [],
+    "deferredWork": [
+      "Global Moirae host governance",
+      "Remote OAuth and MCP migration",
+      "Workflow, persistence, retry, compensation, memory, and content preflight",
+      "Provider, browser, shell, credential, and general filesystem capabilities",
+      "Any Runtime Contracts, package, or protocol change",
+      "Compatibility lock advancement, completion, and sealing until later proof-backed decisions"
+    ],
+    "stopConditions": [
+      "Stop on baseline drift, dirty/unknown work, failed validation, unmerged design, withdrawn approval, or unresolved authority contradiction.",
+      "Stop if fixture/schema/attestation/timeout/acceptance evidence is not frozen.",
+      "Stop if the route requires direct Moirae-to-Ananke, non-Ananke fixture access, mock transport, sibling package shortcuts, caller paths, general authority, retry, persistence, workflow, provider, browser, shell, credentials, memory, or fallback.",
+      "Stop if a producer checkpoint is not clean, pushed, hosted-green, tagged, reproducible, owner-signed, and accepted by its consumer.",
+      "Suspend on any unauthorized/multiple read, identity/readiness failure, false success/retry, or hard-timeout failure that cannot be fixed without bypassing controls."
+    ],
+    "activationEvidence": [
+      "docs/decisions/FATES-SLICE-002-implementation-authorization.json",
+      "docs/reviews/FATES-SLICE-002-cross-owner-consistency-review.md",
+      "docs/reviews/FATES-SLICE-002-acceptance-evidence-matrix.md",
+      "docs/decisions/FATES-SLICE-002-process-attestation-decision.json",
+      "docs/decisions/FATES-SLICE-002-fixture-schema-digest-manifest.json",
+      "docs/decisions/FATES-SLICE-002-timeout-decision.json",
+      "docs/activation/FATES-SLICE-002-activation-readiness-decision.json"
+    ],
+    "finalEvidence": {
+      "acceptance": "Not yet available. Activation begins ordered implementation; completion requires accepted real three-process evidence and a separate compatibility transaction.",
+      "limitations": [
+        "No runtime route exists at activation.",
+        "Integration remains non-runtime.",
+        "The governance claim is limited to the controlled tested route.",
+        "Completion and sealing are separate later decisions."
+      ]
+    }
+  },
+  "schemaCompatibleProjection": {
+    "$schema": "../../schemas/slice.schema.json",
+    "sliceId": "FATES-SLICE-002",
+    "title": "Governed action-decision round trip",
+    "implementationStatus": "active",
+    "sealStatus": "provisional",
+    "integrationLevel": null,
+    "objective": "Implement and prove one exact harmless read-only action from a constrained Moirae Code process through a fail-closed Horae loopback HTTP relay to Ananke authority and its immutable fixture, then return typed evidence while preserving identity, readiness, correlation, producer IDs, and route limitations.",
+    "owners": [
+      "Fates Integration",
+      "Project Ananke",
+      "Project Horae",
+      "Project Moirae Code",
+      "Project Adrasteia"
+    ],
+    "repositoriesInvolved": [
+      {
+        "name": "fates-integration",
+        "url": "https://github.com/hourwise/Project-Fates-Integration",
+        "role": "evidence freeze, checkpoint gating, and real cross-runtime proof; no runtime implementation"
+      },
+      {
+        "name": "ananke",
+        "url": "https://github.com/hourwise/Project-Ananke",
+        "role": "sole action authority, immutable fixture owner, physical reader, and authoritative evidence producer"
+      },
+      {
+        "name": "horae",
+        "url": "https://github.com/hourwise/Project-Horae",
+        "role": "sole fail-closed relay and identity/readiness admission owner"
+      },
+      {
+        "name": "moirae-code",
+        "url": "https://github.com/hourwise/Project-Moirae-Code",
+        "role": "constrained action-only client and typed result/limitation presenter"
+      },
+      {
+        "name": "adrasteia",
+        "url": "https://github.com/hourwise/Project-Adrasteia",
+        "role": "unchanged portable-contract baseline and review authority only"
+      }
+    ],
+    "startingCheckpoints": {
+      "architecturalCompatibilitySet": "fates-stage-a-2026-07",
+      "implementationBranchBases": {
+        "integration": "26b19e97468c0c660ef3ea4ed32f75cec84a4dee",
+        "ananke": "a1ee37339dbb032f151120f2c342b82c324b0238",
+        "horae": "b591bc688b64308a28bd958377dfdee2f2441985",
+        "moiraeCode": "9a5de8461b96db2cdb7bb85343cb48a60b5e4eb0",
+        "adrasteia": "f9eeb25076e0a590f13c7bed6c8de8c9a363ce1b"
+      }
+    },
+    "contractChanges": [],
+    "repositoryOrder": [
+      "Integration evidence freeze",
+      "Ananke checkpoint and handoff",
+      "Horae checkpoint and handoff",
+      "Moirae Code checkpoint and handoff",
+      "Integration real proof"
+    ],
+    "requiredConsumerTests": [
+      "Owner component suites and the exact downstream tests in the implementation checkpoint plan."
+    ],
+    "integrationTests": [
+      "All 17 cases in docs/reviews/FATES-SLICE-002-acceptance-evidence-matrix.md against real checkpointed processes."
+    ],
+    "breakingChanges": [],
+    "deferredWork": [
+      "Every capability and state advancement excluded by the approved design and activation proposal."
+    ],
+    "stopConditions": [
+      "Every hard stop and suspension condition in docs/activation/FATES-SLICE-002-stop-and-suspension-conditions.md applies."
+    ],
+    "finalEvidence": {
+      "acceptance": "Not yet available; activation is not completion.",
+      "limitations": [
+        "No runtime route exists at activation.",
+        "The governance claim is route-specific only."
+      ]
+    }
+  }
+}

@@ -1,0 +1,136 @@
+{
+  "sliceId": "FATES-SLICE-002",
+  "decisionKind": "activation-proposal",
+  "activatesSlice": false,
+  "proposalOnly": true,
+  "currentState": {
+    "repository": "hourwise/Project-Fates-Integration",
+    "defaultBranch": "main",
+    "activeSliceStatus": "idle",
+    "activeSliceId": null,
+    "baselineMainCommit": "26b19e97468c0c660ef3ea4ed32f75cec84a4dee",
+    "baselineCompatibilitySet": "fates-stage-a-2026-07",
+    "slice01ImplementationStatus": "completed",
+    "slice01SealStatus": "provisional",
+    "slice01IntegrationLevel": "inspection_only",
+    "liveSlice02DirectoryExists": false,
+    "lockSha256": "92b4c630c10b3182c76ce89cf5c54ca0bd6eb6e77f4d92a4e2bae64d8737cdff",
+    "compatibilityMatrixSha256": "5cf2c87a5f22c8cd1f6cc28bd77fd5675d495bbccf62eb7f9f3e81202a5bf6a2",
+    "compatibilitySnapshotSha256": "b05e5beb34610f4b2f706051e2da2346363ccc419e0af5251f8fa2641019cd43"
+  },
+  "proposedState": {
+    "activeSliceStatus": "active",
+    "activeSliceId": "FATES-SLICE-002",
+    "baselineCompatibilitySet": "fates-stage-a-2026-07",
+    "nextRecommendedSlice": "FATES-SLICE-003",
+    "implementationStatus": "active",
+    "sealStatus": "provisional",
+    "integrationLevel": null
+  },
+  "approvedTopology": "moirae-http-horae-http-ananke",
+  "approvedAction": "fates.slice02.inspect-fixed-fixture.v1",
+  "implementationOrder": [
+    "integration-evidence-freeze",
+    "ananke-checkpoint",
+    "horae-checkpoint",
+    "moirae-code-checkpoint",
+    "integration-proof"
+  ],
+  "implementationBranchesAuthorizedOnlyByLaterActivation": {
+    "integration": "codex/slice-002-cross-runtime-proof",
+    "ananke": "codex/slice-002-bounded-read-implementation",
+    "horae": "codex/slice-002-governed-handoff-implementation",
+    "moiraeCode": "codex/slice-002-constrained-host-implementation",
+    "adrasteia": null,
+    "mnemosyne": null
+  },
+  "architecturalStartingBaseline": {
+    "compatibilitySet": "fates-stage-a-2026-07",
+    "adrasteia": "124b6aee2629a3147739934ad5f1b45b32c8ba46",
+    "ananke": "dcbb115c5798072221afdd2e4fdd36e786defddf",
+    "mnemosyne": "f4ab76a9760f856d78908d35facceb068d78c8e5",
+    "horae": "52e14fa574f7427f62747fe84d2789aec25b94e3",
+    "moiraeCode": "a4783db271a61848c66ac4f6652a539bdb515e28"
+  },
+  "implementationBranchStartingBaseline": {
+    "integration": "26b19e97468c0c660ef3ea4ed32f75cec84a4dee",
+    "ananke": "a1ee37339dbb032f151120f2c342b82c324b0238",
+    "horae": "b591bc688b64308a28bd958377dfdee2f2441985",
+    "moiraeCode": "9a5de8461b96db2cdb7bb85343cb48a60b5e4eb0",
+    "adrasteia": "f9eeb25076e0a590f13c7bed6c8de8c9a363ce1b"
+  },
+  "futureActivationDiff": {
+    "modify": [
+      "active-slice.json"
+    ],
+    "create": [
+      "slices/002-governed-action-round-trip/slice.json",
+      "slices/002-governed-action-round-trip/README.md",
+      "slices/002-governed-action-round-trip/acceptance.md",
+      "slices/002-governed-action-round-trip/handoffs/README.md"
+    ],
+    "mustRemainUnchanged": [
+      "fates-lock.json",
+      "compatibility-matrix.json",
+      "compatibility-sets/fates-stage-a-2026-07.json",
+      "slices/001-stage-a-adoption/slice.json",
+      "all peer repositories",
+      "all component checkpoints",
+      "all package versions",
+      "protocol version 1.4.0"
+    ]
+  },
+  "runtimeContractsChangeApproved": false,
+  "lockChangesOnActivation": false,
+  "compatibilityMatrixChangesOnActivation": false,
+  "compatibilitySetChangesOnActivation": false,
+  "checkpointChangesOnActivation": false,
+  "packageVersionChangesOnActivation": false,
+  "protocolVersionChangesOnActivation": false,
+  "activationAuthorized": false,
+  "activationReadinessDecision": "NOT_READY_OTHER",
+  "remainingActivationConditions": [
+    "Approve an explicit owner decision reconciling the merged proof-before-activation wording with activation as permission to begin ordered implementation.",
+    "Approve and implement a local slice-schema amendment for explicit non-goals, required handoffs, activation evidence, and any selected suspension representation, with positive and negative validator tests.",
+    "Approve and implement a local handoff-schema amendment for artifacts, dependencies, hosted CI, attachments, owner sign-off, and consumer authorization before any completed handoff packet is created."
+  ],
+  "hardStops": [
+    "baseline-drift-or-validation-failure",
+    "owner-design-unmerged-or-approval-withdrawn",
+    "authority-contradiction",
+    "fixture-schema-attestation-timeout-or-acceptance-evidence-unfrozen",
+    "required-runtime-contract-change-without-new-approval",
+    "live-state-schema-cannot-represent-activation-honestly",
+    "dirty-or-unknown-owner-worktree",
+    "unverifiable-owner-checkpoint-or-tag",
+    "direct-moirae-ananke-or-non-ananke-fixture-read",
+    "mock-or-package-shortcut-claimed-as-runtime-proof",
+    "caller-path-general-filesystem-retry-persistence-workflow-provider-browser-shell-credential-memory-or-fallback-expansion"
+  ],
+  "suspensionConditions": [
+    "owner-checkpoint-or-required-test-failure",
+    "design-scope-expansion",
+    "horae-or-ananke-bypass",
+    "caller-controlled-location-or-secret",
+    "retry-persistence-or-fallback-introduced",
+    "checkpoint-or-artifact-not-reproducible",
+    "readiness-identity-or-attestation-not-proven",
+    "unauthorized-or-multiple-fixture-read",
+    "direct-fallback-or-mock-becomes-necessary",
+    "hard-timeout-cannot-be-met-without-bypassing-controls"
+  ],
+  "evidence": [
+    "docs/design/FATES-SLICE-002-runtime-boundary-resolution.md",
+    "docs/reviews/FATES-SLICE-002-cross-owner-consistency-review.md",
+    "docs/reviews/FATES-SLICE-002-acceptance-evidence-matrix.md",
+    "docs/decisions/FATES-SLICE-002-process-attestation-decision.json",
+    "docs/decisions/FATES-SLICE-002-fixture-schema-digest-manifest.json",
+    "docs/decisions/FATES-SLICE-002-timeout-decision.json",
+    "docs/decisions/FATES-SLICE-002-implementation-authorization.json",
+    "docs/approvals/FATES-SLICE-002/ananke-owner-approval.json",
+    "docs/approvals/FATES-SLICE-002/horae-owner-approval.json",
+    "docs/approvals/FATES-SLICE-002/moirae-code-owner-approval.json",
+    "docs/approvals/FATES-SLICE-002/adrasteia-owner-approval.json",
+    "docs/approvals/FATES-SLICE-002/integration-owner-approval.json"
+  ]
+}

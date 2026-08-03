@@ -14,6 +14,7 @@
     "verify:matrix": "node scripts/verify-compatibility-matrix.mjs",
     "verify:slices": "node scripts/verify-slices.mjs",
     "verify:boundaries": "node scripts/verify-boundaries.mjs",
+    "verify:activation-proposals": "node scripts/validate-activation-proposals.mjs",
     "validate": "node scripts/validate.mjs"
   },
   "devDependencies": {

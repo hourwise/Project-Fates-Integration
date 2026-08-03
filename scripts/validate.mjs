@@ -15,6 +15,7 @@ const steps = [
   { name: 'verify:matrix', script: 'scripts/verify-compatibility-matrix.mjs' },
   { name: 'verify:slices', script: 'scripts/verify-slices.mjs' },
   { name: 'verify:boundaries', script: 'scripts/verify-boundaries.mjs' },
+  { name: 'verify:activation-proposals', script: 'scripts/validate-activation-proposals.mjs' },
   { name: 'test', args: ['--test'], isTest: true },
 ];
 
