@@ -1,0 +1,83 @@
+{
+  "sliceId": "FATES-SLICE-002",
+  "decisionKind": "process-attestation",
+  "decision": "APPROVED_FOR_LOCAL_HARNESS_DESIGN",
+  "activatesSlice": false,
+  "scope": "local, three-process, test-only harness",
+  "topology": {
+    "moiraeCode": {
+      "role": "client-only constrained host",
+      "runtimeName": "Moirae Code",
+      "loopbackEndpoint": null
+    },
+    "horae": {
+      "role": "sole governed relay",
+      "runtimeName": "Horae",
+      "loopbackEndpoint": "http://127.0.0.1:48202",
+      "governedActionRouteComponent": "slice-02-governed-actions",
+      "readinessRouteComponent": "slice-02-readiness"
+    },
+    "ananke": {
+      "role": "sole authority and physical reader",
+      "runtimeName": "Ananke",
+      "loopbackEndpoint": "http://127.0.0.1:48201",
+      "executionRouteComponent": "api-execute",
+      "readinessRouteComponent": "api-readiness"
+    }
+  },
+  "routeComponentRule": "Each listed component names the one fixed HTTP route beneath its stated loopback origin. The implementation supplies the normal HTTP separator internally; no caller, model, action argument, environment value, or generic router selects a URI.",
+  "harnessManifest": {
+    "producer": "controlled Slice 02 harness",
+    "requiredPinnedFields": [
+      "runId",
+      "runtimeName",
+      "runtimeInstanceId",
+      "expectedGitCommit",
+      "artifactSha256",
+      "artifactCheckpointId",
+      "fixedLoopbackEndpoint",
+      "protocolRange",
+      "declaredSlice02Capability",
+      "requestSchemaId",
+      "requestSchemaSha256"
+    ],
+    "artifactVerification": "The harness computes artifactSha256 before each process starts and compares it, the exact owner checkpoint commit, runtime name, endpoint, protocol range, and capability declaration with its immutable per-run manifest.",
+    "selfDescriptionRule": "Runtime self-description is checked only against the harness-pinned manifest. It is not evidence by itself."
+  },
+  "pairAuthentication": {
+    "method": "per-run 256-bit pair capability with HMAC-SHA-256 challenge-response",
+    "pairs": [
+      "Moirae Code <-> Horae",
+      "Horae <-> Ananke"
+    ],
+    "secretDelivery": "The harness sends each pair capability after process start over a one-shot inherited anonymous OS pipe. The capability is retained in process memory only and is absent from command lines, environment variables, action arguments, model content, ordinary logs, and fixture content.",
+    "requestProof": "The caller sends runId, a fresh 128-bit client nonce, and HMAC(pairCapability, 'FATES-SLICE-002/attestation/v1|request|runId|nonce|method|path|sha256(requestBytes)').",
+    "responseProof": "The receiver returns its canonical identity payload and HMAC(pairCapability, 'FATES-SLICE-002/attestation/v1|response|runId|nonce|sha256(canonicalIdentityPayload)').",
+    "loggingRule": "Authentication headers and capability material are redacted before any ordinary log, relay evidence, or returned result is written."
+  },
+  "verification": {
+    "moiraeVerifiesHorae": [
+      "The listener is exactly http://127.0.0.1:48202 and proves knowledge of the Moirae-Horae pair capability.",
+      "The challenge-bound identity payload exactly matches the harness manifest for runtime name, runId, instance ID, commit, artifact digest, endpoint, protocol, capability, and request schema digest.",
+      "The Horae readiness observation is healthy, registered, complete, compatible, and no older than 1,000 ms."
+    ],
+    "horaeVerifiesAnanke": [
+      "The listener is exactly http://127.0.0.1:48201 and proves knowledge of the Horae-Ananke pair capability.",
+      "The challenge-bound identity payload exactly matches the harness manifest for runtime name, runId, instance ID, commit, artifact digest, endpoint, protocol, and exact action capability.",
+      "Immediately before dispatch, Ananke registration, readiness, health, compatibility, capability, and identity are rechecked and must be no older than 1,000 ms."
+    ]
+  },
+  "admissionInvalidators": [
+    "HMAC failure, missing proof, nonce reuse, or a runId mismatch",
+    "runtime, instance, commit, artifact digest, checkpoint, endpoint, protocol, capability, schema, or readiness mismatch",
+    "unexpected process restart, endpoint rebind, listener collision, identity drift, incomplete registration, unhealthy dependency, or freshness age above 1,000 ms",
+    "attempt to source a principal, capability, action value, fixture location, or attestation secret from model content or action arguments"
+  ],
+  "independentHarnessChecks": [
+    "Verify artifact digest before spawn and record the process ID, start time, fixed endpoint, and manifest digest.",
+    "Verify the one-shot pipe is delivered only to the expected process in the recorded run and is closed after delivery.",
+    "Attempt wrong-capability, wrong-run, stale-nonce, artifact-drift, endpoint-drift, and restart cases; each must fail before dispatch.",
+    "Assert that secret material is absent from action payloads, returned fixture content, and ordinary logs."
+  ],
+  "explicitNonDecision": "This local design does not introduce production PKI, transport credentials, a generic identity protocol, or a Runtime Contracts change. Loopback transport alone is never accepted as identity proof."
+}

@@ -1,0 +1,24 @@
+{
+  "sliceId": "FATES-SLICE-002",
+  "repository": "hourwise/Project-Ananke",
+  "designDocument": "docs/ADR-XXXX-bounded-registered-read-adapter-for-governed-fixture-inspection.md",
+  "mergedDesignCommit": "86eb983fbd16cefb3218f438d2f44a246b27c5d0",
+  "mergeCommit": "a1ee37339dbb032f151120f2c342b82c324b0238",
+  "approverIdentity": "hourwise repository owner (explicit user authorization)",
+  "approvalDate": "2026-08-03",
+  "decision": "APPROVED",
+  "acceptedObligations": [
+    "Register only fates.slice02.inspect-fixed-fixture.v1 with the strict fixtureId and expectedSha256 arguments.",
+    "Own immutable fixture bytes and perform the sole physical read with a one-read maximum.",
+    "Bind action, canonical arguments, trusted principals, bounded scope, purpose, policy version, validity, origin/schema receipt, expected digest, and correlation before invocation.",
+    "Deny before adapter invocation, verify the post-read digest, emit decision/outcome/audit evidence, and never substitute a generic filesystem surface.",
+    "Provide zero-read denial proof and clean green checkpoint/handoff evidence before Horae consumes the implementation."
+  ],
+  "conditions": [],
+  "unresolvedIssues": [],
+  "review": {
+    "pullRequest": "https://github.com/hourwise/Project-Ananke/pull/1",
+    "hostedValidation": "https://github.com/hourwise/Project-Ananke/actions/runs/30808661881"
+  },
+  "approvalStatement": "The repository owner approves the stated Ananke design obligations only. This record does not implement or activate Slice 02."
+}
