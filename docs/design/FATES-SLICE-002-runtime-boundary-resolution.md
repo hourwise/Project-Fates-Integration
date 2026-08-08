@@ -148,11 +148,29 @@ Each implementation checkpoint must include:
 | Unsupported action, no direct Ananke fallback, no local fixture read, typed UI and bypass limitations | Moirae Code | Assert host only calls Horae in the harness |
 | Positive end-to-end and all declared negative cases | All owners | Run one real process-boundary proof; do not substitute mocks |
 
-## 10. Conditions before activation, lock advancement, and sealing
+## 10. Sequencing of activation, implementation evidence, and sealing
 
-Slice 02 cannot be activated until all owners approve this design, each implementation has a clean green checkpoint/handoff, the real three-process proof passes, all six gates have evidence, route-specific bypasses are explicit, and the user separately authorizes activation.
+Activation is a separate decision before implementation. The activation
+decision must reference this approved design, the exact Stage-A baseline
+`fates-stage-a-2026-07` and its `fates-lock.json` checkpoints, the bounded
+scope, the acceptance criteria, the owner responsibilities, and explicit user
+authorization to begin implementation. It is the only point at which the
+already-approved `implementationOrder` becomes authorized. Planning completion,
+owner approval, readiness-checklist completion, or this design document alone
+cannot activate Slice 02 or authorize implementation.
 
-No lock or compatibility-state advancement is allowed before all consumer and Integration evidence is accepted. Sealing additionally requires the repository/tag/commit verification required by the Integration lock policy, exact artifact digests, hosted validation references, accepted handoff packets, and proof that the final route did not rely on mutable sibling source or a mock transport.
+The activation decision does not require implementation checkpoints, handoff
+packets, or real three-process proof to exist already. Those are
+post-activation deliverables produced in the stated order. After activation,
+each implementation checkpoint and handoff, the real three-process proof, all
+six gate results, and route-specific bypass evidence remain required before any
+lock or compatibility-state advancement. No checkpoint may advance out of
+order, and the Integration repository remains evidence-only.
+
+Sealing additionally requires the repository/tag/commit verification required
+by the Integration lock policy, exact artifact digests, hosted validation
+references, accepted handoff packets, and proof that the final route did not
+rely on mutable sibling source or a mock transport.
 
 ## 11. Explicit exclusions
 

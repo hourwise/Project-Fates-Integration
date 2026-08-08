@@ -74,13 +74,20 @@ Other major deferrals include production workload identity and credential broker
 
 ## Unresolved gates and discrepancies
 
-1. **Slice 02 activation sequencing is circular.** The workflow and readiness checklist require a separately approved active slice before implementation. The implementation-authorization record says no implementation is authorized and also lists implementation checkpoints and real proof as prerequisites to a later activation request. This must be reconciled explicitly; the audit does not choose an interpretation.
-2. **The runtime path is absent.** Ananke lacks the bounded fixture adapter; Horae lacks dispatch/relay; Moirae lacks the constrained request/result host; Integration lacks real three-process proof.
-3. **Stage A is provisional.** The locked Moirae checkpoint has no verified annotated tag.
-4. **Older Runtime Contracts prose is stale.** `adoption-baseline.md`, `contract-ownership.md`, and related historical text say no immutable baseline or downstream adoption exists. Current tags, artifact pins, manifests, integration lock, and consumer tests show Stage-A adoption occurred later.
-5. **Runtime Contracts version prose is stale.** `VERSIONING.md` labels protocol `1.4.0` unreleased even though the immutable `0.4.0`/protocol `1.4.0` artifact is now the adopted baseline.
-6. **Horae integration prose drifts from code.** `runtime-integration.md` says compatibility is exact string equality; current registry/adapter code performs semantic range negotiation.
-7. **Moirae prose drifts from code.** `governed-path.md` says the Ananke client can execute/approve/deny/audit and describes Horae client methods, but current Stage-A methods explicitly throw unsupported/unavailable errors.
-8. **Ananke README counts lag source/tests.** It advertises 108 tests/13 files; the audited suite discovered 119 tests/15 files. One full run timed out in a real MCP stdio test, then the focused file passed 4/4, indicating timing sensitivity rather than a resolved deterministic failure.
-9. **Current checkout state is not the locked baseline.** Ananke, Horae, Moirae Code, Runtime Contracts, and Integration are on later documentation/design branches/heads. Integration authority remains the exact Stage-A lock until a slice advances it.
-10. **Pre-existing local state exists.** Horae has a modified IDE cache and three untracked documents. The coordination context files and primary `AGENTS.md` were untracked at audit start. None was treated as accepted product state solely because it was local.
+1. **The runtime path is absent.** Ananke lacks the bounded fixture adapter; Horae lacks dispatch/relay; Moirae lacks the constrained request/result host; Integration lacks real three-process proof.
+2. **Stage A is provisional.** The locked Moirae checkpoint has no verified annotated tag.
+3. **Older Runtime Contracts prose is stale.** `adoption-baseline.md`, `contract-ownership.md`, and related historical text say no immutable baseline or downstream adoption exists. Current tags, artifact pins, manifests, integration lock, and consumer tests show Stage-A adoption occurred later.
+4. **Runtime Contracts version prose is stale.** `VERSIONING.md` labels protocol `1.4.0` unreleased even though the immutable `0.4.0`/protocol `1.4.0` artifact is now the adopted baseline.
+5. **Horae integration prose drifts from code.** `runtime-integration.md` says compatibility is exact string equality; current registry/adapter code performs semantic range negotiation.
+6. **Moirae prose drifts from code.** `governed-path.md` says the Ananke client can execute/approve/deny/audit and describes Horae client methods, but current Stage-A methods explicitly throw unsupported/unavailable errors.
+7. **Ananke README counts lag source/tests.** It advertises 108 tests/13 files; the audited suite discovered 119 tests/15 files. One full run timed out in a real MCP stdio test, then the focused file passed 4/4, indicating timing sensitivity rather than a resolved deterministic failure.
+8. **Current checkout state is not the locked baseline.** Ananke, Horae, Moirae Code, Runtime Contracts, and Integration are on later documentation/design branches/heads. Integration authority remains the exact Stage-A lock until a slice advances it.
+9. **Pre-existing local state exists.** Horae has a modified IDE cache and three untracked documents. The coordination context files and primary `AGENTS.md` were untracked at audit start. None was treated as accepted product state solely because it was local.
+
+The Slice 02 sequencing discrepancy is corrected in the workflow, design,
+readiness checklist, owner-approval review, consistency review, and
+implementation-authorization record: a separate explicit activation decision
+against the exact Stage-A lock authorizes the bounded implementation order;
+implementation checkpoints, handoffs, real proof, and acceptance evidence are
+post-activation requirements before lock advancement or sealing. Slice 02
+remains inactive until that decision is made.

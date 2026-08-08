@@ -53,5 +53,8 @@ this package and do not alter the bounded action, transport, authority split,
 or contract baseline.
 
 This result is not an activation decision. Slice 02 remains inactive until a
-later explicit user-authorized activation task accepts real implementation
-checkpoints and cross-runtime evidence.
+later explicit user-authorized activation task authorizes the already-approved
+bounded implementation sequence against the exact Stage-A baseline. The
+implementation checkpoints, handoff packets, real cross-runtime proof, and
+acceptance evidence are produced after that activation and remain required
+before lock advancement or sealing.

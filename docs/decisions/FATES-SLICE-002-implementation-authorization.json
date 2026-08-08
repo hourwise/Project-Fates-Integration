@@ -31,14 +31,31 @@
   "decision": "AUTHORIZED_TO_PREPARE_ACTIVATION",
   "conditions": [
     "This authorizes preparation of a later activation proposal only; it does not authorize runtime implementation, activate the Slice, edit peer repositories, or advance checkpoints.",
-    "Before any activation request, the owner implementation checkpoints, handoff packets, real three-process proof, cross-runtime acceptance evidence, and a separate explicit user-authorized activation task are required."
+    "A later separate explicit user-authorized activation decision, recorded against the approved design and the exact Stage-A baseline, is the only event that authorizes the bounded implementationOrder below. Planning completion, owner approval, readiness-checklist completion, or this record alone cannot activate Slice 02 or authorize implementation.",
+    "Owner implementation checkpoints, handoff packets, real three-process proof, and cross-runtime acceptance evidence are post-activation requirements before lock, matrix, snapshot, or seal advancement; they are not prerequisites to the activation decision."
   ],
+  "activationBoundary": {
+    "requiredDecision": "separate explicit user-authorized activation decision",
+    "baselineCompatibilitySet": "fates-stage-a-2026-07",
+    "mustRecord": [
+      "approved bounded scope and acceptance criteria",
+      "exact starting checkpoints from fates-lock.json",
+      "owner responsibilities and implementationOrder",
+      "explicit user authorization to begin implementation"
+    ],
+    "authorizes": "Only the implementationOrder in this record; it does not authorize lock advancement, sealing, Runtime Contracts changes, or any excluded capability."
+  },
   "implementationOrder": [
     "Integration evidence freeze",
     "Ananke bounded adapter",
     "Horae handoff and relay",
     "Moirae constrained host",
     "Integration cross-runtime proof"
+  ],
+  "postImplementationRequirements": [
+    "Each changed Fate produces a clean, pushed, green checkpoint and handoff packet in the stated order.",
+    "The real three-process positive and negative proof passes against exact checkpoints.",
+    "The frozen acceptance-evidence matrix and producer-owned evidence are accepted before lock or matrix advancement and sealing."
   ],
   "explicitExclusions": [
     "Slice activation",

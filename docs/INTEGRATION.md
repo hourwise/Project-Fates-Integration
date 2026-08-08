@@ -71,7 +71,7 @@ These were test-only commands. No builds, report generators, deployments, instal
 
 ## Unresolved integration gates
 
-1. Reconcile Slice 02's activation/implementation ordering: workflow requires activation before implementation, while the authorization record requires implementation evidence before a later activation request.
+1. Slice 02 remains pending a separate explicit activation decision against the exact `fates-stage-a-2026-07` lock. That decision authorizes only the approved bounded implementation order; implementation evidence is produced afterward.
 2. After an explicit, non-circular activation decision, the approved order is Integration evidence freeze → Ananke bounded adapter → Horae handoff/relay → Moirae constrained host → real Integration proof.
 3. Preserve exact producer ownership: Ananke alone reads the fixture and decides; Horae verifies/admits/dispatches/relays without authority; Moirae originates/renders without direct fallback; Integration only asserts evidence.
 4. Satisfy the future evidence matrix with pinned artifacts and real processes. Mocks cannot prove transport, identity attestation, physical-read count, or bypass closure.
