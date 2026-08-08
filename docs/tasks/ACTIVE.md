@@ -1,6 +1,6 @@
 # Active Task — Slice 02 Integration Evidence Freeze
 
-Status: ready for execution.
+Status: completed — Integration evidence baseline frozen; Ananke step not started.
 
 ## Objective
 
@@ -113,3 +113,44 @@ Record:
 - whether the evidence baseline is ready for the Ananke implementation step.
 
 Do not begin the Ananke implementation step.
+
+## Completion record
+
+Evidence artifacts frozen:
+
+- [`docs/decisions/FATES-SLICE-002-evidence-freeze.json`](../decisions/FATES-SLICE-002-evidence-freeze.json) — normative, machine-readable evidence contract, frozen at `2026-08-08T18:20:34.521Z`.
+- [`docs/reviews/FATES-SLICE-002-acceptance-evidence-matrix.md`](../reviews/FATES-SLICE-002-acceptance-evidence-matrix.md) — human-readable case matrix, explicitly marked frozen and linked to the contract.
+- [`docs/INDEX.md`](../INDEX.md), [`docs/INTEGRATION.md`](../INTEGRATION.md), [`docs/SOURCE_OF_TRUTH.md`](../SOURCE_OF_TRUTH.md), and the Slice 02 README now route to the frozen contract.
+
+Baseline and activation record used: activated `FATES-SLICE-002` against
+`fates-stage-a-2026-07`; the evidence contract records the exact lock and
+snapshot hashes, all five starting checkpoints, activation-record hash, scope,
+fixture digest, request-schema digest, and authority-document hashes.
+
+Proof obligations and owners: all six gates are frozen with named producers,
+required artifacts, covered cases, real-process requirements, and explicit
+mock-substitution rules. Ananke owns authority/read/digest/audit evidence;
+Horae owns admission/readiness/dispatch/relay/timing evidence; Moirae Code
+owns origin/host/presentation/bypass evidence; the controlled harness owns
+attestation, artifact-pinning and file-access evidence; Integration owns
+cross-runtime assertions and retention.
+
+Positive and negative cases: 17 cases are frozen — 3 positive/correlation
+cases and 14 denial, malformed, drift, timeout, indeterminate, no-fallback,
+no-non-Ananke-read, and bypass cases. The contract requires real three-process
+proof for route, handoff, attestation, physical-read, correlation, dispatch,
+and cross-runtime claims; owner-local mocks may only supplement parsing or
+rendering tests.
+
+Validation performed: activation/baseline/scope preconditions passed;
+component source contained no Slice 02 implementation markers; the exact
+lock/snapshot/checkpoint comparisons passed; `npm.cmd run validate` passed;
+the evidence contract parsed with 6 gates and 17 cases; and the protected
+lock, compatibility matrix, snapshot, checkpoints and seal claims were not
+advanced.
+
+Unresolved evidence questions: none in the frozen contract. Runtime evidence
+does not yet exist and remains a post-freeze implementation requirement.
+
+The evidence baseline is ready for the Ananke implementation step. Do not
+begin that step as part of this task.

@@ -54,7 +54,7 @@ Limits: schemas do not authenticate, authorize, execute, route, persist, select 
 
 ### Integration coordination
 
-Implemented: Stage-A lock/matrix/snapshot, boundary/schema validators, vertical-slice/checkpoint/handoff rules, and a detailed Slice 02 activation/planning package with owner approvals, a cross-owner consistency pass, local attestation/timeout decisions, and frozen future evidence cases.
+Implemented: Stage-A lock/matrix/snapshot, boundary/schema validators, vertical-slice/checkpoint/handoff rules, and a detailed Slice 02 activation/planning package with owner approvals, a cross-owner consistency pass, local attestation/timeout decisions, and a frozen pre-implementation evidence contract.
 
 Limits: activation/design evidence is not runtime evidence. Slice 02 has an active planning directory but no implementation checkpoints, handoff packets, three-process harness, or acceptance artifacts. The integration repository must not become a mock runtime or fixture reader.
 

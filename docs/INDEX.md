@@ -13,7 +13,7 @@
 - Workflow and checkpoints: [development-workflow.md](development-workflow.md), [checkpoint-policy.md](checkpoint-policy.md), [compatibility-policy.md](compatibility-policy.md)
 - Current compatibility control: [fates-lock.json](../fates-lock.json), [compatibility-matrix.json](../compatibility-matrix.json), [active-slice.json](../active-slice.json)
 - Stage-A evidence: [Slice 001](../slices/001-stage-a-adoption/README.md), [compatibility snapshot](../compatibility-sets/fates-stage-a-2026-07.json)
-- Slice 02 design/evidence: [boundary design](design/FATES-SLICE-002-runtime-boundary-resolution.md), [consistency review](reviews/FATES-SLICE-002-cross-owner-consistency-review.md), [acceptance matrix](reviews/FATES-SLICE-002-acceptance-evidence-matrix.md), [implementation authorization](decisions/FATES-SLICE-002-implementation-authorization.json)
+- Slice 02 design/evidence: [boundary design](design/FATES-SLICE-002-runtime-boundary-resolution.md), [consistency review](reviews/FATES-SLICE-002-cross-owner-consistency-review.md), [acceptance matrix](reviews/FATES-SLICE-002-acceptance-evidence-matrix.md), [evidence freeze](decisions/FATES-SLICE-002-evidence-freeze.json), [implementation authorization](decisions/FATES-SLICE-002-implementation-authorization.json)
 
 ## Component authorities
 

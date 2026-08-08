@@ -50,12 +50,13 @@ accepted.
 
 ## Acceptance evidence
 
-The frozen acceptance matrix remains authoritative. It requires positive and
-negative evidence for one-read/zero-read behavior, digest mismatch, canonical
-binding, readiness and identity drift, timeout/indeterminate handling,
-correlation and producer-ID preservation, no direct fallback, no non-Ananke
-fixture read, and explicit bypass limitations. Mocks cannot prove the real
-route.
+The [frozen acceptance matrix](../../docs/reviews/FATES-SLICE-002-acceptance-evidence-matrix.md)
+and its [machine-readable evidence contract](../../docs/decisions/FATES-SLICE-002-evidence-freeze.json)
+remain authoritative. They require positive and negative evidence for
+one-read/zero-read behavior, digest mismatch, canonical binding, readiness and
+identity drift, timeout/indeterminate handling, correlation and producer-ID
+preservation, no direct fallback, no non-Ananke fixture read, and explicit
+bypass limitations. Mocks cannot prove the real route.
 
 ## Remaining limitations
 

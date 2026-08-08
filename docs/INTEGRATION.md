@@ -52,7 +52,7 @@ Current evidence:
 
 - Stage-A owner adapters, immutable baseline JSON files, peer comparator/conformance tests, lock, snapshot, matrix, and Slice 001 handoffs.
 - Coordination validators check local dependency/boundary rules, lock/snapshot consistency, planned-slice restrictions, schema references, and negative fixtures.
-- Slice 02 has an activation decision, design authorities and owner approvals, a cross-owner consistency result of `PASS`, local process-attestation/timeout/schema-digest decisions, and a frozen future acceptance matrix. Its active slice record is planning evidence only.
+- Slice 02 has an activation decision, design authorities and owner approvals, a cross-owner consistency result of `PASS`, local process-attestation/timeout/schema-digest decisions, and a frozen pre-implementation evidence contract. Its active slice and evidence-freeze records are planning evidence only.
 
 Not current evidence:
 
