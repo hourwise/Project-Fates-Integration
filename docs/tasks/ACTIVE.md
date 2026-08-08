@@ -1,169 +1,124 @@
-# Active Task — Slice 02 Activation Sequencing Correction
+# Active Task — Slice 02 Activation Decision
 
-Status: complete; Slice 02 remains inactive and no implementation is authorized.
+Status: awaiting explicit user-authorized activation decision.
 
 ## Objective
 
-Remove the circular sequencing dependency in the approved Slice 02 planning
-and activation documents without changing the approved implementation scope,
-security boundaries, evidence requirements, checkpoint order, or component
-responsibilities.
+Perform the bounded activation of FATES-SLICE-002 against the exact
+`fates-stage-a-2026-07` baseline.
 
-This task prepares Slice 02 for an explicit activation decision.
+This task may update only the coordination/planning artifacts necessary to
+record activation.
 
-It does not activate Slice 02 and does not implement product code.
+It does not implement any component product code.
+
+## Authorization
+
+The user explicitly authorizes activation of FATES-SLICE-002 for the approved
+bounded implementation sequence described by the existing Slice 02 design and
+implementation-authorization package.
+
+This authorization applies only if all existing activation requirements remain
+satisfied at execution time.
 
 ## Required context
 
-Use `../INDEX.md` to locate only the material relevant to:
+Use `../INDEX.md` to locate the authoritative:
 
-- the Stage-A authoritative lock;
-- Slice 02 workflow and planning package;
+- Stage-A lock and compatibility-set baseline;
+- Slice 02 approved design;
+- owner approvals;
+- cross-owner consistency review;
 - implementation-authorization record;
-- activation requirements;
-- approval/evidence requirements;
-- checkpoint ordering;
-- bypass disclosures and lock protections.
+- readiness requirements;
+- activation workflow;
+- checkpoint policy.
 
-Consult `../SOURCE_OF_TRUTH.md`, `../SYSTEM_MAP.md`, and `../INTEGRATION.md`
-only where required to resolve authority or integration questions.
+Read only the material required to verify and record activation.
 
-Verify relevant source documents in the component repositories before changing
-coordination conclusions.
+## Required pre-activation verification
 
-## Problem to resolve
+Before changing activation state, verify that:
 
-The current Slice 02 documentation contains a sequencing conflict:
+1. Slice 02 is still inactive.
+2. `fates-stage-a-2026-07` remains the authoritative starting baseline.
+3. Starting component checkpoints still exactly match `fates-lock.json`.
+4. The five owner approval records remain present and applicable.
+5. Cross-owner consistency remains PASS.
+6. The approved scope remains only
+   `fates.slice02.inspect-fixed-fixture.v1`.
+7. No Runtime Contracts/package/protocol change has become necessary.
+8. No hard-stop condition in the approved readiness/design package is present.
+9. The provisional untagged Moirae checkpoint is recorded as a known baseline
+   limitation and is not represented as sealed.
 
-- the workflow requires Slice 02 activation before implementation begins;
-- the implementation-authorization material also references implementation
-  checkpoints and real proof as prerequisites to a later activation request.
+If any requirement is no longer satisfied, do not activate the Slice. Record
+the blocker and stop.
 
-This creates a circular dependency.
+## Activation work
 
-## Work
+If all pre-activation requirements pass:
 
-1. Identify the exact documents and clauses responsible for the sequencing
-   conflict.
-2. Determine the minimum correction that preserves the accepted Slice 02
-   architecture and governance model.
-3. Make activation clearly authorize the already-approved bounded
-   implementation sequence.
-4. Preserve all existing requirements for:
-   - explicit authorization;
-   - evidence and proof;
-   - bypass disclosure;
-   - checkpoint ordering;
-   - repository/component ownership;
-   - Stage-A lock integrity;
-   - fail-closed behaviour.
-5. Update affected coordination/planning documentation consistently.
-6. Record why the correction does not broaden implementation authority.
+1. Create/update only the coordination artifacts required by the established
+   activation workflow.
+2. Record:
+   - Slice ID `FATES-SLICE-002`;
+   - exact `fates-stage-a-2026-07` starting baseline;
+   - exact starting checkpoints from `fates-lock.json`;
+   - approved bounded scope and acceptance criteria;
+   - owner responsibilities;
+   - approved implementation order;
+   - explicit user authorization;
+   - known provisional Moirae checkpoint limitation.
+3. Change the active-slice planning state from idle to the appropriate active
+   Slice 02 state.
+4. Preserve the existing compatibility lock, compatibility-set snapshot and
+   completion/seal claims unchanged.
+5. Record that activation authorizes implementation only in this order:
+
+   Integration evidence freeze →
+   Ananke bounded adapter →
+   Horae handoff/relay →
+   Moirae constrained host →
+   Integration real proof.
 
 ## Acceptance criteria
 
 The task is complete when:
 
-- there is no circular activation/implementation prerequisite;
-- the point at which implementation becomes authorized is explicit;
-- activation cannot be inferred merely from planning completion;
-- post-implementation evidence remains required where originally intended;
-- component ownership and checkpoint ordering remain unchanged;
-- the exact Stage-A lock remains the activation baseline;
-- relevant document/link/coordination validators pass; and
-- the resulting package is ready for a separate explicit activation decision.
+- Slice 02 is explicitly and unambiguously active;
+- activation is traceable to this user authorization;
+- the exact starting lock/checkpoints are recorded;
+- scope and acceptance criteria remain unchanged;
+- no product implementation has occurred;
+- no Runtime Contracts change has occurred;
+- no lock/matrix/snapshot completion or sealing claim has advanced;
+- the provisional Stage-A/Moirae status remains accurately disclosed;
+- all coordination validators pass.
 
 ## Stop conditions
 
 Do not:
 
-- activate Slice 02;
-- implement the Ananke fixed-fixture adapter;
-- modify component product code;
-- change Runtime Contracts;
-- weaken approval or evidence requirements;
-- alter component ownership;
-- advance to another Slice 02 checkpoint;
-- treat completion of this task as user authorization.
+- implement the Ananke adapter;
+- modify any component repository;
+- begin Horae or Moirae implementation;
+- advance repository checkpoints;
+- advance `fates-lock.json`;
+- mark Slice 02 implemented/completed;
+- seal Stage A or Slice 02;
+- alter Runtime Contracts;
+- broaden the approved action or capability set.
 
 ## Completion record
 
-On completion, record:
+Record:
 
-- documents changed;
-- original circular dependency;
-- corrected sequencing model;
+- activation decision and timestamp;
+- exact baseline/checkpoints;
+- files changed;
 - validation performed;
-- remaining uncertainties;
-- whether the package is ready for an explicit activation decision.
+- remaining known limitations;
+- first authorized implementation task.
 
-Do not activate Slice 02 or begin implementation.
-
-## Completion record — 2026-08-08
-
-### Documents changed
-
-- `docs/development-workflow.md`
-- `docs/checkpoint-policy.md`
-- `docs/design/FATES-SLICE-002-runtime-boundary-resolution.md`
-- `docs/design/FATES-SLICE-002-owner-approval-checklist.md`
-- `docs/proposals/FATES-SLICE-002-readiness-checklist.md`
-- `docs/reviews/FATES-SLICE-002-cross-owner-consistency-review.md`
-- `docs/decisions/FATES-SLICE-002-implementation-authorization.json`
-- `docs/SOURCE_OF_TRUTH.md`
-- `docs/INTEGRATION.md`
-
-### Original circular dependency
-
-The general workflow placed implementation after activation, while the Slice
-02 design/readiness/authorization package treated owner implementation
-checkpoints, handoff packets, real three-process proof, and cross-runtime
-acceptance evidence as prerequisites to a later activation request.
-
-### Corrected sequencing model
-
-A separate explicit activation decision is now the only point that authorizes
-the already-approved bounded `implementationOrder`. That decision must record
-the approved scope, acceptance criteria, owner responsibilities, exact
-starting checkpoints from `fates-lock.json`, the `fates-stage-a-2026-07`
-baseline, and explicit user authorization to begin implementation. Planning
-completion, owner approvals, checklist completion, or the preparation record
-cannot activate Slice 02 or authorize implementation.
-
-The existing order remains unchanged: Integration evidence freeze → Ananke
-bounded adapter → Horae handoff/relay → Moirae constrained host → Integration
-real proof. Checkpoints, handoffs, consumer tests, real proof, bypass evidence,
-and the frozen acceptance matrix remain post-activation requirements before
-lock/matrix/snapshot advancement or sealing.
-
-### Validation performed
-
-- `npm.cmd run validate` — all JSON, lock, matrix, slice, boundary, and test
-  checks passed; 54 tests passed.
-- `git diff --check` — passed.
-- Markdown link-target scan — passed for the nine affected coordination
-  documents plus `docs/INDEX.md`.
-- Acceptance assertions — `active-slice.json` remains `idle` with
-  `activeSliceId: null`; the Stage-A lock, compatibility matrix, and snapshot
-  were not changed; implementation authorization still records
-  `activatesSlice: false` and `sliceRemainsInactive: true`.
-- Component-side source verification — the Ananke bounded-read ADR, Horae
-  handoff ADR/current inspection-only bindings, Moirae constrained-host ADR/
-  current fail-closed clients, and Runtime Contracts structural authorities
-  were checked. No component repository or product code was modified.
-
-### Remaining uncertainties and cross-component effects
-
-The runtime path is still absent: Ananke has no registered fixed-fixture
-adapter, Horae has no dispatch/relay boundary, Moirae has no constrained
-request/result host, and Integration has no real three-process proof. Stage A
-also remains provisional because the locked Moirae checkpoint is untagged.
-These are post-activation implementation/evidence concerns and were not
-resolved or broadened by this coordination correction. No cross-component
-behaviour or ownership changed, and no Runtime Contracts change is approved.
-
-### Readiness result
-
-The coordination package is ready for a separate explicit activation decision.
-This completion record is not that decision, does not activate Slice 02, and
-does not authorize implementation.
+Do not begin that implementation task.
