@@ -1,151 +1,115 @@
-# Active Task — Slice 02 Activation Decision
+# Active Task — Slice 02 Integration Evidence Freeze
 
-Status: completed — FATES-SLICE-002 activated; implementation not started.
+Status: ready for execution.
 
 ## Objective
 
-Perform the bounded activation of FATES-SLICE-002 against the exact
-`fates-stage-a-2026-07` baseline.
+Freeze the pre-implementation Integration evidence baseline for
+FATES-SLICE-002 before any component implementation begins.
 
-This task may update only the coordination/planning artifacts necessary to
-record activation.
+This task establishes the evidence contract against which the subsequent
+Ananke, Horae, Moirae Code and cross-runtime implementation work will be
+judged.
 
-It does not implement any component product code.
-
-## Authorization
-
-The user explicitly authorizes activation of FATES-SLICE-002 for the approved
-bounded implementation sequence described by the existing Slice 02 design and
-implementation-authorization package.
-
-This authorization applies only if all existing activation requirements remain
-satisfied at execution time.
+It does not implement product code.
 
 ## Required context
 
-Use `../INDEX.md` to locate the authoritative:
+Use `../INDEX.md` to locate only the authoritative material relevant to:
 
-- Stage-A lock and compatibility-set baseline;
-- Slice 02 approved design;
-- owner approvals;
-- cross-owner consistency review;
-- implementation-authorization record;
-- readiness requirements;
-- activation workflow;
-- checkpoint policy.
+- the Slice 02 activation decision;
+- the exact `fates-stage-a-2026-07` starting baseline;
+- the approved Slice 02 design and scope;
+- the acceptance-evidence matrix;
+- the six gates;
+- positive and negative cross-runtime cases;
+- producer ownership of evidence;
+- bypass disclosures;
+- checkpoint and handoff requirements.
 
-Read only the material required to verify and record activation.
+Read component repositories only where necessary to verify that an evidence
+requirement refers to an actual current boundary or planned owner.
 
-## Required pre-activation verification
+## Preconditions
 
-Before changing activation state, verify that:
+Before freezing evidence, verify that:
 
-1. Slice 02 is still inactive.
-2. `fates-stage-a-2026-07` remains the authoritative starting baseline.
-3. Starting component checkpoints still exactly match `fates-lock.json`.
-4. The five owner approval records remain present and applicable.
-5. Cross-owner consistency remains PASS.
+1. FATES-SLICE-002 is active.
+2. Its activation decision references the exact Stage-A baseline.
+3. `fates-lock.json` still matches the activated starting checkpoints.
+4. No component implementation for Slice 02 has begun.
+5. Runtime Contracts remain unchanged.
 6. The approved scope remains only
    `fates.slice02.inspect-fixed-fixture.v1`.
-7. No Runtime Contracts/package/protocol change has become necessary.
-8. No hard-stop condition in the approved readiness/design package is present.
-9. The provisional untagged Moirae checkpoint is recorded as a known baseline
-   limitation and is not represented as sealed.
 
-If any requirement is no longer satisfied, do not activate the Slice. Record
-the blocker and stop.
+If any precondition fails, record the discrepancy and stop.
 
-## Activation work
+## Work
 
-If all pre-activation requirements pass:
-
-1. Create/update only the coordination artifacts required by the established
-   activation workflow.
-2. Record:
-   - Slice ID `FATES-SLICE-002`;
-   - exact `fates-stage-a-2026-07` starting baseline;
-   - exact starting checkpoints from `fates-lock.json`;
-   - approved bounded scope and acceptance criteria;
-   - owner responsibilities;
-   - approved implementation order;
-   - explicit user authorization;
-   - known provisional Moirae checkpoint limitation.
-3. Change the active-slice planning state from idle to the appropriate active
-   Slice 02 state.
-4. Preserve the existing compatibility lock, compatibility-set snapshot and
-   completion/seal claims unchanged.
-5. Record that activation authorizes implementation only in this order:
-
-   Integration evidence freeze →
-   Ananke bounded adapter →
-   Horae handoff/relay →
-   Moirae constrained host →
-   Integration real proof.
+1. Identify the complete evidence set required to judge Slice 02.
+2. Freeze the acceptance-evidence matrix before implementation begins.
+3. Ensure every required item identifies:
+   - the claim being proved;
+   - the producing component/owner;
+   - the required evidence/artifact;
+   - the relevant positive or negative case;
+   - whether real process/runtime proof is required;
+   - what cannot be substituted by mocks.
+4. Preserve explicit evidence for the six approved gates:
+   - governed route;
+   - bypass evidence;
+   - canonical binding;
+   - pinned origin/schema;
+   - readiness/freshness;
+   - correlation and proof obligation.
+5. Preserve required negative-path coverage, including denial and fail-closed
+   behaviour.
+6. Record known exclusions and bypasses so later implementation cannot
+   silently broaden the Slice claim.
+7. Pin the frozen evidence contract to the activated baseline and Slice 02
+   activation record.
+8. Update coordination documentation only where necessary to make the frozen
+   contract reproducible and unambiguous.
 
 ## Acceptance criteria
 
 The task is complete when:
 
-- Slice 02 is explicitly and unambiguously active;
-- activation is traceable to this user authorization;
-- the exact starting lock/checkpoints are recorded;
-- scope and acceptance criteria remain unchanged;
+- the pre-implementation evidence contract is explicitly frozen;
+- evidence requirements cannot be silently changed to fit later implementation;
+- every material claim has a named evidence producer;
+- positive and negative cases are defined;
+- real cross-process evidence requirements are distinguished from unit/mock
+  evidence;
+- all six gates have explicit proof obligations;
+- known bypasses and exclusions remain visible;
+- the frozen evidence contract references the activated Slice 02 baseline;
 - no product implementation has occurred;
-- no Runtime Contracts change has occurred;
-- no lock/matrix/snapshot completion or sealing claim has advanced;
-- the provisional Stage-A/Moirae status remains accurately disclosed;
-- all coordination validators pass.
+- no component checkpoint, lock, matrix completion or seal has advanced;
+- all relevant Integration validators pass.
 
 ## Stop conditions
 
 Do not:
 
 - implement the Ananke adapter;
-- modify any component repository;
-- begin Horae or Moirae implementation;
-- advance repository checkpoints;
-- advance `fates-lock.json`;
-- mark Slice 02 implemented/completed;
-- seal Stage A or Slice 02;
-- alter Runtime Contracts;
-- broaden the approved action or capability set.
+- modify Ananke, Horae, Moirae Code or Runtime Contracts product code;
+- begin any later Slice 02 implementation checkpoint;
+- alter the approved scope;
+- weaken an evidence requirement because it appears difficult to implement;
+- replace required real-process proof with mocks;
+- advance `fates-lock.json`, compatibility completion state or sealing.
 
 ## Completion record
 
-Activation decision: `ACTIVATED` at `2026-08-08T16:34:40.527Z`, recorded in
-[`docs/decisions/FATES-SLICE-002-activation-decision.json`](../decisions/FATES-SLICE-002-activation-decision.json),
-traceable to the explicit user authorization in this task.
+Record:
 
-Exact baseline/checkpoints: `fates-stage-a-2026-07` from `fates-lock.json`,
-with all five repository entries copied into the activation decision. The
-lock, compatibility matrix, immutable snapshot, and all component repositories
-were preserved unchanged.
+- evidence artifacts frozen;
+- baseline and activation record used;
+- proof obligations and owners;
+- positive and negative cases;
+- validation performed;
+- unresolved evidence questions;
+- whether the evidence baseline is ready for the Ananke implementation step.
 
-Files changed:
-
-- `active-slice.json`
-- `docs/decisions/FATES-SLICE-002-activation-decision.json`
-- `slices/002-governed-action-handoff/slice.json`
-- `slices/002-governed-action-handoff/README.md`
-- `docs/INTEGRATION.md`
-- `docs/SOURCE_OF_TRUTH.md`
-- `tests/slices.test.mjs`
-- `docs/tasks/ACTIVE.md`
-
-Validation performed: pre-activation lock/snapshot, approval, consistency,
-scope, contract-change, hard-stop and provisional-Moirae checks passed;
-`npm.cmd run validate` passed before activation and after activation. The
-post-activation run includes JSON schema validation, lock/matrix/slice/
-boundary validation, and 55 integration-repository tests.
-
-Remaining known limitations: no product implementation, owner checkpoint,
-handoff packet, or real three-process proof exists. Stage A remains
-`inspection_only` and `provisional`; Moirae Code remains `pushed_untagged` and
-is not represented as sealed. Later documentation/design heads and a
-pre-existing dirty Horae worktree are not substituted for the exact locked
-starting checkpoints.
-
-First authorized implementation task: **Integration evidence freeze**.
-Do not begin it as part of this activation task.
-
-Do not begin that implementation task.
+Do not begin the Ananke implementation step.
