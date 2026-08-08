@@ -15,7 +15,10 @@ When sources disagree, this audit prefers accepted non-superseded ADRs, current 
 - Ananke, Mnemosyne, and Horae have sealed/tagged Stage-A checkpoints. Moirae Code remains a pushed, untagged checkpoint, so Stage A cannot be sealed.
 - All four consumers use the immutable Runtime Contracts artifact through their current Stage-A dependency/adapters. No sibling source import is the integration authority.
 - Stage A proves portable representation, inspection, adapters, negotiation, and consumer conformance. It does **not** prove governed execution, qualified memory handoff, durable recovery/idempotency, or shared content preflight.
-- `active-slice.json` is idle. Slice 02 is planned and inactive.
+- `active-slice.json` records `FATES-SLICE-002` as active against the exact
+  `fates-stage-a-2026-07` baseline. Activation is recorded in
+  `docs/decisions/FATES-SLICE-002-activation-decision.json` and authorizes only
+  the bounded implementation order; no product implementation has started.
 
 ## Implemented component state
 
@@ -51,9 +54,9 @@ Limits: schemas do not authenticate, authorize, execute, route, persist, select 
 
 ### Integration coordination
 
-Implemented: Stage-A lock/matrix/snapshot, boundary/schema validators, vertical-slice/checkpoint/handoff rules, and a detailed Slice 02 design package with owner approvals, a cross-owner consistency pass, local attestation/timeout decisions, and frozen future evidence cases.
+Implemented: Stage-A lock/matrix/snapshot, boundary/schema validators, vertical-slice/checkpoint/handoff rules, and a detailed Slice 02 activation/planning package with owner approvals, a cross-owner consistency pass, local attestation/timeout decisions, and frozen future evidence cases.
 
-Limits: design evidence is not runtime evidence. Slice 02 has no active slice directory, implementation checkpoints, handoff packets, three-process harness, or acceptance artifacts. The integration repository must not become a mock runtime or fixture reader.
+Limits: activation/design evidence is not runtime evidence. Slice 02 has an active planning directory but no implementation checkpoints, handoff packets, three-process harness, or acceptance artifacts. The integration repository must not become a mock runtime or fixture reader.
 
 ## Accepted architectural direction
 
@@ -64,11 +67,11 @@ Limits: design evidence is not runtime evidence. Slice 02 has no active slice di
 - Governed requests distinguish authenticated/delegating and acting agent principals, use bounded scope, purpose, correlation, and validity, and keep credentials outside model/agent content.
 - Approval is bound to the exact canonical request and material mutation invalidates it.
 - Cross-runtime claims require exact checkpoints, producer-owned evidence, consumer checks, and real process-boundary integration tests.
-- The accepted Slice 02 design is one harmless fixed read over `Moirae → Horae → Ananke`, with Ananke as sole physical reader and no retry, memory, provider, network, credential, workflow, or global-host-governance expansion. This direction is approved as design, not implemented or active.
+- The accepted Slice 02 design is one harmless fixed read over `Moirae → Horae → Ananke`, with Ananke as sole physical reader and no retry, memory, provider, network, credential, workflow, or global-host-governance expansion. This direction is approved and active as planning authorization, not implemented.
 
 ## Incomplete and deferred work
 
-Highest-value incomplete integration classes are: Slice 02 governed action handoff; qualified Mnemosyne context retrieval; broader governed execution; persistent idempotency/reconciliation/recovery; and shared content preflight. These appear in the compatibility matrix as planned slices, not present capabilities.
+Highest-value incomplete integration classes are: the active Slice 02 governed action handoff; qualified Mnemosyne context retrieval; broader governed execution; persistent idempotency/reconciliation/recovery; and shared content preflight. These remain not-present capabilities; the compatibility matrix still records Slice 02 as planned until implementation evidence exists.
 
 Other major deferrals include production workload identity and credential brokering, host bypass closure, durable Horae workflows, provenance-aware memory admission, audit integrity/joined explanation, cross-server information flow, model/provider fallback governance, MCP-era policy, fleet policy, and production hardening.
 

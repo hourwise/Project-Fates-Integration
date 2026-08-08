@@ -13,6 +13,11 @@ Audited 2026-08-08. “Integrated” below means demonstrated across real compon
 | Artifact | `project-runtime-contracts-0.4.0.tgz`, SHA-256 `11ee062b079f74d2a4558af315c9b9b12a6aede291d409c48f038d93c416e2c2` |
 | Integration set | `fates-stage-a-2026-07`; provisional; `inspection_only` |
 
+`FATES-SLICE-002` is active as of the activation decision recorded in
+`docs/decisions/FATES-SLICE-002-activation-decision.json`. Activation authorizes
+only the bounded implementation order; it does not claim that the runtime
+route exists or advance the lock, matrix, snapshot, checkpoints, or seal.
+
 Ananke consumes the package in its Adrasteia adapter workspace; Mnemosyne, Horae, and Moirae Code pin the same artifact at the repository root. Their committed baseline files agree on source, package, protocol, URL, and digest.
 
 Runtime Contracts owns structural validation only. Identity, scope, delegation, readiness, correlation, references, and generic results do not prove authentication, authority, transport, freshness, domain outcomes, or execution.
@@ -47,7 +52,7 @@ Current evidence:
 
 - Stage-A owner adapters, immutable baseline JSON files, peer comparator/conformance tests, lock, snapshot, matrix, and Slice 001 handoffs.
 - Coordination validators check local dependency/boundary rules, lock/snapshot consistency, planned-slice restrictions, schema references, and negative fixtures.
-- Slice 02 has design authorities and owner approvals, a cross-owner consistency result of `PASS`, local process-attestation/timeout/schema-digest decisions, and a frozen future acceptance matrix.
+- Slice 02 has an activation decision, design authorities and owner approvals, a cross-owner consistency result of `PASS`, local process-attestation/timeout/schema-digest decisions, and a frozen future acceptance matrix. Its active slice record is planning evidence only.
 
 Not current evidence:
 
@@ -65,14 +70,14 @@ Audit validation on 2026-08-08:
 | Horae | 10/10 passed in the Stage-A testbench file. |
 | Moirae Code | 131/131 passed across 10 files. |
 | Runtime Contracts | 400/400 passed across 23 files. |
-| Integration | 54/54 passed across 5 suites. |
+| Integration | 55/55 passed across 5 suites. |
 
 These were test-only commands. No builds, report generators, deployments, installs, secret operations, external actions, commits, or pushes were run.
 
 ## Unresolved integration gates
 
-1. Slice 02 remains pending a separate explicit activation decision against the exact `fates-stage-a-2026-07` lock. That decision authorizes only the approved bounded implementation order; implementation evidence is produced afterward.
-2. After an explicit, non-circular activation decision, the approved order is Integration evidence freeze → Ananke bounded adapter → Horae handoff/relay → Moirae constrained host → real Integration proof.
+1. Slice 02 is active against the exact `fates-stage-a-2026-07` lock. Activation authorizes only the approved bounded implementation order; implementation evidence is produced afterward.
+2. The authorized order is Integration evidence freeze → Ananke bounded adapter → Horae handoff/relay → Moirae constrained host → real Integration proof. It has not been started by this activation task.
 3. Preserve exact producer ownership: Ananke alone reads the fixture and decides; Horae verifies/admits/dispatches/relays without authority; Moirae originates/renders without direct fallback; Integration only asserts evidence.
 4. Satisfy the future evidence matrix with pinned artifacts and real processes. Mocks cannot prove transport, identity attestation, physical-read count, or bypass closure.
 5. Do not advance `fates-lock.json`, compatibility snapshot/matrix completion, or seal status until consumer checkpoints, handoffs, tests, and real integration evidence pass.

@@ -1,6 +1,6 @@
 # Active Task — Slice 02 Activation Decision
 
-Status: awaiting explicit user-authorized activation decision.
+Status: completed — FATES-SLICE-002 activated; implementation not started.
 
 ## Objective
 
@@ -112,13 +112,40 @@ Do not:
 
 ## Completion record
 
-Record:
+Activation decision: `ACTIVATED` at `2026-08-08T16:34:40.527Z`, recorded in
+[`docs/decisions/FATES-SLICE-002-activation-decision.json`](../decisions/FATES-SLICE-002-activation-decision.json),
+traceable to the explicit user authorization in this task.
 
-- activation decision and timestamp;
-- exact baseline/checkpoints;
-- files changed;
-- validation performed;
-- remaining known limitations;
-- first authorized implementation task.
+Exact baseline/checkpoints: `fates-stage-a-2026-07` from `fates-lock.json`,
+with all five repository entries copied into the activation decision. The
+lock, compatibility matrix, immutable snapshot, and all component repositories
+were preserved unchanged.
+
+Files changed:
+
+- `active-slice.json`
+- `docs/decisions/FATES-SLICE-002-activation-decision.json`
+- `slices/002-governed-action-handoff/slice.json`
+- `slices/002-governed-action-handoff/README.md`
+- `docs/INTEGRATION.md`
+- `docs/SOURCE_OF_TRUTH.md`
+- `tests/slices.test.mjs`
+- `docs/tasks/ACTIVE.md`
+
+Validation performed: pre-activation lock/snapshot, approval, consistency,
+scope, contract-change, hard-stop and provisional-Moirae checks passed;
+`npm.cmd run validate` passed before activation and after activation. The
+post-activation run includes JSON schema validation, lock/matrix/slice/
+boundary validation, and 55 integration-repository tests.
+
+Remaining known limitations: no product implementation, owner checkpoint,
+handoff packet, or real three-process proof exists. Stage A remains
+`inspection_only` and `provisional`; Moirae Code remains `pushed_untagged` and
+is not represented as sealed. Later documentation/design heads and a
+pre-existing dirty Horae worktree are not substituted for the exact locked
+starting checkpoints.
+
+First authorized implementation task: **Integration evidence freeze**.
+Do not begin it as part of this activation task.
 
 Do not begin that implementation task.

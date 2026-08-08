@@ -1,0 +1,185 @@
+{
+  "sliceId": "FATES-SLICE-002",
+  "decisionKind": "activation",
+  "decision": "ACTIVATED",
+  "activationTimestamp": "2026-08-08T16:34:40.527Z",
+  "userAuthorization": {
+    "authorized": true,
+    "source": "User instruction in this task: Read AGENTS.md and execute docs/tasks/ACTIVE.md.",
+    "authorizedAt": "2026-08-08T16:34:40.527Z",
+    "scope": "Activate the approved bounded Slice 02 implementation sequence only; do not implement product code, advance checkpoints, advance compatibility state, change Runtime Contracts, or seal the Slice."
+  },
+  "baseline": {
+    "compatibilitySetId": "fates-stage-a-2026-07",
+    "lockPath": "fates-lock.json",
+    "snapshotPath": "compatibility-sets/fates-stage-a-2026-07.json",
+    "lockUpdatedAt": "2026-07-19T00:00:00Z",
+    "sealStatus": "provisional",
+    "integrationLevel": "inspection_only",
+    "protocol": {
+      "current": "1.4.0",
+      "minimum": "1.0.0",
+      "maximum": "1.4.0"
+    },
+    "startingCheckpoints": {
+      "adrasteia": {
+        "url": "https://github.com/hourwise/Project-Adrasteia",
+        "tag": "adrasteia-adoption-v0.4.0-protocol-1.4.0",
+        "commit": "124b6aee2629a3147739934ad5f1b45b32c8ba46",
+        "checkpointState": "sealed_tagged",
+        "package": "project-runtime-contracts@0.4.0",
+        "artifact": {
+          "url": "https://github.com/hourwise/Project-Adrasteia/releases/download/adrasteia-adoption-v0.4.0-protocol-1.4.0/project-runtime-contracts-0.4.0.tgz",
+          "sha256": "11ee062b079f74d2a4558af315c9b9b12a6aede291d409c48f038d93c416e2c2"
+        },
+        "role": "portable-representation"
+      },
+      "ananke": {
+        "url": "https://github.com/hourwise/Project-Ananke",
+        "tag": "ananke-adrasteia-adoption-v0.1.0-protocol-1.4.0",
+        "commit": "dcbb115c5798072221afdd2e4fdd36e786defddf",
+        "checkpointState": "sealed_tagged",
+        "role": "action-authority"
+      },
+      "mnemosyne": {
+        "url": "https://github.com/hourwise/Project-Mnemosyne",
+        "tag": "mnemosyne-adrasteia-adoption-v0.1.0-protocol-1.4.0",
+        "commit": "f4ab76a9760f856d78908d35facceb068d78c8e5",
+        "checkpointState": "sealed_tagged",
+        "role": "memory-provenance"
+      },
+      "horae": {
+        "url": "https://github.com/hourwise/Project-Horae",
+        "tag": "horae-adrasteia-adoption-v0.1.0-protocol-1.4.0",
+        "commit": "52e14fa574f7427f62747fe84d2789aec25b94e3",
+        "checkpointState": "sealed_tagged",
+        "role": "discovery-composition"
+      },
+      "moirae-code": {
+        "url": "https://github.com/hourwise/Project-Moirae-Code",
+        "tag": null,
+        "commit": "a4783db271a61848c66ac4f6652a539bdb515e28",
+        "checkpointState": "pushed_untagged",
+        "role": "governed-host"
+      }
+    }
+  },
+  "approvedDesign": {
+    "design": "docs/design/FATES-SLICE-002-runtime-boundary-resolution.md",
+    "designCommit": "bd1d211ff70a3718504bb171c08e617836cdfcd5",
+    "designMergeCommit": "a5c35043f420f36e76db8b7c9246a15e025d2a9f",
+    "implementationAuthorization": "docs/decisions/FATES-SLICE-002-implementation-authorization.json",
+    "ownerApprovals": {
+      "ananke": "docs/approvals/FATES-SLICE-002/ananke-owner-approval.json",
+      "horae": "docs/approvals/FATES-SLICE-002/horae-owner-approval.json",
+      "moiraeCode": "docs/approvals/FATES-SLICE-002/moirae-code-owner-approval.json",
+      "adrasteia": "docs/approvals/FATES-SLICE-002/adrasteia-owner-approval.json",
+      "integration": "docs/approvals/FATES-SLICE-002/integration-owner-approval.json"
+    },
+    "crossOwnerConsistencyReview": {
+      "path": "docs/reviews/FATES-SLICE-002-cross-owner-consistency-review.md",
+      "result": "PASS"
+    },
+    "acceptanceEvidenceMatrix": "docs/reviews/FATES-SLICE-002-acceptance-evidence-matrix.md"
+  },
+  "approvedScope": {
+    "action": "fates.slice02.inspect-fixed-fixture.v1",
+    "requestArguments": ["fixtureId", "expectedSha256"],
+    "topology": "Moirae constrained host -> Horae handoff/relay -> Ananke authority and sole physical reader",
+    "transport": "Separate local processes over loopback HTTP",
+    "runtimeContractsChangeApproved": false,
+    "excluded": [
+      "Mnemosyne",
+      "content preflight",
+      "remote OAuth",
+      "MCP 2026 migration",
+      "workflow persistence",
+      "retry",
+      "compensation",
+      "provider fallback",
+      "arbitrary filesystem access",
+      "global Moirae governance",
+      "package or protocol version changes",
+      "direct Moirae-to-Ananke fallback",
+      "Integration runtime or fixture access"
+    ]
+  },
+  "acceptanceCriteria": [
+    "Slice 02 is explicitly and unambiguously active.",
+    "Activation is traceable to this user authorization.",
+    "The exact starting lock and checkpoints are recorded.",
+    "Scope and acceptance criteria remain unchanged.",
+    "No product implementation has occurred.",
+    "No Runtime Contracts change has occurred.",
+    "No lock/matrix/snapshot completion or sealing claim has advanced.",
+    "The provisional Stage-A/Moirae status remains accurately disclosed.",
+    "All coordination validators pass."
+  ],
+  "ownerResponsibilities": {
+    "integration": "Freeze expected digest and acceptance evidence; consume producer-owned evidence; run the final real cross-runtime proof; remain evidence-only.",
+    "ananke": "Own the fixed fixture and sole physical read; implement the exact registered action, one-read maximum, digest verification, decision, outcome and audit evidence.",
+    "horae": "Provide the sole handoff and relay; revalidate Ananke identity/readiness immediately before dispatch; fail closed; do not authorize, read, retry or persist.",
+    "moiraeCode": "Provide the constrained action-only host that calls Horae only, creates the initiating correlation, presents typed results and discloses bypass limitations.",
+    "adrasteia": "Maintain the current portable contract baseline; no package or protocol change is approved for Slice 02.",
+    "mnemosyne": "Explicitly excluded from this Slice."
+  },
+  "implementationOrder": [
+    "Integration evidence freeze",
+    "Ananke bounded adapter",
+    "Horae handoff/relay",
+    "Moirae constrained host",
+    "Integration real proof"
+  ],
+  "authorizationBoundary": {
+    "authorizes": "Only the approved implementationOrder above.",
+    "doesNotAuthorize": [
+      "lock advancement",
+      "compatibility-matrix advancement",
+      "snapshot advancement",
+      "checkpoint or tag advancement",
+      "Slice completion or sealing",
+      "Runtime Contracts changes",
+      "any excluded capability"
+    ],
+    "postActivationRequirements": [
+      "Each changed Fate produces a clean, pushed, green checkpoint and handoff packet in order.",
+      "The real three-process positive and negative proof passes against exact checkpoints.",
+      "The frozen acceptance-evidence matrix and producer-owned evidence are accepted before lock or matrix advancement and sealing."
+    ]
+  },
+  "preActivationVerification": {
+    "sliceWasInactive": "PASS",
+    "authoritativeBaseline": "PASS: lock and immutable snapshot both identify fates-stage-a-2026-07.",
+    "lockAndSnapshotCheckpoints": "PASS: all five repository checkpoint entries match exactly.",
+    "ownerApprovals": "PASS: five applicable approval records are present and APPROVED.",
+    "crossOwnerConsistency": "PASS",
+    "boundedScope": "PASS: only fates.slice02.inspect-fixed-fixture.v1 is approved.",
+    "runtimeContractsChange": "PASS: no package or protocol change is approved or required.",
+    "hardStops": "PASS: no hard-stop condition in the approved readiness/design package is present.",
+    "moiraeCheckpoint": "PASS: pushed_untagged with tag null is retained as provisional, not sealed."
+  },
+  "knownLimitations": [
+    "Stage A remains provisional and inspection_only.",
+    "Moirae Code remains at the pushed but untagged checkpoint a4783db271a61848c66ac4f6652a539bdb515e28; it is not represented as sealed.",
+    "The attached component worktrees include later documentation/design heads and a pre-existing dirty Horae worktree; those are not substituted for the locked starting checkpoints.",
+    "No Ananke adapter, Horae handoff/relay, Moirae constrained host, implementation checkpoint, handoff packet, or real three-process proof exists yet.",
+    "No governed execution, qualified memory handoff, durable recovery/idempotency, or content preflight is claimed."
+  ],
+  "changedCoordinationArtifacts": [
+    "active-slice.json",
+    "docs/decisions/FATES-SLICE-002-activation-decision.json",
+    "slices/002-governed-action-handoff/slice.json",
+    "slices/002-governed-action-handoff/README.md",
+    "docs/INTEGRATION.md",
+    "docs/SOURCE_OF_TRUTH.md",
+    "tests/slices.test.mjs",
+    "docs/tasks/ACTIVE.md"
+  ],
+  "preservedArtifacts": [
+    "fates-lock.json",
+    "compatibility-matrix.json",
+    "compatibility-sets/fates-stage-a-2026-07.json",
+    "all component repositories",
+    "Runtime Contracts"
+  ]
+}
