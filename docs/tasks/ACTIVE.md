@@ -465,3 +465,18 @@ to resolve the sealed Ananke transport contract through a separately authorized
 design/decision; after that, rerun this task against an explicitly consumable
 producer contract. Do not begin Moirae or alter Integration control-state files
 until that resolution is accepted.
+
+## Revalidation record — 2026-08-09
+
+The stop condition was rechecked after re-reading the required authority
+documents and the current Horae/Ananke implementation state. The exact sealed
+Ananke checkpoint still resolves to `a54cb481958e5711afc1c92c622673f85e7e0178`.
+Its `/api/execute` route accepts the action arguments, optional purpose, and
+correlation headers, but does not accept or forward `adapterMetadata`. The
+sealed Slice 02 validator still requires that metadata for the origin/schema
+receipt and otherwise returns `FIXTURE_AUTHORITY_INVALID` before adapter
+invocation.
+
+The Horae Stage-A ancestry check still passes. No Horae implementation was
+started, no additional repository was modified, and the previously recorded
+stop remains in force.
