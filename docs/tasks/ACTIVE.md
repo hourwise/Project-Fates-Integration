@@ -957,3 +957,57 @@ Moirae host boundary is implemented and independently live-accepted.
 This cross-reference records assessment results only. It does not change the
 Slice 02 lock, matrix, snapshot, evidence, seal, Runtime Contracts, Moirae
 checkpoint, or compatibility status, and it does not activate Slice 03.
+
+## Post-Slice-02 requirements and research traceability - 2026-08-09
+
+Status: **ARCHITECTURE/RESEARCH TRACEABILITY COMPLETE - ACTIVE SLOT REMAINS
+IDLE.** The durable reconciliation is recorded in
+[`docs/REQUIREMENTS_TRACEABILITY.md`](../REQUIREMENTS_TRACEABILITY.md). It
+contains 26 stable register entries covering the eleven research findings,
+current implementation evidence, ownership, invariants, ADR classifications,
+external comparison, 003A reassessment, future slice order, and the two
+required experiments.
+
+### Work completed
+
+- Confirmed the sealed Slice 02 baseline and all current Fate ownership
+  boundaries against the Integration authority documents and the locked
+  component checkpoints.
+- Reconciled value-level provenance, Rule-of-Two composition, Moirae process
+  origin versus OS containment, Ananke authority/effect separation,
+  credential custody, memory never-authority, indeterminate outcomes, durable
+  pre-dispatch evidence, current MCP lifecycle, external primitives, and
+  Runtime Contracts scope.
+- Classified the current state as proven only where the bounded evidence
+  supports it; otherwise used implemented-not-integration-proven, partial,
+  documented, planned, research-required, deferred, or rejected status.
+- Checked current primary sources for AGT, agentgateway, MCP 2026-07-28, Meta
+  Rule of Two, FIDES/CaMeL, policy engines, workload identity, credential
+  custody, durable execution, transparency logs, and sandbox primitives.
+- Reassessed 003A as **YES WITH PREREQUISITES**: revise the Moirae
+  constrained-host ADR to separate process-origin/route proof from OS
+  containment, then activate only under a new owner-approved scope. OS
+  containment remains a separate 003B-or-later capability.
+
+### Evidence and remaining issues
+
+- No implementation repository was modified. No dependency, contract,
+  package, lock, matrix, snapshot, seal, or Slice 02 evidence was modified.
+- The report confirms the bounded Slice 02 route is proven, while live timeout,
+  live post-dispatch indeterminate transport loss, qualified memory admission,
+  durable recovery/idempotency, general value-level information flow,
+  production credential custody, and OS-wide host bypass resistance remain
+  unproven or unimplemented.
+- The active slot is still idle and no Slice 03/003A branch or activation was
+  started. The recommended future ordering is recorded as a proposal only.
+- Cross-component effects are requirements and acceptance ownership only:
+  Ananke remains authority/effect owner, Mnemosyne memory/provenance owner,
+  Horae discovery/composition/freshness owner, Moirae host owner, Runtime
+  Contracts neutral-shape owner, and Integration evidence owner.
+
+### Validation required for this traceability change
+
+Run Integration-only validation after this append: `npm.cmd run validate`,
+`git diff --check`, final diff inspection, and explicit checks that the Slice
+02 lock/hash/state and `active-slice.json` idle state are unchanged. No
+component suites are required because no component repository changed.
