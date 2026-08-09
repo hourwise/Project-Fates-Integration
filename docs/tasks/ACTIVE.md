@@ -409,3 +409,59 @@ Completion boundary
 
 Do not commit, push, tag, create a PR, create a handoff packet, or begin Moirae
 unless explicitly authorized after review.
+
+## Stop record — 2026-08-09
+
+Status: **STOPPED at an explicit stop condition before Horae implementation.**
+
+The required Stage-A/design ancestry check passed: Horae checkpoint
+`52e14fa574f7427f62747fe84d2789aec25b94e3` is an ancestor of the current Horae
+design head `b591bc688b64308a28bd958377dfdee2f2441985`.
+
+The sealed Ananke producer checkpoint and handoff were inspected:
+
+- checkpoint: `a54cb481958e5711afc1c92c622673f85e7e0178`;
+- tag: `ananke-fates-slice-002-v0.1.0-protocol-1.4.0`;
+- canonical execution endpoint: `POST /api/execute`;
+- required trusted receipt: `adapterMetadata` containing the exact origin and
+  request-schema receipt.
+
+At the sealed checkpoint, Ananke's HTTP route accepts `toolName`, `arguments`,
+optional approval/content fields, and optional `purpose`; it derives trusted
+execution context from the authenticated workload credential and forwards only
+that context to `Gateway.execute`. It does not accept or forward
+`adapterMetadata`, and its HTTP correlation headers carry only correlation and
+causation identifiers. The sealed Slice 02 validator requires the origin/schema
+receipt from `invocation.adapterMetadata`; without it, Ananke returns
+`FIXTURE_AUTHORITY_INVALID` before adapter invocation and no fixture read.
+
+Therefore the sealed producer contract cannot be consumed over the approved
+separate-process loopback HTTP topology while preserving the required trusted
+receipt and authority binding. Proceeding would require changing Ananke's sealed
+HTTP contract or inventing a new cross-repository header/credential protocol.
+Both are explicit stop conditions, and no such change is authorized for this
+task.
+
+Work completed in this task:
+
+- read the required Integration and Slice 02 authority documents;
+- verified the Horae Stage-A ancestry requirement;
+- inspected the approved Horae ADR and the sealed Ananke handoff;
+- inspected the sealed Ananke HTTP route and Slice 02 validator to establish
+  the incompatibility;
+- updated this ACTIVE stop record.
+
+Horae files changed: none. Runtime Contracts, Ananke, Moirae, lock/matrix/
+snapshot, and Slice completion/seal state were unchanged. No implementation,
+new transport credential, commit, tag, push, handoff packet, or PR was created.
+
+Checks: no Horae implementation checks were run because the implementation was
+not started after the stop condition was reached. Existing Horae worktree
+changes were preserved.
+
+Remaining limitation: the bounded Horae relay, focused owner-local tests, and
+real three-process proof remain unimplemented. The exact next permitted step is
+to resolve the sealed Ananke transport contract through a separately authorized
+design/decision; after that, rerun this task against an explicitly consumable
+producer contract. Do not begin Moirae or alter Integration control-state files
+until that resolution is accepted.
