@@ -2,11 +2,15 @@
 
 ## Status
 
-Active. Activation is recorded in [`docs/decisions/FATES-SLICE-002-activation-decision.json`](../../docs/decisions/FATES-SLICE-002-activation-decision.json).
+Completed and sealed on 2026-08-09. Activation is recorded in
+[`docs/decisions/FATES-SLICE-002-activation-decision.json`](../../docs/decisions/FATES-SLICE-002-activation-decision.json),
+and final acceptance is recorded in
+[`docs/evidence/FATES-SLICE-002-live-acceptance-2026-08-09.json`](../../docs/evidence/FATES-SLICE-002-live-acceptance-2026-08-09.json).
 
-Activation authorizes only the approved implementation order. It does not mean
-that the route is implemented, tested across real processes, complete, or
-sealed.
+The approved implementation order, owner checkpoints, live evidence, and
+post-seal validations are complete for the bounded Slice 02 claim. This seal
+does not claim global Moirae governance, a Moirae process proof, or any
+excluded capability.
 
 ## Approved scope
 
@@ -43,10 +47,9 @@ checkpoint and is not represented as sealed.
 4. Moirae constrained host
 5. Integration real proof
 
-Each later step requires the preceding producer checkpoint and handoff. No
-checkpoint, lock, matrix, snapshot, completion claim, or seal status may
-advance until the required producer-owned and cross-runtime evidence is
-accepted.
+Each implementation step was bound to the preceding producer checkpoint and
+handoff. The final tagged Ananke and Horae checkpoints are recorded in
+`fates-lock.json` and the successor compatibility snapshot.
 
 ## Acceptance evidence
 
@@ -60,7 +63,11 @@ bypass limitations. Mocks cannot prove the real route.
 
 ## Remaining limitations
 
-No product implementation, implementation checkpoint, handoff packet, or real
-three-process proof exists yet. The provisional Stage-A/Moirae status remains
-unchanged, and attached component worktree drift is not substituted for the
-locked starting checkpoints.
+Final handoffs are in `handoffs/ananke-transport-handoff.json` and
+`handoffs/horae-handoff.json`. The live acceptance record preserves the
+distinction between live verified behavior, owner-local deterministic tests,
+and behavior not induced live. The global compatibility set remains
+provisional because the unchanged locked Moirae checkpoint is still
+`pushed_untagged`; this does not reopen or alter the sealed Slice 02 claim.
+
+The next permitted action is separate review and authorization of Slice 03.

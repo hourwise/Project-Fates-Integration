@@ -1,0 +1,47 @@
+{
+  "$schema": "../../../schemas/handoff.schema.json",
+  "_note": "Completed Slice 02 Ananke transport handoff. The earlier ananke-handoff.json remains the producer-authority handoff for the sealed a54cb481 checkpoint; this packet records the accepted action-scoped HTTP receipt transport checkpoint.",
+  "sliceId": "FATES-SLICE-002",
+  "repository": "ananke",
+  "handoffStatus": "completed",
+  "startingCommit": "a54cb481958e5711afc1c92c622673f85e7e0178",
+  "endingCommit": "52b512885edf3fec7ff7ce4b4dcbd3958b170ba4",
+  "tag": "ananke-fates-slice-002-v0.2.0-protocol-1.4.0",
+  "protocol": "1.4.0",
+  "contractsUsed": [
+    "project-runtime-contracts@0.4.0",
+    "protocol 1.4.0; minimum 1.0.0"
+  ],
+  "publicSurfacesAddedOrChanged": [
+    "POST /api/execute accepts top-level adapterMetadata only for fates.slice02.inspect-fixed-fixture.v1 and rejects it for other actions.",
+    "Runtime identity carries the pinned Slice 02 producer repository, checkpoint, tag, and implementation provenance annotations when the exact action is registered.",
+    "The existing governed Gateway execution path remains the sole authority, physical reader, policy decision point, outcome producer, and audit owner.",
+    "Accepted content scope: .gitattributes, docs/HTTP_API.md, packages/adrasteia-adapter/src/index.ts, packages/runtime-core/src/index.ts, packages/runtime-core/src/routes.ts, packages/runtime-core/src/slice02-fixed-fixture.ts, and packages/runtime-core/src/slice02-fixed-fixture.test.ts."
+  ],
+  "explicitlyUnavailableSurfaces": [
+    "No generic HTTP proxy, arbitrary action metadata bridge, retry, fallback, persistence, credential broker, content preflight, memory, provider, browser, shell, workflow, or arbitrary filesystem capability.",
+    "No Horae relay, Moirae host, or Integration runtime is claimed by this owner handoff; the real process-boundary evidence is recorded separately in the live acceptance artifact.",
+    "The Ananke-owned fixture remains the only physical read path; transport metadata is trusted handoff material and is not action content."
+  ],
+  "breakingChanges": [],
+  "migrationNotes": "Horae must use the exact Ananke host base and canonical POST /api/execute route, preserve adapterMetadata as trusted handoff material, and continue pinning the producer authority recorded in the existing ananke-handoff.json.",
+  "testsRun": [
+    "npm.cmd test: 16 files, 131/131 tests passed.",
+    "npm.cmd run build: passed.",
+    "npm.cmd run lint: passed.",
+    "Focused Slice 02/runtime inspection tests: 2 files, 14 tests passed.",
+    "GitHub Actions PR CI build-and-test (Node 22.12.0) passed for 52b512885edf3fec7ff7ce4b4dcbd3958b170ba4: https://github.com/hourwise/Project-Ananke/actions/runs/31335861890"
+  ],
+  "consumerTestsRequired": [
+    "Horae must re-inspect the exact Ananke identity, registration, compatibility, health, readiness, endpoint, producer attestation, and action capability before every dispatch.",
+    "Integration acceptance must preserve the single dispatch/read, producer evidence, correlation, negative-path, timeout, indeterminate, and no-fallback boundaries."
+  ],
+  "knownConstraints": [
+    "The sealed producer authority remains checkpoint a54cb481958e5711afc1c92c622673f85e7e0178 and tag ananke-fates-slice-002-v0.1.0-protocol-1.4.0; this checkpoint adds only the explicitly authorized HTTP ingress bridge.",
+    "The accepted live evidence did not induce live timeout, post-dispatch transport loss, or wrong-producer/capability cases; those remain owner-local/deterministic coverage and explicit limitations.",
+    "The Ananke fixture text file was not staged because its worktree and HEAD blob hashes were identical; no false fixture content modification is included."
+  ],
+  "pushStatus": "pushed",
+  "ciStatus": "passing",
+  "worktreeState": "clean"
+}

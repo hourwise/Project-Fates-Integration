@@ -8,7 +8,10 @@ except to correct a verified recording error.
 
 ## Current Set
 
-`fates-stage-a-2026-07.json` — Stage-A Adrasteia adoption baseline.
+`fates-slice-002-2026-08-09.json` — runtime-validated Slice 02 successor set
+with a provisional global seal because the unchanged Moirae baseline remains
+untagged. The prior `fates-stage-a-2026-07.json` snapshot is preserved
+immutably.
 
 ## Rollback
 

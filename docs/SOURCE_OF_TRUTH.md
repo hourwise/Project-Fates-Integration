@@ -1,6 +1,6 @@
 # The Fates — Integrated Source of Truth
 
-Audited 2026-08-08 from the six allowed repositories. This file records current evidence, not an aspirational architecture.
+Audited 2026-08-09 from the six allowed repositories. This file records current evidence, not an aspirational architecture.
 
 ## Purpose and evidence order
 
@@ -10,15 +10,12 @@ When sources disagree, this audit prefers accepted non-superseded ADRs, current 
 
 ## Current integrated baseline
 
-- `fates-lock.json` and the compatibility snapshot define Stage A: compatibility set `fates-stage-a-2026-07`, `inspection_only`, `sealStatus: provisional`.
+- `fates-lock.json` and the current compatibility snapshot define `fates-slice-002-2026-08-09`: `runtime_validated`, `sealStatus: provisional` at global compatibility-set level. The FATES-SLICE-002 row and slice record are `completed` and `sealed`.
 - Runtime Contracts is pinned as `project-runtime-contracts@0.4.0`, protocol current `1.4.0`, minimum `1.0.0`, source commit `124b6aee…`, artifact SHA-256 `11ee062b…`.
-- Ananke, Mnemosyne, and Horae have sealed/tagged Stage-A checkpoints. Moirae Code remains a pushed, untagged checkpoint, so Stage A cannot be sealed.
-- All four consumers use the immutable Runtime Contracts artifact through their current Stage-A dependency/adapters. No sibling source import is the integration authority.
-- Stage A proves portable representation, inspection, adapters, negotiation, and consumer conformance. It does **not** prove governed execution, qualified memory handoff, durable recovery/idempotency, or shared content preflight.
-- `active-slice.json` records `FATES-SLICE-002` as active against the exact
-  `fates-stage-a-2026-07` baseline. Activation is recorded in
-  `docs/decisions/FATES-SLICE-002-activation-decision.json` and authorizes only
-  the bounded implementation order; no product implementation has started.
+- Ananke and Horae have Slice 02 sealed/tagged checkpoints; Mnemosyne, Moirae Code, and Runtime Contracts are unchanged. Moirae Code remains a pushed, untagged checkpoint, so the successor global compatibility set remains provisional.
+- All four consumers continue to use the immutable Runtime Contracts artifact through their repository-local dependency/adapters. No sibling source import is the integration authority.
+- Slice 02 proves the bounded Ananke/Horae action handoff over a real compiled process boundary, including producer ownership, one dispatch, one physical read, identifier preservation, exact digest, and fail-closed negative paths. It does **not** prove Moirae process participation, live timeout/indeterminate transport loss, wrong-producer induction, qualified memory handoff, durable recovery/idempotency, or shared content preflight.
+- `active-slice.json` is idle after Slice 02 completion. The historical activation decision in `docs/decisions/FATES-SLICE-002-activation-decision.json` remains an authorization record and is not treated as final implementation evidence.
 
 ## Implemented component state
 
@@ -26,7 +23,7 @@ When sources disagree, this audit prefers accepted non-superseded ADRs, current 
 
 Implemented: the action gateway pipeline (`classify → policy → approval when required → execute → outcome → audit`), canonical payload hashing and approval binding, authenticated execution context, operator authentication/session handling, deterministic risk policy, typed outcomes, in-memory/SQLite audit, registered executors, stdio MCP connectivity, runtime inspection/compatibility, and opt-in content exposure preflight with approval receipts.
 
-Limits: governance exists only at an exclusive chokepoint. Production identity/credential brokering, broad real-MCP validation, durable idempotency/reconciliation, destination-aware information flow, and production hardening remain incomplete. The Slice 02 fixed-fixture adapter exists only as a proposed ADR; no registered `fates.slice02.inspect-fixed-fixture.v1` implementation or read-count/digest evidence exists in source.
+Limits: governance exists only at an exclusive chokepoint. Production identity/credential brokering, broad real-MCP validation, durable idempotency/reconciliation, destination-aware information flow, and production hardening remain incomplete. Slice 02 adds the bounded fixed-fixture adapter and its owner-local read/digest evidence; it does not generalize that mechanism into a proxy or broader fixture service.
 
 ### Mnemosyne
 
@@ -36,9 +33,9 @@ Limits: no inbound Ananke decision/grant transport; no receipt-gated provenance 
 
 ### Horae
 
-Implemented: canonical peer inspection parsing, semantic protocol negotiation across `1.0.0–1.4.0`, admission, duplicate/identity/readiness checks, local lifecycle and heartbeat freshness, monotonic capability planning, conflict rejection, validation-only composition/session records, and session health assessment. Ananke uses public HTTP inspection; Mnemosyne stays transport-neutral/callback-based.
+Implemented: canonical peer inspection parsing, semantic protocol negotiation across `1.0.0–1.4.0`, admission, duplicate/identity/readiness checks, local lifecycle and heartbeat freshness, monotonic capability planning, conflict rejection, validation-only composition/session records, session health assessment, and the bounded Slice 02 HTTP handoff/relay. Ananke uses public HTTP inspection and the canonical action endpoint; Mnemosyne stays transport-neutral/callback-based.
 
-Limits: bindings expose inspection only. There is no action dispatch, result relay, approval route, memory/context retrieval, credential broker, provider broker, durable workflow store, automatic restart/replan, or Moirae runtime transport. Session creation does not start or execute anything.
+Limits: the Slice 02 relay is deliberately narrow and does not own approval, fixture reads, action policy, result authority, memory/context retrieval, credential brokering, provider brokering, durable workflow storage, automatic restart/replan, or Moirae runtime transport. Live timeout and post-dispatch indeterminate behavior were not induced; owner-local tests cover them.
 
 ### Moirae Code
 
@@ -54,9 +51,9 @@ Limits: schemas do not authenticate, authorize, execute, route, persist, select 
 
 ### Integration coordination
 
-Implemented: Stage-A lock/matrix/snapshot, boundary/schema validators, vertical-slice/checkpoint/handoff rules, and a detailed Slice 02 activation/planning package with owner approvals, a cross-owner consistency pass, local attestation/timeout decisions, and a frozen pre-implementation evidence contract.
+Implemented: Stage-A history plus the Slice 02 lock/matrix/snapshot, boundary/schema validators, vertical-slice/checkpoint/handoff rules, owner handoffs, live acceptance evidence, and completed/sealed Slice 02 control state. The active-slice slot is idle and the next slice has not started.
 
-Limits: activation/design evidence is not runtime evidence. Slice 02 has an active planning directory but no implementation checkpoints, handoff packets, three-process harness, or acceptance artifacts. The integration repository must not become a mock runtime or fixture reader.
+Limits: Integration records compatibility and evidence; it is not a runtime, fixture reader, or mock substitute. The accepted live exercise used compiled Ananke and Horae plus an external Horae request harness; no Moirae process was started, and the global set remains provisional until Moirae has a tagged checkpoint.
 
 ## Accepted architectural direction
 
@@ -67,30 +64,29 @@ Limits: activation/design evidence is not runtime evidence. Slice 02 has an acti
 - Governed requests distinguish authenticated/delegating and acting agent principals, use bounded scope, purpose, correlation, and validity, and keep credentials outside model/agent content.
 - Approval is bound to the exact canonical request and material mutation invalidates it.
 - Cross-runtime claims require exact checkpoints, producer-owned evidence, consumer checks, and real process-boundary integration tests.
-- The accepted Slice 02 design is one harmless fixed read over `Moirae → Horae → Ananke`, with Ananke as sole physical reader and no retry, memory, provider, network, credential, workflow, or global-host-governance expansion. This direction is approved and active as planning authorization, not implemented.
+- The accepted Slice 02 implementation is one harmless fixed read over the bounded `Moirae → Horae → Ananke` route shape, with Ananke as sole physical reader and no retry, memory, provider, network, credential, workflow, or global-host-governance expansion. The live acceptance verified the compiled Ananke/Horae boundary; it did not start Moirae or induce live timeout, indeterminate transport loss, or wrong-producer cases.
 
 ## Incomplete and deferred work
 
-Highest-value incomplete integration classes are: the active Slice 02 governed action handoff; qualified Mnemosyne context retrieval; broader governed execution; persistent idempotency/reconciliation/recovery; and shared content preflight. These remain not-present capabilities; the compatibility matrix still records Slice 02 as planned until implementation evidence exists.
+Highest-value incomplete integration classes are: qualified Mnemosyne context retrieval; broader governed execution; persistent idempotency/reconciliation/recovery; shared content preflight; and host-wide bypass closure. Slice 02 is completed/sealed at slice level, but its successor global compatibility set remains provisional pending the unchanged Moirae tag and the explicit live limitations recorded in the evidence.
 
 Other major deferrals include production workload identity and credential brokering, host bypass closure, durable Horae workflows, provenance-aware memory admission, audit integrity/joined explanation, cross-server information flow, model/provider fallback governance, MCP-era policy, fleet policy, and production hardening.
 
 ## Unresolved gates and discrepancies
 
-1. **The runtime path is absent.** Ananke lacks the bounded fixture adapter; Horae lacks dispatch/relay; Moirae lacks the constrained request/result host; Integration lacks real three-process proof.
-2. **Stage A is provisional.** The locked Moirae checkpoint has no verified annotated tag.
-3. **Older Runtime Contracts prose is stale.** `adoption-baseline.md`, `contract-ownership.md`, and related historical text say no immutable baseline or downstream adoption exists. Current tags, artifact pins, manifests, integration lock, and consumer tests show Stage-A adoption occurred later.
-4. **Runtime Contracts version prose is stale.** `VERSIONING.md` labels protocol `1.4.0` unreleased even though the immutable `0.4.0`/protocol `1.4.0` artifact is now the adopted baseline.
-5. **Horae integration prose drifts from code.** `runtime-integration.md` says compatibility is exact string equality; current registry/adapter code performs semantic range negotiation.
-6. **Moirae prose drifts from code.** `governed-path.md` says the Ananke client can execute/approve/deny/audit and describes Horae client methods, but current Stage-A methods explicitly throw unsupported/unavailable errors.
-7. **Ananke README counts lag source/tests.** It advertises 108 tests/13 files; the audited suite discovered 119 tests/15 files. One full run timed out in a real MCP stdio test, then the focused file passed 4/4, indicating timing sensitivity rather than a resolved deterministic failure.
-8. **Current checkout state is not the locked baseline.** Ananke, Horae, Moirae Code, Runtime Contracts, and Integration are on later documentation/design branches/heads. Integration authority remains the exact Stage-A lock until a slice advances it.
-9. **Pre-existing local state exists.** Horae has a modified IDE cache and three untracked documents. The coordination context files and primary `AGENTS.md` were untracked at audit start. None was treated as accepted product state solely because it was local.
+1. **The live path is bounded.** Compiled Ananke and Horae were exercised and the producer-owned action completed once; no Moirae process was started, so the record does not claim a live three-process route.
+2. **The global successor set is provisional.** The locked Moirae checkpoint has no verified annotated tag. Slice 02 itself is sealed against the tagged Ananke/Horae checkpoints.
+3. **Some behaviors were not live-induced.** Timeout, post-dispatch indeterminate transport loss, and missing/wrong producer or capability induction remain owner-local/deterministic test evidence only.
+4. **Older Runtime Contracts prose is stale.** `adoption-baseline.md`, `contract-ownership.md`, and related historical text say no immutable baseline or downstream adoption exists. Current tags, artifact pins, manifests, integration lock, and consumer tests show Stage-A adoption occurred later.
+5. **Runtime Contracts version prose is stale.** `VERSIONING.md` labels protocol `1.4.0` unreleased even though the immutable `0.4.0`/protocol `1.4.0` artifact is now the adopted baseline.
+6. **Horae integration prose drifts from code.** `runtime-integration.md` says compatibility is exact string equality; current registry/adapter code performs semantic range negotiation.
+7. **Moirae prose drifts from code.** `governed-path.md` describes broader client methods than the current fail-closed Stage-A implementations expose; Slice 02 did not modify Moirae.
+8. **Current checkout heads are not all locked baselines.** Ananke, Horae, and Integration now carry the Slice 02 closure checkpoints, while Moirae and Runtime Contracts remain unchanged references. Integration authority remains the exact lock and snapshot.
 
-The Slice 02 sequencing discrepancy is corrected in the workflow, design,
-readiness checklist, owner-approval review, consistency review, and
-implementation-authorization record: a separate explicit activation decision
-against the exact Stage-A lock authorizes the bounded implementation order;
-implementation checkpoints, handoffs, real proof, and acceptance evidence are
-post-activation requirements before lock advancement or sealing. Slice 02
-remains inactive until that decision is made.
+The Slice 02 sequencing discrepancy is preserved as historical context in the
+workflow, design, readiness checklist, owner-approval review, consistency
+review, and implementation-authorization record. The separate activation
+decision authorized the bounded implementation order; the later implementation
+checkpoints, handoffs, live evidence, and validation now satisfy the acceptance
+record. Slice 02 is sealed at slice level, the active slot is idle, and Slice 03
+has not started.

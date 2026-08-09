@@ -11,11 +11,12 @@ import { spawnSync } from 'node:child_process';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
 describe('slice verification', () => {
-  it('active Slice 02 state is explicit', () => {
+  it('completed Slice 02 leaves the active slot idle', () => {
     const activeSlice = JSON.parse(readFileSync(resolve(root, 'active-slice.json'), 'utf-8'));
-    assert.strictEqual(activeSlice.status, 'active');
-    assert.strictEqual(activeSlice.activeSliceId, 'FATES-SLICE-002');
-    assert.strictEqual(activeSlice.baselineCompatibilitySet, 'fates-stage-a-2026-07');
+    assert.strictEqual(activeSlice.status, 'idle');
+    assert.strictEqual(activeSlice.activeSliceId, null);
+    assert.strictEqual(activeSlice.baselineCompatibilitySet, 'fates-slice-002-2026-08-09');
+    assert.strictEqual(activeSlice.nextRecommendedSlice, 'FATES-SLICE-003');
   });
 
   it('template is not active', () => {
@@ -36,12 +37,14 @@ describe('slice verification', () => {
     assert.strictEqual(slice.sealStatus, 'provisional');
   });
 
-  it('Slice 002 exists and is active but provisional', () => {
+  it('Slice 002 exists and is completed and sealed', () => {
     assert.ok(existsSync(resolve(root, 'slices/002-governed-action-handoff/slice.json')), 'Slice 002 slice.json must exist');
     const slice = JSON.parse(readFileSync(resolve(root, 'slices/002-governed-action-handoff/slice.json'), 'utf-8'));
     assert.strictEqual(slice.sliceId, 'FATES-SLICE-002');
-    assert.strictEqual(slice.implementationStatus, 'active');
-    assert.strictEqual(slice.sealStatus, 'provisional');
+    assert.strictEqual(slice.implementationStatus, 'completed');
+    assert.strictEqual(slice.sealStatus, 'sealed');
+    assert.strictEqual(slice.integrationLevel, 'runtime_validated');
+    assert.ok(slice.finalEvidence);
   });
 
   it('Slice 001 completion conditions preserve its provisional seal', () => {
@@ -66,12 +69,15 @@ describe('slice verification', () => {
     const files = [
       'slices/001-stage-a-adoption/slice.json',
       'slices/002-governed-action-handoff/slice.json',
+      'slices/002-governed-action-handoff/handoffs/ananke-transport-handoff.json',
+      'slices/002-governed-action-handoff/handoffs/horae-handoff.json',
       'slices/_template/slice.json',
       'slices/_template/handoffs/handoff.example.json',
       'fates-lock.json',
       'compatibility-matrix.json',
       'active-slice.json',
       'compatibility-sets/fates-stage-a-2026-07.json',
+      'compatibility-sets/fates-slice-002-2026-08-09.json',
     ];
     for (const file of files) {
       const data = JSON.parse(readFileSync(resolve(root, file), 'utf-8'));
