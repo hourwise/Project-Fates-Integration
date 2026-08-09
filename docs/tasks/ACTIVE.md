@@ -933,3 +933,27 @@ This formal acceptance/seal task is complete. Do not start Slice 03, modify
 Runtime Contracts, alter the global seal solely to remove the explicit Moirae
 limitation, or create another live three-process acceptance exercise without a
 new authorized scope.
+
+## Post-Slice-02 / Pre-Slice-03 readiness assessment - 2026-08-09
+
+Status: **ASSESSMENT COMPLETE - STOPPED FOR OWNER DECISION.** The sealed Slice
+02 state remains unchanged and `active-slice.json` remains idle. The detailed
+assessment is recorded in
+[`docs/tasks/POST_SLICE_002_READINESS.md`](./POST_SLICE_002_READINESS.md).
+
+The exact current Moirae checkpoint
+`bc48c25a1a5f793d69f38b3a7a2c05e50c9427d6` is a clean, pushed, CI-green
+documentation/design checkpoint for the proposed constrained host, not an
+implemented compatibility runtime. It is classified **D - REQUIRES
+IMPLEMENTATION**; no tag is created. Global compatibility remains
+`provisional` solely because that locked Moirae reference is `pushed_untagged`.
+
+The recommended next bounded work is a new, explicitly activated process-origin
+follow-up for Moirae -> Horae -> Ananke -> Horae -> Moirae. Mnemosyne remains
+outside that route. The existing roadmap objective “Qualified context
+retrieval” remains a later objective and should be split/reordered after the
+Moirae host boundary is implemented and independently live-accepted.
+
+This cross-reference records assessment results only. It does not change the
+Slice 02 lock, matrix, snapshot, evidence, seal, Runtime Contracts, Moirae
+checkpoint, or compatibility status, and it does not activate Slice 03.
