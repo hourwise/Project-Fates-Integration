@@ -2,9 +2,9 @@
 
 ## Handoff state
 
-This packet prepares the Ananke-to-Horae handoff for the bounded producer step.
-It is a provisional, owner-local handoff record, not a sealed Ananke repository
-checkpoint and not cross-runtime evidence.
+This packet finalizes the Ananke-to-Horae handoff for the bounded producer step.
+It records a sealed Ananke repository checkpoint while preserving the boundary
+that its action evidence is owner-local and not real three-process evidence.
 
 | Field | Value |
 | --- | --- |
@@ -16,17 +16,16 @@ checkpoint and not cross-runtime evidence.
 | Immediate parent | `86eb983fbd16cefb3218f438d2f44a246b27c5d0` |
 | Activated Stage-A Ananke baseline | `dcbb115c5798072221afdd2e4fdd36e786defddf` |
 | Baseline ancestry | Verified: activated baseline is an ancestor of the producer commit |
-| Local worktree at producer commit | Clean; checked-out `HEAD` equals the exact producer commit |
-| Remote availability | Verified read-only: `origin/codex/slice-002-bounded-read-design` resolves to the exact commit |
-| Annotated tag | None verified for the exact commit |
-| CI/status | No CI run exists for this producer commit yet. The repository CI workflow runs on pushes to `main` or pull requests targeting `main`; this implementation was pushed only to `codex/slice-002-bounded-read-design` |
-| Checkpoint state | `pushed_untagged` / provisional |
+| Sealed main checkpoint commit | `a54cb481958e5711afc1c92c622673f85e7e0178` |
+| Annotated tag | `ananke-fates-slice-002-v0.1.0-protocol-1.4.0` |
+| Remote checkpoint verification | `refs/heads/main` and the peeled annotated tag both resolve to `a54cb481958e5711afc1c92c622673f85e7e0178` |
+| CI/status | PR CI run [#35](https://github.com/hourwise/Project-Ananke/actions/runs/31314388339) passed against implementation commit `552686fe...`; main push CI run [#36](https://github.com/hourwise/Project-Ananke/actions/runs/31315240975) passed against checkpoint commit `a54cb481...`; both passed `build-and-test (22.12.0)` |
+| Checkpoint state | `sealed_tagged` |
 
 The machine-readable packet is [`ananke-handoff.json`](./ananke-handoff.json).
-It is intentionally `handoffStatus: draft`: the repository handoff schema
-requires a tag for `completed`, and no tag may be invented to bypass the
-checkpoint policy. The exact producer commit is pinned in that record and in
-this companion.
+It is `handoffStatus: completed` with the exact sealed main checkpoint and
+annotated tag. The implementation commit remains pinned as provenance and must
+not be replaced by a mutable branch head.
 
 ## Frozen action identity and request contract
 
@@ -251,8 +250,9 @@ This packet does not authorize or claim:
 - provider fallback, credentials, browser, shell, child process, arbitrary
   filesystem access, network access, workflow, compensation, or global host
   governance;
-- a sealed checkpoint, compatibility lock advancement, matrix completion,
-  Stage-A snapshot advancement, or Slice 02 completion.
+- a sealed FATES-SLICE-002 integration checkpoint, compatibility lock
+  advancement, matrix completion, Stage-A snapshot advancement, or Slice 02
+  completion.
 
 The no-bypass assumption for a future route is that Ananke remains the sole
 physical reader and policy/outcome/audit authority, Horae is the sole handoff
@@ -270,9 +270,14 @@ This handoff is pinned to the frozen acceptance evidence and activation records:
 - `docs/decisions/FATES-SLICE-002-fixture-schema-digest-manifest.json`
 - `slices/002-governed-action-handoff/slice.json`
 
-The exact producer checkpoint remains provisional pending the explicit blockers
-of a green/observable CI result and a verified annotated tag for commit
-`552686fe6e01e2c0bf41ccb52591076bfa68bc2c`. The next permitted work after that
-checkpoint is accepted is the separately scoped Horae handoff/relay step. No
-Horae, Moirae, Runtime Contracts, lock, matrix, snapshot, completion, or seal
-work was started by this handoff task.
+The Ananke producer checkpoint is now sealed at main commit
+`a54cb481958e5711afc1c92c622673f85e7e0178` with annotated tag
+`ananke-fates-slice-002-v0.1.0-protocol-1.4.0`. The implementation commit
+`552686fe6e01e2c0bf41ccb52591076bfa68bc2c` remains the implementation
+provenance. Owner-local evidence is still not real three-process evidence, and
+the Slice 02 integration checkpoint remains incomplete and unsealed until the
+Horae, Moirae, and real Integration proof steps are completed. The next
+permitted work is the separately scoped Horae handoff/relay implementation
+task against this sealed Ananke checkpoint. No Horae, Moirae, Runtime
+Contracts, lock, matrix, snapshot, completion, or integration-seal work was
+started by this handoff task.

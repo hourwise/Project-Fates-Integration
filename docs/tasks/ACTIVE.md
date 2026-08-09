@@ -129,3 +129,55 @@ Complete when:
 After this finalized handoff is committed and pushed, prepare the separately
 scoped FATES-SLICE-002 Horae handoff/relay implementation task against the
 sealed Ananke checkpoint.
+
+## Completion record — 2026-08-09
+
+### Finalized artifacts
+
+- `slices/002-governed-action-handoff/handoffs/ananke-handoff.json`
+- `slices/002-governed-action-handoff/handoffs/ananke-producer-handoff.md`
+
+The machine-readable handoff is now `handoffStatus: completed` with:
+
+- `endingCommit: a54cb481958e5711afc1c92c622673f85e7e0178`;
+- `tag: ananke-fates-slice-002-v0.1.0-protocol-1.4.0`;
+- `ciStatus: passing`;
+- `pushStatus: pushed`; and
+- `worktreeState: clean`.
+
+The implementation commit
+`552686fe6e01e2c0bf41ccb52591076bfa68bc2c` remains explicitly preserved as
+implementation provenance. Horae's future authority is the sealed main
+checkpoint/tag, not the mutable implementation branch.
+
+### Independent checkpoint and CI evidence
+
+- Remote `main` resolves to `a54cb481958e5711afc1c92c622673f85e7e0178`.
+- The peeled annotated tag
+  `ananke-fates-slice-002-v0.1.0-protocol-1.4.0` resolves to the same commit.
+- [PR CI run #35](https://github.com/hourwise/Project-Ananke/actions/runs/31314388339)
+  passed against implementation commit `552686fe...`.
+- [Main push CI run #36](https://github.com/hourwise/Project-Ananke/actions/runs/31315240975)
+  passed against checkpoint commit `a54cb481...`.
+- Both runs passed `build-and-test (22.12.0)`.
+
+Owner-local action tests remain explicitly distinct from real three-process
+route, physical-read separation, Horae relay, Moirae host, and Integration
+runtime evidence.
+
+### Validation and preserved control state
+
+- `npm.cmd run validate` passed: 9/9 JSON targets, lock/matrix/slice/boundary
+  validators, and 55/55 Integration tests.
+- `fates-lock.json`, `compatibility-matrix.json`, the Stage-A compatibility
+  snapshot, `active-slice.json`, and Slice 02 completion/seal status remain
+  unchanged.
+- Runtime Contracts remains unchanged and clean.
+- No Horae, Moirae, Mnemosyne, or Runtime Contracts product implementation
+  began.
+
+### Next permitted step
+
+The next permitted step is to prepare the separately scoped FATES-SLICE-002
+Horae handoff/relay implementation task against the sealed Ananke checkpoint.
+That task was not started here.
