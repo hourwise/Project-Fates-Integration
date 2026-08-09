@@ -1,183 +1,411 @@
-# ACTIVE — Finalize FATES-SLICE-002 Ananke Producer Handoff
+# ACTIVE — FATES-SLICE-002 Horae Governed Handoff/Relay Implementation
 
 ## Objective
 
-Finalize the already-prepared Ananke -> Horae handoff now that the exact
-Ananke producer checkpoint has been merged, CI-validated, annotated-tagged,
-and independently verified.
+Implement the bounded Horae consumer/relay step for FATES-SLICE-002 against
+the sealed Ananke producer checkpoint.
 
-Do not begin Horae implementation in this task.
+This task modifies Horae only, plus the Integration ACTIVE completion record.
 
-## Sealed Ananke checkpoint
+It does NOT implement Moirae, alter Runtime Contracts, advance the integration
+lock/matrix/snapshot, or claim real three-process acceptance evidence.
+
+## Authoritative inputs
+
+### Activated Stage-A Horae baseline
+
+Repository:
+`hourwise/Project-Horae`
+
+Stage-A checkpoint:
+`52e14fa574f7427f62747fe84d2789aec25b94e3`
+
+Stage-A tag:
+`horae-adrasteia-adoption-v0.1.0-protocol-1.4.0`
+
+### Approved Horae Slice 02 design
+
+Design/main commit:
+`b591bc688b64308a28bd958377dfdee2f2441985`
+
+ADR:
+`docs/ADR-XXXX-fail-closed-governed-action-handoff-and-result-relay.md`
+
+Verify that the activated Stage-A Horae checkpoint is an ancestor of the
+implementation branch.
+
+### Sealed Ananke producer
 
 Repository:
 `hourwise/Project-Ananke`
 
-Implementation commit:
+Implementation provenance:
 `552686fe6e01e2c0bf41ccb52591076bfa68bc2c`
 
-Main/checkpoint commit:
+Sealed checkpoint:
 `a54cb481958e5711afc1c92c622673f85e7e0178`
 
 Annotated tag:
 `ananke-fates-slice-002-v0.1.0-protocol-1.4.0`
 
-CI:
-
-- PR CI run #35 passed against implementation commit `552686fe...`
-- main push CI run #36 passed against checkpoint commit `a54cb481...`
-- `build-and-test (22.12.0)` passed
-
-The remote tag has been independently verified to resolve to
-`a54cb481958e5711afc1c92c622673f85e7e0178`.
-
-## Work
-
-Update only the existing Ananke producer handoff artifacts and task record as
-necessary.
-
-### 1. Finalize machine-readable handoff
-
-Update:
+Required handoff:
 
 `slices/002-governed-action-handoff/handoffs/ananke-handoff.json`
 
-It must now record:
-
-- `handoffStatus: "completed"`
-- `endingCommit: "a54cb481958e5711afc1c92c622673f85e7e0178"`
-- `tag: "ananke-fates-slice-002-v0.1.0-protocol-1.4.0"`
-- `ciStatus: "passing"`
-- `pushStatus: "pushed"`
-- `worktreeState: "clean"`
-
-Preserve the distinction between:
-
-- implementation commit `552686fe...`; and
-- sealed main checkpoint commit `a54cb481...`.
-
-Do not replace provenance for the implementation commit.
-
-Update notes/constraints so they no longer claim CI or tag blockers remain.
-
-### 2. Finalize human-readable handoff
-
-Update:
+Human-readable companion:
 
 `slices/002-governed-action-handoff/handoffs/ananke-producer-handoff.md`
 
-Record:
+Horae must consume the sealed checkpoint/tag as authority, not a mutable
+Ananke branch head.
 
-- sealed Ananke repository checkpoint state;
-- exact main checkpoint commit;
-- exact annotated tag;
-- successful PR and main CI evidence;
-- implementation commit as provenance;
-- that owner-local evidence is still not real three-process evidence.
+## Required context
 
-Horae's future authority should be the sealed checkpoint/tag, not a mutable
-branch head.
+Read:
 
-### 3. Preserve Integration control state
+- Integration root `AGENTS.md`
+- `docs/INDEX.md`
+- `docs/SOURCE_OF_TRUTH.md`
+- `docs/SYSTEM_MAP.md`
+- `docs/INTEGRATION.md`
+- `docs/checkpoint-policy.md`
+- `slices/002-governed-action-handoff/README.md`
+- `slices/002-governed-action-handoff/slice.json`
+- `docs/reviews/FATES-SLICE-002-acceptance-evidence-matrix.md`
+- `docs/decisions/FATES-SLICE-002-evidence-freeze.json`
+- finalized Ananke handoff files above
 
-Do not modify:
+Then inspect only the relevant Horae source and its approved Slice 02 ADR.
 
-- `fates-lock.json`
-- `compatibility-matrix.json`
-- Stage-A compatibility snapshot
-- Runtime Contracts
-- Slice completion/seal status
-- Horae, Moirae, or Mnemosyne product source
+Do not inspect unrelated projects.
 
-Ananke being sealed does not complete FATES-SLICE-002.
+## Exact route
 
-### 4. Validate
+Implement only the bounded route:
 
-Run Integration validation and JSON validation.
+Moirae constrained host
+-> Horae
+-> Ananke
+-> Horae
+-> Moirae constrained host
 
-Confirm the completed handoff satisfies `schemas/handoff.schema.json`.
+For this task only the Horae side is implemented.
 
-### 5. Completion record
+Approved topology:
 
-Update this ACTIVE task with:
+- separate local processes;
+- loopback HTTP;
+- Horae ingress equivalent to:
+  `POST /slice-02/governed-actions`
+- Ananke execution via its canonical execution endpoint;
+- no sibling runtime package imports as a substitute for process transport.
 
-- finalized handoff paths;
-- sealed Ananke checkpoint commit and tag;
-- CI evidence;
-- validation results;
-- confirmation that control-state files remain unchanged;
-- next permitted step.
+## Exact action
 
-## Acceptance criteria
+Horae may relay only:
+
+`fates.slice02.inspect-fixed-fixture.v1`
+
+Arguments are exactly:
+
+```json
+{
+  "fixtureId": "fates.slice02.fixed-fixture.v1",
+  "expectedSha256": "<64 lowercase hex>"
+}
+No additional fields.
+
+Request schema:
+
+urn:fates:slice02:inspect-fixed-fixture-request:v1
+
+Schema SHA-256:
+
+db1864fdc4978d6befb4b6d3913461e4f2d2732dd0ca87e076977ab98cf6049c
+
+Fixture digest:
+
+7b28f52d84b07bed8b49650960607e8f8a9809cac299810aba691f7f52fe9ae8
+
+Horae must never read, resolve, host, copy, or inspect the fixture bytes.
+
+Work
+1. Reuse existing Horae composition/admission machinery
+
+Use existing Horae mechanisms for:
+
+runtime inspection;
+registration/admission;
+compatibility negotiation;
+health/readiness;
+capability reduction;
+freshness;
+correlation;
+Ananke binding.
+
+Prefer small extensions over parallel architecture.
+
+Do not bypass existing Horae admission/composition logic.
+
+2. Add one bounded Slice 02 route
+
+Implement a Horae-local route/relay surface for the exact action only.
+
+Reject:
+
+unknown action;
+missing/extra arguments;
+malformed digest;
+wrong fixture identifier;
+malformed trusted context;
+malformed origin/schema receipt;
+unbounded scope;
+missing purpose;
+unsupported producer identity.
+
+Do not create a generic action proxy.
+
+3. Reinspect Ananke immediately before dispatch
+
+Before every dispatch, Horae must freshly inspect the configured Ananke
+loopback runtime and validate the sealed producer expectations.
+
+Revalidate as applicable:
+
+runtime identity;
+registration;
+compatibility/protocol;
+health;
+readiness;
+endpoint;
+instance identity;
+expected producer/checkpoint/artifact identity available to Horae;
+required action/capability availability.
+
+Readiness evidence must be no older than 1,000 ms at dispatch.
+
+Reject before dispatch when:
+
+startup/registration incomplete;
+process unavailable;
+unhealthy;
+required dependency not ready;
+readiness stale;
+protocol incompatible;
+endpoint/instance drifted;
+required capability/action absent or drifted.
+
+A cached readiness observation alone is insufficient.
+
+4. Preserve authority boundary
+
+Horae is not the action authority.
+
+Horae must not:
+
+make or replace Ananke policy decisions;
+rewrite a denied Ananke outcome;
+create approval authority;
+physically read the fixture;
+retry execution;
+fallback directly or indirectly to another execution path.
+
+Ananke remains owner of:
+
+policy;
+authority decision;
+physical read;
+decision ID;
+outcome ID;
+audit reference;
+producer evidence.
+5. Create trusted relay receipt
+
+Before dispatch, bind/record the Slice-02-local route evidence required by the
+approved design and Ananke handoff, including as applicable:
+
+exact action;
+canonical argument digest;
+principal pair;
+tenant/project/workspace;
+bounded resource scope;
+purpose;
+validity;
+Moirae origin runtime/instance/artifact receipt;
+request schema ID/digest;
+admitted Ananke runtime/instance/endpoint;
+negotiated protocol;
+fresh readiness observation;
+original correlation ID;
+distinct Horae routeId;
+distinct Horae event ID.
+
+Generate the Ananke origin/schema handoff receipt exactly as required by the
+sealed producer contract.
+
+Do not place transport credentials, secrets, filesystem paths, or authority
+material into model-visible action arguments.
+
+If satisfying Ananke transport authentication requires inventing a new
+cross-repository credential or portable contract, STOP and report.
+
+6. Dispatch once
+
+When all pre-dispatch checks pass:
+
+forward the exact action and exact arguments once;
+use Ananke's canonical governed execution endpoint;
+preserve trusted context and receipt material through the intended trusted
+transport mechanism;
+never retry.
+7. Relay typed result without rewriting producer evidence
+
+Horae local route states are:
+
+completed
+denied
+unavailable
+stale
+incompatible
+malformed
+timed_out
+indeterminate
+
+Rules:
+
+Ananke completed -> Horae completed.
+Ananke denied/invalidated -> Horae denied, preserving Ananke evidence.
+pre-dispatch unavailable -> unavailable.
+stale readiness -> stale.
+protocol/identity/endpoint/capability mismatch -> incompatible.
+request/origin/schema/context failure -> malformed.
+bounded authoritative-result timeout -> timed_out.
+transport loss after confirmed dispatch with no authoritative outcome ->
+indeterminate.
+
+timed_out and indeterminate are never success.
+
+Horae must preserve:
+
+initiating correlation ID;
+Ananke request/decision/outcome/audit references;
+Ananke producer evidence.
+
+Horae adds its own route/event IDs and never overwrites producer IDs.
+
+8. Dispatch-state correctness
+
+Record enough local evidence to distinguish:
+
+rejected before dispatch;
+dispatch not attempted;
+dispatch confirmed;
+result received;
+result lost/indeterminate;
+timed out after dispatch.
+
+Never claim readAttemptCount=0 after a dispatch when Horae cannot know whether
+Ananke performed the read.
+
+9. Tests
+
+Add focused Horae owner-local tests covering at least:
+
+valid admitted request dispatches once and relays typed completion;
+denied Ananke result is preserved without rewrite;
+malformed/extra argument refuses before dispatch;
+stale readiness refuses before dispatch;
+startup/not-ready refusal;
+incompatible protocol refusal;
+endpoint/instance/capability drift refusal;
+origin/schema mutation refusal;
+correlation preserved while Horae adds distinct IDs;
+timeout is non-success and not retried;
+post-dispatch transport loss becomes indeterminate;
+no fixture read code/path exists in Horae Slice 02 implementation;
+no second Ananke dispatch occurs for any single request.
+
+Mocks/test servers may prove Horae-local logic only.
+
+Do NOT describe mocked owner-local tests as real three-process acceptance proof.
+
+10. Preserve existing behavior
+
+Run existing Horae test/build/lint/format validation.
+
+Do not regress existing Stage-A inspection/admission/composition behavior.
+
+Keep Slice-specific code bounded and isolated where practical.
+
+Avoid embedding Slice 02 constants and behavior throughout generic Horae
+components when a narrow adapter/route can contain them.
+
+Explicit exclusions
+
+Do not implement:
+
+Moirae;
+Mnemosyne;
+Runtime Contracts changes;
+content preflight;
+MCP migration;
+remote OAuth;
+provider routing;
+generic HTTP proxying;
+arbitrary tools/actions;
+retries;
+compensation;
+persistence;
+durable workflow/session recovery;
+credential brokering;
+fixture access;
+global host governance;
+Integration real-process harness.
+
+Do not update:
+
+fates-lock.json;
+compatibility-matrix.json;
+compatibility snapshot;
+Slice completion state;
+Slice seal state.
+Acceptance criteria
 
 Complete when:
 
-1. Ananke handoff is `completed`.
-2. `endingCommit` is exactly `a54cb481958e5711afc1c92c622673f85e7e0178`.
-3. Annotated tag is exactly
-   `ananke-fates-slice-002-v0.1.0-protocol-1.4.0`.
-4. `ciStatus` is `passing`.
-5. Implementation commit `552686fe...` remains preserved as provenance.
-6. Owner-local evidence remains clearly distinguished from future real
-   cross-runtime evidence.
-7. Integration validation passes.
-8. Lock, matrix, snapshot and Slice seal/completion state are unchanged.
-9. No Horae implementation starts.
+Horae exposes only the bounded Slice 02 relay surface.
+The exact Ananke sealed checkpoint is pinned as producer authority.
+Fresh identity/registration/compatibility/health/readiness reinspection
+happens before every dispatch.
+Readiness older than 1,000 ms cannot dispatch.
+Drift/incompatibility/malformed cases fail before dispatch.
+Successful requests dispatch exactly once.
+No retry/fallback exists.
+Ananke authority/evidence is preserved without Horae reinterpretation.
+Correlation is preserved and Horae adds distinct route/event IDs.
+Timeout and indeterminate semantics are fail-closed.
+Horae never reads or hosts the fixture.
+Focused positive/negative owner-local tests pass.
+Existing Horae tests/build/lint/format checks pass.
+Integration validators remain green.
+Runtime Contracts and Integration control-state files remain unchanged.
+No Moirae implementation begins.
+ACTIVE completion record identifies changed files, tests, limitations, and
+exact next permitted step.
+Stop conditions
 
-## Next permitted step
+Stop and report rather than expanding scope if:
 
-After this finalized handoff is committed and pushed, prepare the separately
-scoped FATES-SLICE-002 Horae handoff/relay implementation task against the
-sealed Ananke checkpoint.
+the sealed Ananke contract cannot be consumed without changing it;
+a Runtime Contracts change appears necessary;
+a new credential protocol would be required;
+a generic execution proxy would be required;
+the existing Horae admission model cannot represent the required bounded
+producer identity/readiness checks without architectural expansion;
+the implementation would require Horae to read the fixture;
+the implementation would require Moirae work;
+the exact Stage-A/design ancestry does not hold.
+Completion boundary
 
-## Completion record — 2026-08-09
-
-### Finalized artifacts
-
-- `slices/002-governed-action-handoff/handoffs/ananke-handoff.json`
-- `slices/002-governed-action-handoff/handoffs/ananke-producer-handoff.md`
-
-The machine-readable handoff is now `handoffStatus: completed` with:
-
-- `endingCommit: a54cb481958e5711afc1c92c622673f85e7e0178`;
-- `tag: ananke-fates-slice-002-v0.1.0-protocol-1.4.0`;
-- `ciStatus: passing`;
-- `pushStatus: pushed`; and
-- `worktreeState: clean`.
-
-The implementation commit
-`552686fe6e01e2c0bf41ccb52591076bfa68bc2c` remains explicitly preserved as
-implementation provenance. Horae's future authority is the sealed main
-checkpoint/tag, not the mutable implementation branch.
-
-### Independent checkpoint and CI evidence
-
-- Remote `main` resolves to `a54cb481958e5711afc1c92c622673f85e7e0178`.
-- The peeled annotated tag
-  `ananke-fates-slice-002-v0.1.0-protocol-1.4.0` resolves to the same commit.
-- [PR CI run #35](https://github.com/hourwise/Project-Ananke/actions/runs/31314388339)
-  passed against implementation commit `552686fe...`.
-- [Main push CI run #36](https://github.com/hourwise/Project-Ananke/actions/runs/31315240975)
-  passed against checkpoint commit `a54cb481...`.
-- Both runs passed `build-and-test (22.12.0)`.
-
-Owner-local action tests remain explicitly distinct from real three-process
-route, physical-read separation, Horae relay, Moirae host, and Integration
-runtime evidence.
-
-### Validation and preserved control state
-
-- `npm.cmd run validate` passed: 9/9 JSON targets, lock/matrix/slice/boundary
-  validators, and 55/55 Integration tests.
-- `fates-lock.json`, `compatibility-matrix.json`, the Stage-A compatibility
-  snapshot, `active-slice.json`, and Slice 02 completion/seal status remain
-  unchanged.
-- Runtime Contracts remains unchanged and clean.
-- No Horae, Moirae, Mnemosyne, or Runtime Contracts product implementation
-  began.
-
-### Next permitted step
-
-The next permitted step is to prepare the separately scoped FATES-SLICE-002
-Horae handoff/relay implementation task against the sealed Ananke checkpoint.
-That task was not started here.
+Do not commit, push, tag, create a PR, create a handoff packet, or begin Moirae
+unless explicitly authorized after review.
