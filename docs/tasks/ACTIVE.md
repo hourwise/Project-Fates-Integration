@@ -1374,3 +1374,25 @@ Integration control state before any R1 implementation begins; after R1
 implementation, validation, and acceptance, a separate owner seal/closure
 decision is required. R1 remains proposed during this task and 003B remains
 paused.
+
+## FATES-SLICE-003A-R1 activation - 2026-08-10
+
+Status: **ACTIVATED - CONTROL-STATE ONLY.** Owner approval authorizes
+`FATES-SLICE-003A-R1 - Reproducibility and route-identity remediation` at
+accepted checkpoint `b44194d3273ffa708eaf9c5071fd7f7d6f7adeb1`.
+
+The schema-constrained active slot is now `status: active` with
+`activeSliceId: FATES-SLICE-003`; the approved R1 subphase and activation
+decision are recorded in
+[`docs/decisions/FATES-SLICE-003A-R1-activation-decision.json`](../decisions/FATES-SLICE-003A-R1-activation-decision.json).
+The five active R1 requirements are recorded in
+[`docs/REQUIREMENTS_TRACEABILITY.md`](../REQUIREMENTS_TRACEABILITY.md).
+
+Activation does not run acceptance or modify component source. It excludes
+OS-authenticated process origin, Firecracker/KVM, trusted supervisor and
+host/guest channel authentication, all containment, provider-network redesign,
+credential brokerage, and FATES-SLICE-003B. Historical sealed 003A artifacts
+remain immutable. After this activation checkpoint, implementation requires
+the separately scheduled R1 implementation task; after implementation,
+validation, and acceptance, a separate owner R1 seal/closure decision is
+required.

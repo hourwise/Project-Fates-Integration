@@ -11,12 +11,13 @@ import { spawnSync } from 'node:child_process';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
 describe('slice verification', () => {
-  it('returns the sealed 003A control slice to idle without changing Slice 02 history', () => {
+  it('activates the R1 control slot without changing sealed 003A or Slice 02 history', () => {
     const activeSlice = JSON.parse(readFileSync(resolve(root, 'active-slice.json'), 'utf-8'));
-    assert.strictEqual(activeSlice.status, 'idle');
-    assert.strictEqual(activeSlice.activeSliceId, null);
+    assert.strictEqual(activeSlice.status, 'active');
+    assert.strictEqual(activeSlice.activeSliceId, 'FATES-SLICE-003');
     assert.strictEqual(activeSlice.baselineCompatibilitySet, 'fates-slice-003a-2026-08-10');
-    assert.strictEqual(activeSlice.nextRecommendedSlice, 'FATES-SLICE-003');
+    assert.strictEqual(activeSlice.nextRecommendedSlice, 'FATES-SLICE-004');
+    assert.match(activeSlice.activationRequirements.acceptedScope, /FATES-SLICE-003A-R1/);
   });
 
   it('template is not active', () => {

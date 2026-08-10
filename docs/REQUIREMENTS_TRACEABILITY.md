@@ -1,15 +1,17 @@
 # The Fates — Requirements and Research Traceability
 
-**Status:** architecture/research baseline; no implementation activated
-**Date:** 2026-08-09
-**Compatibility baseline:** `fates-slice-002-2026-08-09`
+**Status:** architecture/research baseline; FATES-SLICE-003A-R1 control activated; R1 implementation not started
+**Date:** 2026-08-10
+**Compatibility baseline:** `fates-slice-003a-2026-08-10`
 **Scope:** Ananke, Mnemosyne, Horae, Moirae Code, Runtime Contracts, and the Integration evidence layer
 
 This document reconciles the eleven post-Slice-02 research findings against the
 actual Fates architecture, accepted decisions, current packages, contracts,
-sealed evidence, and roadmap. It is deliberately an Integration artifact. It
-does not activate Slice 03 or 003A, change a component repository, change a
-contract, or turn a research recommendation into an implementation claim.
+sealed evidence, and roadmap. It is deliberately an Integration artifact. Its
+historical research sections retain their original scope; the additive R1
+register below records the owner-authorized FATES-SLICE-003A-R1 control
+activation without changing a component repository, contract, sealed artifact,
+or implementation claim.
 
 ## Decision summary
 
@@ -1410,3 +1412,127 @@ cross-reference appended to `docs/tasks/ACTIVE.md`. It does not modify:
 
 All external claims in this document are either linked to a primary source or
 explicitly labelled as a project claim, inference, or recommendation.
+
+## FATES-SLICE-003A-R1 active requirements - 2026-08-10
+
+The following five requirements are promoted from the owner-approved R1 design
+gate into active traceability. Activation authorizes the bounded R1 workstream
+but does not implement it, run acceptance, advance compatibility state, or
+seal R1. The active control slot is the schema-constrained parent
+`FATES-SLICE-003`; the approved subphase is recorded in
+`docs/decisions/FATES-SLICE-003A-R1-activation-decision.json`.
+
+### POST003A-R1-01 - Reproducible tracked route host
+
+- **Lesson / requirement:** The Horae route host used for R1 acceptance must be
+  tracked, versioned, reproducible from the approved source/build identity, and
+  preserve one canonical route with no fallback.
+- **Threat / failure:** An untracked temporary wrapper can produce successful
+  evidence that cannot be reconstructed or audited from the sealed source
+  boundary.
+- **Source / evidence:** Accepted F-01/F-20 reconciliation;
+  `scripts/fates-slice03a-live-acceptance.mjs`; sealed 003A evidence;
+  `docs/reviews/POST-003A-R1-003B-design-gate.md`.
+- **Owning Fates:** Horae (route host); Integration (reproducibility and
+  evidence); Moirae (originating route consumer).
+- **Invariant:** The accepted R1 route host is repository-owned, versioned,
+  source/build identified, and has no alternate route or fallback.
+- **Implementation status:** **DOCUMENTED / ACTIVATED; NOT IMPLEMENTED**.
+- **Validation / evidence:** Future real-process acceptance must record the
+  tracked artifact identity and reproduce the route from pinned source/build
+  inputs.
+- **Planned slice / future task:** FATES-SLICE-003A-R1 implementation and
+  reproducible acceptance.
+- **Disposition:** **NEW_REQUIREMENT**.
+
+### POST003A-R1-02 - Production-style live authentication validation
+
+- **Lesson / requirement:** R1 live acceptance must exercise Ananke's existing
+  production-style execution-authentication path with development mode disabled
+  and ephemeral test authentication supplied out-of-band.
+- **Threat / failure:** A development-authenticated sealed route does not
+  validate the production-style fail-closed authentication path.
+- **Source / evidence:** Accepted F-05 reconciliation;
+  Ananke `packages/runtime-core/src/index.ts`; R1 activation decision.
+- **Owning Fates:** Ananke (authentication path); Integration (acceptance and
+  secret-free evidence).
+- **Invariant:** No R1 acceptance route enables `ANANKE_DEVELOPMENT_MODE`, and
+  no credential value appears in source, logs, arguments, or evidence.
+- **Implementation status:** **DOCUMENTED / ACTIVATED; NOT IMPLEMENTED**.
+- **Validation / evidence:** Future owner-authorized live acceptance with
+  out-of-band ephemeral authentication and no secret-bearing evidence.
+- **Planned slice / future task:** FATES-SLICE-003A-R1 production-style auth
+  validation.
+- **Disposition:** **VALIDATION_GAP**.
+
+### POST003A-R1-03 - Bounded inspection/readiness/action handling
+
+- **Lesson / requirement:** Inspection, readiness, dispatch, and action paths
+  must have explicit deadlines, cancellation, fail-closed cleanup, and named
+  timeout/indeterminate outcomes.
+- **Threat / failure:** A peer can accept an inspection connection and never
+  complete, leaving an unbounded pre-dispatch route or incomplete cleanup.
+- **Source / evidence:** Accepted F-15 reconciliation;
+  Horae `packages/ananke-binding/src/index.ts` and
+  `packages/slice02-relay/src/index.ts`.
+- **Owning Fates:** Horae (bounded relay/inspection); Integration (timeout,
+  cleanup, and evidence validation).
+- **Invariant:** A missing inspection/readiness/action deadline or cancellation
+  cannot degrade into ordinary execution; the route fails closed and stops its
+  bounded process set.
+- **Implementation status:** **DOCUMENTED / ACTIVATED; NOT IMPLEMENTED**.
+- **Validation / evidence:** Deterministic hanging-peer tests plus later
+  real-process acceptance with independent cleanup and named states.
+- **Planned slice / future task:** FATES-SLICE-003A-R1 bounded relay handling.
+- **Disposition:** **NEW_REQUIREMENT**.
+
+### POST003A-R1-04 - Bounded producer-result projection
+
+- **Lesson / requirement:** Horae must project producer results through a
+  broker-owned allowlist so unexpected producer fields cannot overwrite
+  projected outcome, evidence, or other broker-owned fields.
+- **Threat / failure:** Spreading an unexpected producer object after projected
+  fields can overwrite the projection boundary.
+- **Source / evidence:** Accepted F-12 reconciliation;
+  Horae `packages/slice02-relay/src/index.ts` `parseAnankeResult`.
+- **Owning Fates:** Horae (projection); Ananke (producer result); Integration
+  (cross-runtime tests).
+- **Invariant:** Only explicitly approved result fields cross the Horae relay
+  boundary, and producer-supplied extras cannot replace broker-owned values.
+- **Implementation status:** **DOCUMENTED / ACTIVATED; NOT IMPLEMENTED**.
+- **Validation / evidence:** Unexpected-field, overwrite, malformed-result, and
+  typed-state tests plus later real-process acceptance.
+- **Planned slice / future task:** FATES-SLICE-003A-R1 result projection.
+- **Disposition:** **NEW_REQUIREMENT**.
+
+### POST003A-R1-05 - Replay-safe application identity and truthful origin semantics
+
+- **Lesson / requirement:** R1 may provide short-lived, audience-bound,
+  replay-safe application request identity, but must distinguish it from
+  runtime/OS-authenticated process origin. True launch/process/channel identity
+  belongs to 003B.
+- **Threat / failure:** A caller-mintable public digest, stale request, replay,
+  wrong audience, or expired request can be mistaken for authenticated origin
+  or accepted before a consequential dispatch.
+- **Source / evidence:** Accepted F-02/F-03 reconciliation;
+  `docs/reviews/POST-003A-R1-003B-design-gate.md`; Moirae
+  `apps/diagnostics-cli/src/slice03a-host.ts` and Horae relay validation.
+- **Owning Fates:** Moirae Code (request construction); Horae (freshness,
+  audience, replay, and route validation); Integration (claim/evidence
+  wording); 003B supervisor (future launch/channel identity).
+- **Invariant:** R1 rejects malformed, wrong-audience, expired, and replayed
+  application requests before dispatch and never labels PID correlation as
+  OS-authenticated process origin.
+- **Implementation status:** **DOCUMENTED / ACTIVATED; NOT IMPLEMENTED**.
+- **Validation / evidence:** Deterministic replay and mismatch tests followed
+  by separately authorized real-process acceptance; no cosmetic signature or
+  caller-mintable hash is sufficient.
+- **Planned slice / future task:** FATES-SLICE-003A-R1 application identity;
+  true launch/process/channel identity remains FATES-SLICE-003B.
+- **Disposition:** **NEW_REQUIREMENT**.
+
+R1 activation preserves the existing Fates ownership model: Ananke remains the
+sole authority, Horae remains discovery/freshness/relay authority, Moirae
+remains the host boundary, Runtime Contracts remains neutral structure, and
+Mnemosyne remains outside this route. No R1 requirement authorizes OS
+containment, credential brokerage, provider-network redesign, or 003B work.
