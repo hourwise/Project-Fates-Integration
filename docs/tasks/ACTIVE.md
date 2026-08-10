@@ -1318,3 +1318,26 @@ owner-operated distribution of the blind prompt, followed by reconciliation of
 returned findings and an owner decision on the proposed profile, threat model,
 review results, and explicit 003B activation scope. No external model report
 is added here before that reconciliation.
+
+## POST-003A CODE-GROUNDED review reconciliation - 2026-08-10
+
+Status: **DOCUMENTATION-ONLY - FATES-SLICE-003B PAUSED.** A CODE_GROUNDED
+external review against the exact sealed/pinned repository revisions found
+material post-seal implementation and evidence qualifications. The full
+additive reconciliation and remediation design is recorded in
+[`docs/reviews/POST-003A-code-grounded-reconciliation.md`](../reviews/POST-003A-code-grounded-reconciliation.md).
+
+The record preserves the 003A lock, matrix, compatibility snapshot, live
+evidence, tag, hashes, and `active-slice.json`. It narrows process-origin
+language to acceptance-harness PID correlation, distinguishes configuration
+match/self-report from artifact attestation, records the development-auth
+condition, identifies the untracked temporary Horae host and the unbounded
+inspection gap, and preserves the positive request-principal, no-direct-client,
+fixed-argument, no-retry, fixed-filesystem, and pre-dispatch-failure findings.
+The proposed `FATES-SLICE-003A-R1` remediation subphase is
+`PROPOSED - OWNER APPROVAL REQUIRED BEFORE ACTIVATION` and is not activated;
+there is no implementation, live run, 003B activation, or seal from this
+entry. The owner-supplied Claude report's F-20 finding is reconciled as
+`VALIDATION_GAP`: it qualifies reproducibility because the successful route
+used an untracked `%TEMP%` Horae relay host, but does not invalidate the live
+route.
