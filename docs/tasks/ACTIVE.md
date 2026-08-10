@@ -1341,3 +1341,36 @@ entry. The owner-supplied Claude report's F-20 finding is reconciled as
 `VALIDATION_GAP`: it qualifies reproducibility because the successful route
 used an untracked `%TEMP%` Horae relay host, but does not invalidate the live
 route.
+
+## Final post-003A external-review synthesis and R1/003B design gate - 2026-08-10
+
+Status: **DOCUMENTATION/RESEARCH SYNTHESIS ONLY - R1 AND 003B NOT ACTIVATED.**
+The final synthesis and proposed design gate are recorded in:
+
+- [`docs/reviews/POST-003A-final-external-review-synthesis.md`](../reviews/POST-003A-final-external-review-synthesis.md);
+- [`docs/reviews/POST-003A-R1-003B-design-gate.md`](../reviews/POST-003A-R1-003B-design-gate.md).
+
+The documents preserve the accepted CODE_GROUNDED checkpoint at
+`6906ab6a1cc24825340e241c07221e78f35ef845`, distinguish blind aggregate themes
+from solicited/common-prompt findings and substrate alternatives, qualify the
+INFORMED Claude review against current primary sources, and retain the exact
+F-01 through F-20 reconciliation. They define arbitrary in-domain development
+execution as expected, recommend a proposed strict Linux x86_64/KVM/Firecracker
+no-guest-NIC/constrained-vsock profile for 003B, and split R1 application-level
+replay-safe identity from 003B trusted supervisor/channel identity.
+
+No component source, lock, matrix, compatibility snapshot, sealed evidence,
+tag, credential, Defender setting, execution policy, or containment software
+is changed. `active-slice.json` remains idle. The proposed R1 scope and
+traceability requirements require a further owner activation decision.
+
+The owner accepts the synthesis, proposed R1 scope and requirements,
+application-level replay-safe identity, the proposed strict 003B profile and
+TCB, the no-IP/vsock sequencing, subordinate credential/effect brokerage,
+platform-manifest revalidation, and performance/operator-erosion benchmarking.
+The sequencing gate is explicit: after this documentation checkpoint is
+committed and pushed, a separate owner decision must activate R1 in the
+Integration control state before any R1 implementation begins; after R1
+implementation, validation, and acceptance, a separate owner seal/closure
+decision is required. R1 remains proposed during this task and 003B remains
+paused.
