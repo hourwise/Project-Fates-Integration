@@ -1425,3 +1425,59 @@ replay-safe application identity, did not run live acceptance, and did not
 touch Ananke, Moirae Code, Mnemosyne, Runtime Contracts, 003B, the lock,
 matrix, compatibility snapshot, sealed evidence, tags, or seal state. A later
 owner decision remains required before live acceptance.
+
+## FATES-SLICE-003A-R1 implementation Batch 2 - 2026-08-10
+
+Status: **COMMITTED AND PUSHED - DETERMINISTICALLY VALIDATED; LIVE ACCEPTANCE
+PENDING.** This owner-approved Batch 2 covers only `POST003A-R1-02` and
+`POST003A-R1-05`. Baselines were Project-Horae
+`36e249386f15ff6c1e85fb98d4d8ab393b2880ae`, Project-Moirae-Code
+`f9b28fb0099d5d32d5debd4db7376066bfc2ac93`, and Integration
+`a06c562f3151eb5d21460532a9a1b0fb20ab195b`. Immutable Batch 2 component
+checkpoints are Project-Horae
+`1d50b8df9943702a9724ded56a3454c882da8925` and Project-Moirae-Code
+`56f3bc84c84e36f75d2a4e46b393f86065a736d3`; both were pushed with successful
+ordinary CI. This Integration documentation checkpoint records the final
+Batch 2 review state.
+
+The tracked Horae host now requires the raw `ANANKE_EXECUTION_TOKEN` input,
+constructs the Ananke bearer header internally, rejects missing or malformed
+auth configuration, and never accepts a caller-supplied Horae header as an
+Ananke authority override. R1 host startup also requires an absolute configured
+replay-ledger path and a host-owned `HORAE_R1_INSTANCE_ID`; the canonical
+audience is derived from that instance and the fixed route.
+
+Moirae can explicitly construct the versioned `r1-v2` application request
+receipt using the owner-configured `MOIRAE_003A_HORAE_AUDIENCE`. The receipt
+binds the audience, schema, origin identity, and short validity window. Horae
+claims the receipt synchronously within one Node process and synchronously
+persists the consumed identity by atomic file replacement before inspection or
+dispatch begins. One authoritative Horae host instance owns one replay ledger
+for its configured R1 audience. Ordinary concurrent handlers in one Horae
+process cannot both claim the same identity; cross-process shared-ledger
+exclusion is not established, so two independently configured Horae hosts
+sharing one audience/ledger are outside the bounded R1 profile and are not
+solved in Batch 2. A completed persisted claim is loaded and rejected after an
+ordinary Horae process restart. Corrupt ledger state fails closed at startup,
+and atomic replacement avoids exposing a partially written target ledger. A
+crash before replacement cannot lead to an effect because inspection/dispatch
+has not begun; a crash after replacement but before dispatch may consume the
+request without producing an effect. No automatic retry or resurrection occurs.
+R1 application request identity/freshness is not caller authentication,
+OS-authenticated process origin, PID proof, launcher identity, containment,
+credential isolation, or 003B channel authentication. A separate process able
+to reach the Horae R1 route and construct the public/configured v2 receipt
+fields may still mint a NEW, previously unseen receipt; replay protection
+prevents reuse of a consumed request but does not prove that the creator is the
+intended Moirae OS process. Power-loss / kernel-crash stable-storage durability
+is not established because this R1 implementation does not fsync the ledger
+file and parent directory. R1 therefore claims process-restart-persistent
+replay protection within the supported single-authoritative-host profile, not
+power-loss durable exactly-once semantics.
+
+Focused Horae and Moirae tests pass. Ananke source, Mnemosyne, Runtime
+Contracts, the lock, matrix, compatibility snapshot, historical sealed 003A
+evidence, tags, and 003B remain unchanged. No credential values are present
+in source, tests, logs, responses, or documentation. No live acceptance was
+run. R1 remains active and unsealed; stop before live acceptance, R1 sealing,
+or 003B work.

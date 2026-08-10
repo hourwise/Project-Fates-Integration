@@ -1,6 +1,6 @@
 # The Fates — Requirements and Research Traceability
 
-**Status:** architecture/research baseline; FATES-SLICE-003A-R1 control activated; R1 implementation not started
+**Status:** architecture/research baseline; FATES-SLICE-003A-R1 control activated; R1 Batch 2 committed and pushed; live acceptance pending
 **Date:** 2026-08-10
 **Compatibility baseline:** `fates-slice-003a-2026-08-10`
 **Scope:** Ananke, Mnemosyne, Horae, Moirae Code, Runtime Contracts, and the Integration evidence layer
@@ -1463,9 +1463,17 @@ seal R1. The active control slot is the schema-constrained parent
   secret-free evidence).
 - **Invariant:** No R1 acceptance route enables `ANANKE_DEVELOPMENT_MODE`, and
   no credential value appears in source, logs, arguments, or evidence.
-- **Implementation status:** **DOCUMENTED / ACTIVATED; NOT IMPLEMENTED**.
-- **Validation / evidence:** Future owner-authorized live acceptance with
-  out-of-band ephemeral authentication and no secret-bearing evidence.
+- **Implementation status:** **IMPLEMENTED / DETERMINISTICALLY VALIDATED; LIVE ACCEPTANCE PENDING.**
+- **Validation / evidence:** The tracked Horae host now requires the raw
+  `ANANKE_EXECUTION_TOKEN` environment input, constructs the Ananke bearer
+  header internally, never accepts caller auth as an override, and fails closed
+  when the token or configured R1 replay-ledger path is missing. Tests
+  use runtime-generated ephemeral values only; Ananke source is unchanged.
+  Batch 2 immutable checkpoints are Project-Horae
+  `1d50b8df9943702a9724ded56a3454c882da8925` and Project-Moirae-Code
+  `56f3bc84c84e36f75d2a4e46b393f86065a736d3`; both component pushes and
+  ordinary CI completed successfully. Production-mode Ananke live acceptance
+  remains separately authorized work.
 - **Planned slice / future task:** FATES-SLICE-003A-R1 production-style auth
   validation.
 - **Disposition:** **VALIDATION_GAP**.
@@ -1539,10 +1547,38 @@ seal R1. The active control slot is the schema-constrained parent
 - **Invariant:** R1 rejects malformed, wrong-audience, expired, and replayed
   application requests before dispatch and never labels PID correlation as
   OS-authenticated process origin.
-- **Implementation status:** **DOCUMENTED / ACTIVATED; NOT IMPLEMENTED**.
-- **Validation / evidence:** Deterministic replay and mismatch tests followed
-  by separately authorized real-process acceptance; no cosmetic signature or
-  caller-mintable hash is sufficient.
+- **Implementation status:** **IMPLEMENTED / DETERMINISTICALLY VALIDATED; LIVE ACCEPTANCE PENDING.**
+- **Validation / evidence:** R1 uses an explicitly versioned v2 receipt with a
+  canonical Horae route audience, short validity window, and digest bound to
+  identity, audience, schema, and validity. Horae claims consumed receipt
+  digests synchronously within one Node process and synchronously persists the
+  consumed identity by atomic file replacement before inspection or dispatch
+  begins. One authoritative Horae host instance owns one replay ledger for its
+  configured R1 audience. Ordinary concurrent handlers in one Horae process
+  cannot both claim the same identity; cross-process shared-ledger exclusion is
+  not established, so two independently configured Horae hosts sharing one
+  audience/ledger are outside the bounded R1 profile and are not solved in
+  Batch 2. A completed persisted claim is loaded and rejected after an
+  ordinary Horae process restart. Corrupt ledger state fails closed at startup,
+  and atomic replacement avoids exposing a partially written target ledger. A
+  crash before replacement cannot lead to an effect because inspection/dispatch
+  has not begun; a crash after replacement but before dispatch may consume the
+  request without producing an effect. No automatic retry or resurrection
+  occurs. This is application request identity/freshness evidence, not caller
+  authentication or OS-authenticated process origin; no fallback to v1 occurs
+  in R1 mode. A separate process able to reach the Horae R1 route and able to
+  construct the public/configured v2 receipt fields may still be able to mint a
+  NEW, previously unseen receipt. R1 replay protection prevents reuse of a
+  consumed request; it does not prove that the creator of a fresh request is
+  the intended Moirae OS process. Power-loss / kernel-crash stable-storage
+  durability is not established because this R1 implementation does not fsync
+  the ledger file and parent directory. R1 therefore claims process-restart-
+  persistent replay protection within the supported single-authoritative-host
+  profile, not power-loss durable exactly-once semantics. Separately
+  authorized real-process acceptance remains required. The immutable Batch 2
+  component checkpoints are Project-Horae
+  `1d50b8df9943702a9724ded56a3454c882da8925` and Project-Moirae-Code
+  `56f3bc84c84e36f75d2a4e46b393f86065a736d3`.
 - **Planned slice / future task:** FATES-SLICE-003A-R1 application identity;
   true launch/process/channel identity remains FATES-SLICE-003B.
 - **Disposition:** **NEW_REQUIREMENT**.
