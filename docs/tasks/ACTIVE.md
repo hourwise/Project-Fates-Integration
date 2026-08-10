@@ -1011,3 +1011,32 @@ Run Integration-only validation after this append: `npm.cmd run validate`,
 `git diff --check`, final diff inspection, and explicit checks that the Slice
 02 lock/hash/state and `active-slice.json` idle state are unchanged. No
 component suites are required because no component repository changed.
+
+## Moirae constrained-host architecture clarification - 2026-08-09
+
+Status: **DESIGN-ONLY CLARIFICATION COMPLETE - STOPPED FOR OWNER REVIEW.**
+The Moirae constrained-host ADR now explicitly separates process-origin
+identity, governed route, OS/runtime containment, credential isolation, and
+bypass resistance; defines the trust boundary and TCB; records the exact 003A
+claims/nonclaims; and describes a future, unimplemented 003B platform-profile
+boundary. The ADR also records the credential, Rule-of-Two, and information-
+flow ownership interaction and the EMBED/WRAP/STUDY/DEFER technology
+assessment.
+
+This is a documentation delta on the Moirae design lineage
+`bc48c25a1a5f793d69f38b3a7a2c05e50c9427d6`, not a new implementation
+checkpoint. The locked compatibility reference remains
+`a4783db271a61848c66ac4f6652a539bdb515e28`; no 003A activation, 003B
+implementation, compatibility tag/lock update, matrix/snapshot/seal change,
+Runtime Contracts change, or active-slice transition occurred. The active
+slot remains idle.
+
+The corresponding history is recorded in
+[`docs/REQUIREMENTS_TRACEABILITY.md`](../REQUIREMENTS_TRACEABILITY.md). No
+proof status was promoted: 003A remains unactivated and OS containment,
+credential custody, and bypass resistance remain future work.
+
+Validation for this clarification is limited to Moirae documentation/ADR
+checks and Integration traceability validation. No implementation suite is
+expanded by this task. Do not commit or push this documentation-only change
+until the owner reviews the boundary and approves the next scope.

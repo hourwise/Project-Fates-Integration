@@ -389,17 +389,19 @@ FATES-SLICE-003`. That recommendation is not an activation.
   process origin, route governance, identity, OS containment, credential
   isolation, or bypass resistance. No record may infer one from another.
 - **Existing ADR / doc / package:** Moirae constrained-host ADR, trust-boundary
-  and extension-security docs; Integration post-Slice-02 readiness assessment.
+  and extension-security docs; the 2026-08-09 ADR clarification; Integration
+  post-Slice-02 readiness assessment.
 - **Implementation status:** **DOCUMENTED** for the distinction and current
   non-claims; **PLANNED** for enforcement. The locked Moirae checkpoint is
   design-only.
 - **Validation / evidence:** The Moirae design proposes a harness that proves
   absent shell/provider/file/direct-Ananke paths. It does not prove an OS
   sandbox or host-wide bypass resistance.
-- **Planned slice / future task:** Clarify the Moirae ADR before 003A; prove
-  OS enforcement separately in 003B or a later platform-specific slice.
-- **Disposition:** **CLARIFY EXISTING ADR** before 003A; **FUTURE
-  IMPLEMENTATION TASK** for OS containment.
+- **Planned slice / future task:** The five-property and TCB clarification is
+  recorded in the Moirae ADR; prove OS enforcement separately in 003B or a
+  later platform-specific slice.
+- **Disposition:** **CLARIFY EXISTING ADR (completed)** before 003A;
+  **FUTURE IMPLEMENTATION TASK** for OS containment.
 
 ### RTA-009 — Ananke authority decision is separate from effect execution
 
@@ -967,6 +969,41 @@ FATES-SLICE-003`. That recommendation is not an activation.
 - **Planned slice / future task:** None; revisit only if an explicit owner
   decision changes the architecture.
 - **Disposition:** **REJECTED**.
+
+## Architecture clarification history — 2026-08-09
+
+The Moirae constrained-host ADR at
+[`Project Moirae Code/docs/ADR-XXXX-constrained-governed-action-request-and-result-host.md`](../../Project%20Moirae%20Code/docs/ADR-XXXX-constrained-governed-action-request-and-result-host.md)
+was clarified at the separate design lineage
+`bc48c25a1a5f793d69f38b3a7a2c05e50c9427d6`. This records the requested
+pre-003A design gate without rewriting the stable research register.
+
+- **RTA-005 — information flow:** the ADR now records the future interaction
+  with value-level provenance and destination-aware authority. No flow labels,
+  declassification, or implementation proof was promoted.
+- **RTA-007 — Rule of Two:** the ADR now records that containment or mediation
+  may satisfy a future trusted transition only when independently enforced;
+  Moirae, Horae, Ananke, and Mnemosyne ownership is unchanged. The entry
+  remains **RESEARCH_REQUIRED** with no session-composition proof.
+- **RTA-008 — process origin versus OS containment:** the disposition's
+  existing-ADR clarification is complete at design level. The ADR explicitly
+  separates process-origin identity, governed route, OS/runtime containment,
+  credential isolation, and bypass resistance. No 003A or OS proof was
+  promoted.
+- **RTA-010 — credential custody:** the ADR records the opaque capability /
+  Ananke-authority / effect-time broker boundary and keeps development
+  credentials outside the governed claim. Production custody remains
+  **PARTIAL** and a future implementation task.
+- **RTA-023 — OS sandbox and bypass resistance:** the ADR records a future
+  003B boundary, attack classes, platform-specific profiles, and
+  EMBED/WRAP/STUDY/DEFER technology classifications. No OS enforcement or
+  bypass-resistance evidence exists.
+
+**Proof/status preservation:** the prior entries, stable IDs, findings,
+dispositions, Slice 02 lock, matrix, snapshot, seal, and active-slice state are
+unchanged except for RTA-008's explicit completion of the documentation-only
+clarification. No implementation source, dependency, Runtime Contracts
+artifact, compatibility tag, or sealed evidence was changed.
 
 ## Finding-by-finding ADR and decision-gap assessment
 
