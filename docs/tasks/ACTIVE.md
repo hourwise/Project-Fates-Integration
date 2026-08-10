@@ -1396,3 +1396,32 @@ remain immutable. After this activation checkpoint, implementation requires
 the separately scheduled R1 implementation task; after implementation,
 validation, and acceptance, a separate owner R1 seal/closure decision is
 required.
+
+## FATES-SLICE-003A-R1 implementation Batch 1 - 2026-08-10
+
+Status: **IMPLEMENTED IN PROJECT-HORAE - DETERMINISTICALLY VALIDATED; LIVE
+ACCEPTANCE PENDING.** Owner approval authorizes Batch 1 only for
+`POST003A-R1-01`, `POST003A-R1-03`, and `POST003A-R1-04`. The Project-Horae
+implementation commit is
+`36e249386f15ff6c1e85fb98d4d8ab393b2880ae`.
+
+Project-Horae now contains a tracked `@horae/slice02-host` package whose Node
+HTTP adapter exposes only `POST /slice-02/governed-actions`, requires explicit
+loopback/configuration, and delegates to the existing canonical
+`createSlice02Route`/`Slice02Relay`. The relay now has one cancellable bounded
+pre-dispatch inspection budget with distinct
+`timed_out`/`dispatch_not_attempted` fail-closed semantics, and its
+producer result projection is an explicit canonical Ananke allowlist that
+retains Ananke's open evidence contract without spreading unexpected fields.
+
+Focused and full Horae validation passed, including local HTTP hanging-peer
+tests, host route/configuration/shutdown tests, projection tests, build, lint,
+conformance, peer comparator, benchmark, CLI, and composition checks. The
+historical `%TEMP%` Horae wrapper was read and compared only; it was not
+executed, modified, or used as the implementation source.
+
+This batch did not implement production-style authentication acceptance or
+replay-safe application identity, did not run live acceptance, and did not
+touch Ananke, Moirae Code, Mnemosyne, Runtime Contracts, 003B, the lock,
+matrix, compatibility snapshot, sealed evidence, tags, or seal state. A later
+owner decision remains required before live acceptance.

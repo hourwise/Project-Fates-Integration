@@ -1437,8 +1437,13 @@ seal R1. The active control slot is the schema-constrained parent
   evidence); Moirae (originating route consumer).
 - **Invariant:** The accepted R1 route host is repository-owned, versioned,
   source/build identified, and has no alternate route or fallback.
-- **Implementation status:** **DOCUMENTED / ACTIVATED; NOT IMPLEMENTED**.
-- **Validation / evidence:** Future real-process acceptance must record the
+- **Implementation status:** **IMPLEMENTED + DETERMINISTICALLY VALIDATED; LIVE
+  ACCEPTANCE PENDING.**
+- **Validation / evidence:** The tracked host is implemented at
+  `Project-Horae/packages/slice02-host/src/index.ts` and delegates to the
+  canonical `createSlice02Route`/`Slice02Relay`; Project-Horae Batch 1 commit
+  `36e249386f15ff6c1e85fb98d4d8ab393b2880ae` is pushed and full Horae
+  validation passes. Future real-process acceptance must still record the
   tracked artifact identity and reproduce the route from pinned source/build
   inputs.
 - **Planned slice / future task:** FATES-SLICE-003A-R1 implementation and
@@ -1480,9 +1485,14 @@ seal R1. The active control slot is the schema-constrained parent
 - **Invariant:** A missing inspection/readiness/action deadline or cancellation
   cannot degrade into ordinary execution; the route fails closed and stops its
   bounded process set.
-- **Implementation status:** **DOCUMENTED / ACTIVATED; NOT IMPLEMENTED**.
-- **Validation / evidence:** Deterministic hanging-peer tests plus later
-  real-process acceptance with independent cleanup and named states.
+- **Implementation status:** **IMPLEMENTED + DETERMINISTICALLY VALIDATED; LIVE
+  ACCEPTANCE PENDING.**
+- **Validation / evidence:** `AbortSignal`-backed inspection and action
+  inspection share one explicit pre-dispatch budget and return
+  `timed_out`/`dispatch_not_attempted` before dispatch;
+  deterministic mock and local HTTP hanging-peer tests pass. Project-Horae
+  Batch 1 commit `36e249386f15ff6c1e85fb98d4d8ab393b2880ae` is pushed. Later
+  real-process acceptance remains required.
 - **Planned slice / future task:** FATES-SLICE-003A-R1 bounded relay handling.
 - **Disposition:** **NEW_REQUIREMENT**.
 
@@ -1499,9 +1509,15 @@ seal R1. The active control slot is the schema-constrained parent
   (cross-runtime tests).
 - **Invariant:** Only explicitly approved result fields cross the Horae relay
   boundary, and producer-supplied extras cannot replace broker-owned values.
-- **Implementation status:** **DOCUMENTED / ACTIVATED; NOT IMPLEMENTED**.
-- **Validation / evidence:** Unexpected-field, overwrite, malformed-result, and
-  typed-state tests plus later real-process acceptance.
+- **Implementation status:** **IMPLEMENTED + DETERMINISTICALLY VALIDATED; LIVE
+  ACCEPTANCE PENDING.**
+- **Validation / evidence:** `parseAnankeResult` now projects only the
+  canonical GatewayExecutionResult fields, preserves Ananke's intentionally
+  open evidence record, strips unexpected/inherited fields, and rejects
+  malformed required result data; focused projection tests and full Horae
+  validation pass. Project-Horae Batch 1 commit
+  `36e249386f15ff6c1e85fb98d4d8ab393b2880ae` is pushed. Later real-process
+  acceptance remains required.
 - **Planned slice / future task:** FATES-SLICE-003A-R1 result projection.
 - **Disposition:** **NEW_REQUIREMENT**.
 
