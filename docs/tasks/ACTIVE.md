@@ -1287,3 +1287,34 @@ claim OS filesystem/network/shell/subprocess containment, browser/extension
 containment, credential isolation, arbitrary IPC containment, direct-Ananke or
 alternate-MCP operating-system prevention, complete bypass resistance, or
 full-machine security. FATES-SLICE-003B was not started; stop after this seal.
+
+## Post-Slice-003A readiness and 003B review preparation - 2026-08-10
+
+Status: **DOCUMENTATION PREPARATION ONLY - 003B NOT ACTIVATED.** The final
+003A seal and all sealed control-state artifacts remain unchanged. This
+additive preparation records a candidate 003B objective, a proposed first
+Linux x86_64 profile with a Firecracker-based layered containment TCB subject
+to external review and an owner design gate, a host/process/filesystem/
+network/credential/IPC bypass register, primitive classifications, timing and
+performance requirements, and the credential and Defender lessons without any
+secret values.
+
+The readiness assessment is
+[`docs/tasks/POST_SLICE_003A_READINESS.md`](POST_SLICE_003A_READINESS.md). The
+external-review methodology and prompt packs are:
+
+- [`docs/reviews/POST-003A-external-review-methodology.md`](../reviews/POST-003A-external-review-methodology.md);
+- [`docs/reviews/POST-003A-blind-containment-review-prompt.md`](../reviews/POST-003A-blind-containment-review-prompt.md);
+- [`docs/reviews/POST-003A-informed-containment-review-prompt.md`](../reviews/POST-003A-informed-containment-review-prompt.md);
+- [`docs/reviews/POST-003A-code-grounded-review-brief.md`](../reviews/POST-003A-code-grounded-review-brief.md).
+
+The earlier Claude review is classified `INFORMED` with confirmed prior Fates
+context. The earlier Gemini review is `POSSIBLE` prior context unless the
+owner's session record establishes otherwise. No review consensus is treated
+as proof. No implementation, dependency, component source, lock, matrix,
+snapshot, sealed evidence, tag, or `active-slice.json` change is authorized by
+this entry. The active integration slot remains idle and the next action is an
+owner-operated distribution of the blind prompt, followed by reconciliation of
+returned findings and an owner decision on the proposed profile, threat model,
+review results, and explicit 003B activation scope. No external model report
+is added here before that reconciliation.
