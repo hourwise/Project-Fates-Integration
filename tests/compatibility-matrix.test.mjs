@@ -31,7 +31,7 @@ describe('compatibility-matrix verification', () => {
     assert.ok(stageA, 'FATES-SLICE-001 row must exist');
     assert.strictEqual(stageA.compatibilitySet, lock.compatibilitySetId);
     assert.strictEqual(stageA.implementationStatus, 'completed');
-    assert.strictEqual(stageA.sealStatus, 'provisional');
+    assert.strictEqual(stageA.sealStatus, 'sealed');
     assert.strictEqual(stageA.integrationLevel, 'inspection_only');
 
     for (const [name, repo] of Object.entries(stageA.repositories)) {

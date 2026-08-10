@@ -1,0 +1,119 @@
+{
+  "$schema": "../../schemas/slice.schema.json",
+  "sliceId": "FATES-SLICE-003",
+  "title": "FATES-SLICE-003A — Constrained host route completion and process-origin proof",
+  "implementationStatus": "completed",
+  "sealStatus": "sealed",
+  "integrationLevel": "runtime_validated",
+  "objective": "Implement the smallest Moirae constrained-host boundary and prepare a bounded process-origin proof for Moirae -> Horae -> canonical Ananke -> Horae -> Moirae using the already sealed Slice 02 action, with one harmless producer-owned read and typed, fail-closed evidence.",
+  "owners": ["Moirae Code", "Horae", "Ananke", "Fates Integration"],
+  "repositoriesInvolved": [
+    {
+      "name": "moirae-code",
+      "url": "https://github.com/hourwise/Project-Moirae-Code",
+      "role": "Primary owner of the narrow host/origin boundary, Horae-only initiation, and typed result presentation."
+    },
+    {
+      "name": "horae",
+      "url": "https://github.com/hourwise/Project-Horae",
+      "role": "Existing sealed Slice 02 handoff, fresh Ananke checks, canonical dispatch, and typed relay consumer; no change unless a genuine blocker is found."
+    },
+    {
+      "name": "ananke",
+      "url": "https://github.com/hourwise/Project-Ananke",
+      "role": "Existing sealed Slice 02 action authority, producer/effect owner, and sole physical fixed-fixture reader; no change unless a genuine blocker is found."
+    },
+    {
+      "name": "fates-integration",
+      "url": "https://github.com/hourwise/Project-Fates-Integration",
+      "role": "Control-state, traceability, validation, and later cross-runtime evidence owner."
+    }
+  ],
+  "startingCheckpoints": {
+    "compatibilitySetId": "fates-slice-002-2026-08-09",
+    "lockPath": "fates-lock.json",
+    "snapshotPath": "compatibility-sets/fates-slice-002-2026-08-09.json",
+    "sealStatus": "provisional",
+    "integrationLevel": "runtime_validated",
+    "repositories": {
+      "adrasteia": {
+        "tag": "adrasteia-adoption-v0.4.0-protocol-1.4.0",
+        "commit": "124b6aee2629a3147739934ad5f1b45b32c8ba46",
+        "checkpointState": "sealed_tagged"
+      },
+      "ananke": {
+        "tag": "ananke-fates-slice-002-v0.2.0-protocol-1.4.0",
+        "commit": "52b512885edf3fec7ff7ce4b4dcbd3958b170ba4",
+        "checkpointState": "sealed_tagged"
+      },
+      "mnemosyne": {
+        "tag": "mnemosyne-adrasteia-adoption-v0.1.0-protocol-1.4.0",
+        "commit": "f4ab76a9760f856d78908d35facceb068d78c8e5",
+        "checkpointState": "sealed_tagged"
+      },
+      "horae": {
+        "tag": "horae-fates-slice-002-v0.1.0-protocol-1.4.0",
+        "commit": "9566eb2764339d6a6fe143c1630eeb009e00a7bd",
+        "checkpointState": "sealed_tagged"
+      },
+      "moirae-code": {
+        "tag": null,
+        "commit": "a4783db271a61848c66ac4f6652a539bdb515e28",
+        "checkpointState": "pushed_untagged"
+      }
+    },
+    "moiraeDocumentationLineage": {
+      "designCommit": "bc48c25a1a5f793d69f38b3a7a2c05e50c9427d6",
+      "approvedDocumentationCommit": "1e99a0ca80289253c2fed96c93b42c5230e46a8e",
+      "note": "Documentation/design lineage is not substituted for the locked compatibility checkpoint."
+    }
+  },
+  "contractChanges": [
+    "None approved. Runtime Contracts remains at the locked project-runtime-contracts@0.4.0, protocol 1.4.0 baseline."
+  ],
+  "repositoryOrder": [
+    "Moirae constrained host implementation and focused tests",
+    "Horae relevant consumer validation against the sealed Slice 02 checkpoint",
+    "Ananke relevant consumer validation against the sealed Slice 02 checkpoint",
+    "Integration control, boundary, and evidence validation",
+    "Owner review before any formal live acceptance"
+  ],
+  "requiredConsumerTests": [
+    "Moirae: fixed action and fixed route construction, process-origin binding, Horae-only transport, typed result receipt, timeout handling, malformed/origin/drift rejection, and no direct Ananke or alternate-path fallback.",
+    "Horae: fresh expected-origin, identity, endpoint, readiness, producer, capability, and canonical dispatch checks remain green against the sealed Slice 02 route.",
+    "Ananke: the sealed fixed action remains the authority and sole physical reader with one-read and digest evidence; no producer implementation change is authorized.",
+    "Runtime Contracts and Mnemosyne: remain unchanged and outside the 003A route."
+  ],
+  "integrationTests": [
+    "One eventual real three-process positive route with an independently started Moirae process, when explicitly scheduled after owner review.",
+    "Process-origin evidence is bound to the request and preserved through Horae and Ananke evidence.",
+    "The request reaches Horae first and Horae reaches only the canonical Ananke endpoint; no direct, alternate, fallback, fixture, retry, or duplicate path is accepted.",
+    "Fresh Horae checks, exact producer/capability identity, one harmless producer-owned read, typed result state, route/event/request/correlation preservation, and clean stop are evidenced.",
+    "Malformed input, origin drift, Horae drift, Ananke denial, timeout, indeterminate outcome, retry, and duplicate-dispatch cases fail closed in deterministic tests; live fault induction remains a later decision."
+  ],
+  "breakingChanges": [],
+  "deferredWork": [
+    "FATES-SLICE-003B or later: OS/filesystem/network/shell/subprocess/browser/extension containment and broader host bypass resistance.",
+    "Credential custody, credential brokerage, environment isolation, and secret-boundary work.",
+    "Generic governed actions, arbitrary filesystem access, alternate MCP transports, direct Ananke access, retry, persistence, idempotency, reconciliation, and recovery.",
+    "Qualified Mnemosyne context retrieval or any memory authority claim.",
+    "Future live fault induction for timeout, post-dispatch indeterminate loss, and wrong producer/capability remains separately scoped; deterministic coverage is retained here."
+  ],
+  "stopConditions": [
+    "Stop on any required Runtime Contracts change, sealed Horae or Ananke behavior change, contract mismatch, or need to modify a sealed producer/consumer checkpoint.",
+    "Stop if the host needs OS sandboxing, credential handling, UI/extension mediation, direct Ananke access, an alternate MCP endpoint, retry, fallback, persistence, or any bypass of the canonical route.",
+    "Do not modify fates-lock.json, compatibility-matrix.json, the Slice 02 compatibility snapshot, Slice 02 evidence, tags, or seal claims during 003A preparation.",
+    "After Moirae, Horae, Ananke, and Integration owner-local validation is green, stop for review before formal live acceptance."
+  ],
+  "finalEvidence": {
+    "acceptance": "FORMALLY ACCEPTED AND SEALED on 2026-08-10 as FATES-SLICE-003A. The successful live evidence is docs/evidence/FATES-SLICE-003A-live-acceptance-2026-08-10.json. The sealed compatibility set is fates-slice-003a-2026-08-10; Moirae is pinned to f9b28fb0099d5d32d5debd4db7376066bfc2ac93 with annotated tag moirae-fates-slice-003a-v0.1.0-protocol-1.4.0, while Ananke and Horae remain at their sealed Slice 02 checkpoints. Integration validation, owner-local checks, and required remote CI passed. The active-slice slot is idle. This seal does not start 003B.",
+    "limitations": [
+      "The historical locked Moirae compatibility reference a4783db271a61848c66ac4f6652a539bdb515e28 and design lineage bc48c25a1a5f793d69f38b3a7a2c05e50c9427d6 remain recorded as prior checkpoints; the new f9b28fb0099d5d32d5debd4db7376066bfc2ac93 implementation checkpoint is distinct and independently tagged.",
+      "The bounded host boundary proves process-origin and route intent only; it does not claim OS-wide containment, credential isolation, or complete local-machine bypass resistance.",
+      "Mnemosyne and Runtime Contracts are outside the route and unchanged.",
+      "Attempt 0 Defender interaction and Attempt 1 harness configuration failure remain preserved in the accepted chronology; neither is a Fates runtime failure or a confirmed false positive.",
+      "The sealed claim excludes OS filesystem/network/shell/subprocess, browser/extension, credential, arbitrary IPC, direct-Ananke operating-system prevention, alternate-MCP operating-system prevention, complete bypass resistance, and full-machine security.",
+      "003B, qualified Mnemosyne context retrieval, durable recovery/idempotency, and content preflight remain outside this seal."
+    ]
+  }
+}

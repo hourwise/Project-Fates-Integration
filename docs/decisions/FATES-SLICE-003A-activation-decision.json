@@ -1,0 +1,190 @@
+{
+  "sliceId": "FATES-SLICE-003",
+  "subphase": "FATES-SLICE-003A",
+  "title": "Constrained host route completion and process-origin proof",
+  "decisionKind": "activation",
+  "decision": "ACTIVATED",
+  "activationTimestamp": "2026-08-10T08:12:51.2692805Z",
+  "userAuthorization": {
+    "authorized": true,
+    "source": "Explicit approval in the current task attachment: accept the clarified Moirae constrained-host architecture and prepare and activate bounded FATES-SLICE-003A.",
+    "authorizedAt": "2026-08-10T08:12:51.2692805Z",
+    "scope": "Prepare and activate only the bounded 003A process-origin and constrained route completion work. Do not start 003B, change Runtime Contracts, advance compatibility state, modify Slice 02 lock/matrix/snapshot/seal evidence, or perform formal live acceptance before the owner-review gate."
+  },
+  "baseline": {
+    "compatibilitySetId": "fates-slice-002-2026-08-09",
+    "lockPath": "fates-lock.json",
+    "snapshotPath": "compatibility-sets/fates-slice-002-2026-08-09.json",
+    "lockUpdatedAt": "2026-08-09T21:02:20.231Z",
+    "sealStatus": "provisional",
+    "integrationLevel": "runtime_validated",
+    "protocol": {
+      "current": "1.4.0",
+      "minimum": "1.0.0",
+      "maximum": "1.4.0"
+    },
+    "startingCheckpoints": {
+      "adrasteia": {
+        "url": "https://github.com/hourwise/Project-Adrasteia",
+        "tag": "adrasteia-adoption-v0.4.0-protocol-1.4.0",
+        "commit": "124b6aee2629a3147739934ad5f1b45b32c8ba46",
+        "checkpointState": "sealed_tagged",
+        "package": "project-runtime-contracts@0.4.0",
+        "artifact": {
+          "url": "https://github.com/hourwise/Project-Adrasteia/releases/download/adrasteia-adoption-v0.4.0-protocol-1.4.0/project-runtime-contracts-0.4.0.tgz",
+          "sha256": "11ee062b079f74d2a4558af315c9b9b12a6aede291d409c48f038d93c416e2c2"
+        },
+        "role": "portable-representation"
+      },
+      "ananke": {
+        "url": "https://github.com/hourwise/Project-Ananke",
+        "tag": "ananke-fates-slice-002-v0.2.0-protocol-1.4.0",
+        "commit": "52b512885edf3fec7ff7ce4b4dcbd3958b170ba4",
+        "checkpointState": "sealed_tagged",
+        "role": "action-authority"
+      },
+      "mnemosyne": {
+        "url": "https://github.com/hourwise/Project-Mnemosyne",
+        "tag": "mnemosyne-adrasteia-adoption-v0.1.0-protocol-1.4.0",
+        "commit": "f4ab76a9760f856d78908d35facceb068d78c8e5",
+        "checkpointState": "sealed_tagged",
+        "role": "memory-provenance; outside 003A route"
+      },
+      "horae": {
+        "url": "https://github.com/hourwise/Project-Horae",
+        "tag": "horae-fates-slice-002-v0.1.0-protocol-1.4.0",
+        "commit": "9566eb2764339d6a6fe143c1630eeb009e00a7bd",
+        "checkpointState": "sealed_tagged",
+        "role": "discovery-composition and sole relay"
+      },
+      "moirae-code": {
+        "url": "https://github.com/hourwise/Project-Moirae-Code",
+        "tag": null,
+        "commit": "a4783db271a61848c66ac4f6652a539bdb515e28",
+        "checkpointState": "pushed_untagged",
+        "role": "governed-host"
+      }
+    }
+  },
+  "lineagePreservation": {
+    "moiraeLockedCompatibilityCommit": "a4783db271a61848c66ac4f6652a539bdb515e28",
+    "moiraeDesignLineageCommit": "bc48c25a1a5f793d69f38b3a7a2c05e50c9427d6",
+    "moiraeApprovedDocumentationCommit": "1e99a0ca80289253c2fed96c93b42c5230e46a8e",
+    "rule": "The documentation/design lineage and the new uncommitted implementation must not be represented as the locked compatibility checkpoint or as a sealed component state."
+  },
+  "approvedScope": {
+    "action": "fates.slice02.inspect-fixed-fixture.v1",
+    "topology": "Independent Moirae process -> Horae /slice-02/governed-actions -> canonical Ananke /api/execute -> Horae -> Moirae",
+    "changedFate": "Moirae Code only for the smallest host/origin boundary; Horae and Ananke are sealed consumers/producers and remain unchanged unless a genuine blocker is found.",
+    "integrationRole": "Evidence and control-state owner; no fixture access and no route implementation.",
+    "runtimeContractsChangeApproved": false,
+    "mnemosyneInRoute": false,
+    "transport": "The existing bounded loopback HTTP route through Horae only; no alternate MCP or direct Ananke path.",
+    "approvedImplementationShape": [
+      "Allowlisted launch configuration supplies the Moirae instance and artifact identity; request construction is fixed to the approved action and route.",
+      "The Moirae request carries process-origin evidence, origin digest, request/correlation identifiers, bounded host context, and the exact fixed-fixture arguments.",
+      "The host performs one Horae request with a bounded timeout, accepts a typed route result, and fails closed on transport, malformed, drifted, or non-object responses.",
+      "No credentials, arbitrary action input, fixture read, direct Ananke URL, retry, fallback, duplicate dispatch, OS containment, or generic host service is introduced."
+    ],
+    "excluded": [
+      "FATES-SLICE-003B and all OS filesystem/network/shell/subprocess/browser/extension containment",
+      "Credential custody, brokerage, secret or environment isolation, and bypass claims",
+      "Generic governed actions, arbitrary filesystem access, direct Moirae-to-Ananke access, alternate MCP transports, retry, persistence, idempotency, reconciliation, and recovery",
+      "Mnemosyne memory/context retrieval or memory authority",
+      "Runtime Contracts package, protocol, or schema changes",
+      "Compatibility lock, matrix, snapshot, tag, or seal advancement",
+      "Formal live acceptance in this owner-local implementation pass"
+    ]
+  },
+  "acceptanceCriteria": [
+    "An independently running Moirae process is the request origin.",
+    "Process-origin evidence is tied to the request and includes the request/correlation relationship.",
+    "The intended route reaches Horae first; Moirae has no direct Ananke execution path.",
+    "Horae performs fresh origin, identity, endpoint, readiness, producer, capability, and protocol checks before dispatch.",
+    "The dispatch uses the exact canonical Ananke endpoint and the sealed Slice 02 action authority.",
+    "Exactly one harmless producer-owned fixed-fixture read/effect is attempted on the positive path.",
+    "There is no retry after transport failure or post-dispatch uncertainty.",
+    "There is no fallback or alternate endpoint.",
+    "There is no duplicate dispatch or duplicate physical read.",
+    "There is no fixture, filesystem, mock, or alternate route used as a substitute for the canonical path.",
+    "Route, event, request, and correlation identifiers plus producer/effect evidence are preserved.",
+    "The Moirae result is typed and retains the relay state and evidence boundary.",
+    "Malformed requests and malformed responses fail closed.",
+    "Origin identity or origin-digest drift fails closed.",
+    "Horae endpoint, instance, readiness, producer, capability, or protocol drift fails closed.",
+    "Ananke denial is returned as a typed denial without an alternate execution path.",
+    "Timeout preserves uncertainty and does not imply success or retry.",
+    "Indeterminate post-dispatch transport loss preserves uncertainty and does not retry.",
+    "Deterministic tests cover malformed, origin, drift, denial, timeout, indeterminate, no-retry, and duplicate cases.",
+    "The process stops cleanly, temporary evidence stays outside repositories, and no credentials or local configuration are committed."
+  ],
+  "ownerResponsibilities": {
+    "moiraeCode": "Implement and test only the constrained host/origin boundary, Horae-only route initiation, typed relay result, bounded timeout, and explicit limitations.",
+    "horae": "Validate the host request against the existing sealed Slice 02 relay and run relevant consumer checks; stop on any contract or sealed-behavior blocker.",
+    "ananke": "Remain the sole authority/effect owner and run relevant consumer checks against the existing sealed producer; no implementation change is authorized.",
+    "integration": "Record activation and evidence requirements, validate canonical control state, run Integration checks and later real proof, and preserve all Slice 02 lock/matrix/snapshot/seal artifacts.",
+    "mnemosyne": "Remain outside the route and unchanged.",
+    "runtimeContracts": "Remain unchanged and authoritative for the existing shared contract baseline."
+  },
+  "implementationOrder": [
+    "Activate the Integration control record and preserve the Slice 02 baseline.",
+    "Complete the smallest Moirae host/origin boundary and deterministic tests.",
+    "Run focused and relevant Horae and Ananke validation against sealed checkpoints.",
+    "Run Integration canonical, lock, matrix, slice, boundary, and 003A checks.",
+    "Stop for owner review before formal live acceptance."
+  ],
+  "postActivationRequirements": [
+    "Moirae focused tests, build, lint, format check, and relevant suite pass.",
+    "Horae relevant validation passes without modifying the sealed route.",
+    "Ananke relevant validation passes without modifying the sealed action authority.",
+    "Integration validation and newly added deterministic 003A integration checks pass.",
+    "Any owner-local green checkpoint remains visibly distinct from live acceptance and compatibility lock advancement.",
+    "Formal live acceptance is separately reviewed and explicitly scheduled only after the owner-local stop gate."
+  ],
+  "authorizationBoundary": {
+    "authorizes": "Only FATES-SLICE-003A constrained host route completion and process-origin proof preparation/activation.",
+    "doesNotAuthorize": [
+      "FATES-SLICE-003B or any future slice",
+      "OS containment, credential isolation, bypass resistance, or a broader security claim",
+      "Runtime Contracts changes",
+      "component lock, matrix, snapshot, tag, or seal advancement",
+      "formal live acceptance before owner review",
+      "implementation or pushes in other repositories unless a genuine blocker is separately identified and approved"
+    ],
+    "stopGate": "When owner-local Moirae, Horae, Ananke, and Integration validation is green, stop for review."
+  },
+  "controlState": {
+    "activeSliceFile": "active-slice.json",
+    "activeSliceId": "FATES-SLICE-003",
+    "approvedSubphase": "FATES-SLICE-003A",
+    "lockChanged": false,
+    "compatibilityMatrixChanged": false,
+    "snapshotChanged": false,
+    "sealClaimChanged": false,
+    "globalCompatibilitySetRemains": "fates-slice-002-2026-08-09",
+    "globalSealStatusRemains": "provisional",
+    "slice02ArtifactsPreserved": true
+  },
+  "knownLimitations": [
+    "No formal live route evidence is recorded by this activation decision.",
+    "The host boundary provides process-origin and route intent evidence, not OS-wide containment or complete local-machine bypass resistance.",
+    "The Moirae locked compatibility reference remains pushed_untagged and is not sealed.",
+    "Live timeout, post-dispatch indeterminate loss, wrong producer/capability induction, and live negative exercises remain for a separately authorized acceptance pass."
+  ],
+  "createdControlArtifacts": [
+    "active-slice.json",
+    "slices/003-constrained-host-route/slice.json",
+    "docs/decisions/FATES-SLICE-003A-activation-decision.json",
+    "docs/tasks/ACTIVE.md",
+    "tests/slices.test.mjs"
+  ],
+  "preservedArtifacts": [
+    "fates-lock.json",
+    "compatibility-matrix.json",
+    "compatibility-sets/fates-slice-002-2026-08-09.json",
+    "slices/002-governed-action-handoff",
+    "docs/evidence/FATES-SLICE-002-live-acceptance-2026-08-09.json",
+    "Runtime Contracts source and package baseline",
+    "Mnemosyne repository and checkpoint"
+  ]
+}

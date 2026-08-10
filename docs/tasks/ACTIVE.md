@@ -1040,3 +1040,250 @@ Validation for this clarification is limited to Moirae documentation/ADR
 checks and Integration traceability validation. No implementation suite is
 expanded by this task. Do not commit or push this documentation-only change
 until the owner reviews the boundary and approves the next scope.
+
+## FATES-SLICE-003A activation and constrained host implementation — 2026-08-10
+
+Status: **ACTIVE — 003A LIVE-ACCEPTANCE CANDIDATE; STOP FOR OWNER PRE-SEAL
+REVIEW.** The explicit approval for the clarified Moirae constrained-host
+architecture authorizes only the bounded `FATES-SLICE-003A` subphase. The
+schema-compatible control record is `FATES-SLICE-003` in
+[`slices/003-constrained-host-route/slice.json`](../../slices/003-constrained-host-route/slice.json);
+the full activation decision is
+[`docs/decisions/FATES-SLICE-003A-activation-decision.json`](../decisions/FATES-SLICE-003A-activation-decision.json).
+
+### Activation boundary
+
+The active route is strictly:
+
+```text
+independent Moirae process -> Horae /slice-02/governed-actions
+-> canonical Ananke /api/execute -> Horae -> Moirae
+```
+
+Moirae owns the smallest host/origin boundary and must initiate the fixed
+`fates.slice02.inspect-fixed-fixture.v1` action through Horae only. Horae and
+Ananke remain the sealed Slice 02 relay and producer/effect authorities. Ananke
+remains the sole physical reader. Mnemosyne is outside the route, and Runtime
+Contracts is unchanged.
+
+The exact starting baseline remains
+`fates-slice-002-2026-08-09`: Ananke
+`52b512885edf3fec7ff7ce4b4dcbd3958b170ba4` tagged
+`ananke-fates-slice-002-v0.2.0-protocol-1.4.0`, Horae
+`9566eb2764339d6a6fe143c1630eeb009e00a7bd` tagged
+`horae-fates-slice-002-v0.1.0-protocol-1.4.0`, and the locked Moirae
+reference `a4783db271a61848c66ac4f6652a539bdb515e28` retained as
+`pushed_untagged`. The Moirae design lineage
+`bc48c25a1a5f793d69f38b3a7a2c05e50c9427d6` and approved documentation commit
+`1e99a0ca80289253c2fed96c93b42c5230e46a8e` are recorded as lineage only and
+are not substituted into the compatibility lock.
+
+### Approved work and evidence gate
+
+The current Moirae work is limited to fixed request construction, process-origin
+evidence tied to request/correlation identifiers, Horae-only transport, a
+bounded timeout, typed result receipt, and deterministic fail-closed behavior.
+Validation must cover malformed input, origin drift, Horae drift, Ananke denial,
+timeout, indeterminate outcome, no retry, no fallback, no alternate endpoint,
+and no duplicate dispatch. Relevant Horae and Ananke checks must remain green
+against their sealed Slice 02 checkpoints, and Integration must validate the
+canonical controls without changing `fates-lock.json`, the compatibility
+matrix, the Slice 02 snapshot, evidence, tag, or seal claim.
+
+The owner-local green gate is not live acceptance. After Moirae, Horae, Ananke,
+and Integration checks are green, stop for owner review before any formal live
+three-process positive or negative exercise. Temporary scripts and logs must
+remain outside repositories, and no credentials or local configuration may be
+committed.
+
+### Explicit non-scope
+
+This activation does not start 003B. OS filesystem/network/shell/subprocess,
+browser, extension, credential, environment-isolation, bypass-resistance,
+generic-action, direct-Ananke, alternate-MCP, retry, persistence, recovery,
+and memory/context work remains future or separately authorized work. No
+component checkpoint, tag, lock, matrix, snapshot, or seal status advances as
+part of this activation.
+
+### Work completed, cross-component effects, and deviation note
+
+- Integration activation and the schema-compatible `FATES-SLICE-003` control
+  record are present; the Slice 02 lock, matrix, snapshot, evidence, and seal
+  state are unchanged.
+- Moirae has the narrow host/origin implementation and focused deterministic
+  tests on local branch `codex/slice-003a-host-route`. Its owner-local build,
+  full 139-test suite, environment/baseline checks, lint, and format check are
+  green. Horae has no source changes and its full validation is green.
+- Ananke has no source changes. Its build, isolated MCP-adapter tests (4/4),
+  and isolated full suite (16 files / 131 tests) are green. The bundled
+  `validate:quick` wrapper reproducibly encounters `uv_os_get_passwd` `ENOMEM`
+  while launching its stdio child-process tests; this is retained as an
+  environment validation limitation, not treated as route evidence.
+- Cross-component effect is limited to the Moirae request boundary and
+  Integration control/evidence state. Horae, Ananke, Mnemosyne, and Runtime
+  Contracts remain at their existing checkpoints and responsibilities.
+- Workflow deviation: the smallest Moirae implementation draft existed before
+  the separate activation record was written in this task. It remained
+  uncommitted and unpushed, and no successful 003A live route occurred before
+  the paused harness attempt. The activation record now explicitly bounds and
+  governs that draft. No lock, matrix, snapshot, tag, or seal claim was
+  advanced.
+- The local Integration control branch is
+  `codex/slice-003a-activation`. Both 003A branches are intentionally local and
+  unpushed pending owner review.
+
+### Paused live-acceptance harness finding — 2026-08-10
+
+ENDPOINT SECURITY INTERACTION — Defender blocked/remediated the initial PowerShell acceptance harness before successful 003A live acceptance. This event is not evidence of Ananke/Horae/Moirae malware and is not being suppressed or bypassed.
+
+The owner-inspected Defender record identified `Trojan:Win32/PowhidSubExec.B`
+with remediation succeeded. The affected resource was the large inline
+PowerShell acceptance command; no Ananke, Horae, Moirae, or Node
+executable/file was identified as the detected resource. The event is retained
+as a real acceptance-harness finding, is not classified as a Fates runtime
+failure because no 003A live route successfully started, and is not classified
+as a confirmed false positive.
+
+The temporary harness was inspected without further execution. Its separate
+first-launch defect passed repository script paths containing spaces as
+unquoted `Start-Process -ArgumentList` elements, causing Node to receive a
+truncated path. The quoting defect and Defender remediation are independent
+events. The prior aborted invocation included an execution-policy bypass; no
+further invocation will use it, and no Defender control, exclusion, or policy
+was changed.
+
+Ports 34212 and 34216 are free, and no matching live acceptance process
+remains. The sanitized working evidence is
+[`docs/evidence/FATES-SLICE-003A-live-acceptance-2026-08-10.json`](../evidence/FATES-SLICE-003A-live-acceptance-2026-08-10.json).
+
+Before Attempt 2, formal 003A live acceptance remained paused. The proposed replacement is a
+small reviewed Node/TypeScript driver using `child_process.spawn` argument
+arrays, explicit process bounds, fixed port checks, the same positive and safe
+negative route assertions, audit/read-count evidence, and cleanup. Its
+owner-approval command is `node scripts/fates-slice03a-live-acceptance.mjs`.
+That command was later executed once under the separate approval recorded
+below; no second execution or successful live route is claimed. No 003A
+completion, lock, matrix, snapshot, tag, or seal claim is made.
+
+### Node-only acceptance attempt — 2026-08-10
+
+The owner-approved direct Node command was executed exactly once after plan and
+static review. The driver started the compiled Ananke process, the established
+temporary Horae Slice 02 relay wrapper, and an independent Moirae process. The
+positive Moirae request reached Horae, but Horae returned HTTP 503 `unavailable`
+with `dispatch_not_attempted` and reason `Ananke inspection unavailable`.
+
+The cause was a second acceptance-harness defect: the driver supplied Horae an
+Ananke base URL that already ended in `/api`, while the established Horae
+inspection binding appends `/api` itself. Horae therefore queried the
+non-canonical `/api/api` inspection path. No Ananke governed dispatch or
+producer read occurred; the origin-drift and malformed-configuration negatives
+were not run. This is a harness failure, not an Ananke, Horae, or Moirae
+runtime failure, and it is not live acceptance evidence.
+
+The driver is corrected to pass the Ananke transport base without the `/api`
+suffix. No second live run was performed; a new owner approval is required
+before using the proposed command again. The sanitized attempted-run record is
+[`docs/evidence/FATES-SLICE-003A-live-acceptance-2026-08-10.json`](../evidence/FATES-SLICE-003A-live-acceptance-2026-08-10.json).
+
+### Corrected Node Attempt 2 — successful live-acceptance candidate — 2026-08-10
+
+After the transport-base correction and a new owner approval, the exact direct
+command `node scripts/fates-slice03a-live-acceptance.mjs` was executed once.
+Plan output explicitly distinguished transport base
+`http://127.0.0.1:34212` from canonical registered endpoint
+`http://localhost:34212/api`; the local preflight assertion passed.
+
+The independent process roles were Ananke PID 16728, Horae PID 2120, and
+positive Moirae PID 3596. Moirae host evidence matched PID 3596 and identified
+the approved `moirae-live-origin-1` / `moirae-slice02-live-origin` origin.
+Horae reached the exact `/slice-02/governed-actions` route, performed fresh
+Ananke inspection, verified the canonical registered endpoint and sealed
+producer authority, and returned a typed completion.
+
+Positive live evidence:
+
+- route state `completed`; dispatch state `result_received`;
+- one governed Ananke dispatch and one physical producer read;
+- producer outcome `COMPLETED`, `readAttemptCount: 1`, and the fixed fixture
+  digest matched;
+- decision/outcome evidence IDs, route/event IDs, request/correlation IDs, and
+  the Moirae → Horae → Ananke → Horae → Moirae chain were preserved;
+- retries, fallback, alternate endpoints, duplicate execution, and
+  Moirae/Horae fixture-read paths were all zero in the bounded harness.
+
+Safe negatives also passed: origin drift returned `malformed` with
+`rejected_before_dispatch`, and malformed Moirae configuration exited nonzero
+without starting a route. Cleanup confirmed every tracked child PID absent and
+ports 34212 and 34216 free. No new endpoint-security interaction occurred and
+no security control changed.
+
+Post-live validation is green: Moirae focused 003A tests (8), full suite (139),
+build, format, and lint passed; Horae aggregate validation passed; Ananke build,
+lint, full suite (131), and focused MCP/runtime tests (10) passed; Integration
+validation passed all 13 JSON files and 55 tests, including lock/matrix/slice/
+boundary checks. The existing Ananke `validate:quick` `uv_os_get_passwd` /
+`ENOMEM` wrapper limitation remains separately recorded and was not relabeled
+as a pass.
+
+003A is now a successful live-acceptance candidate, not a sealed or formally
+complete slice. Stop for owner pre-seal review. Do not alter the compatibility
+lock, matrix, Slice 02 snapshot, tag, or seal; do not start 003B.
+
+## FATES-SLICE-003A formal seal — 2026-08-10
+
+Status: **SEALED — FATES-SLICE-003A formally accepted and complete.** The
+successful Attempt 2 is accepted as bounded live evidence. The complete
+Attempt 0/1/2 chronology remains above and in the authoritative evidence
+artifact; the earlier harness findings were not rewritten into a clean-history
+narrative.
+
+### Final checkpoint and compatibility state
+
+- Moirae implementation checkpoint: commit
+  `f9b28fb0099d5d32d5debd4db7376066bfc2ac93`, annotated tag
+  `moirae-fates-slice-003a-v0.1.0-protocol-1.4.0`, pushed on
+  `codex/slice-003a-host-route`, with completed handoff
+  `slices/003-constrained-host-route/handoffs/moirae-code-handoff.json`.
+- Integration compatibility set: `fates-slice-003a-2026-08-10`, with sealed
+  lock status, runtime-validated integration level, and immutable snapshot
+  `compatibility-sets/fates-slice-003a-2026-08-10.json`. The prior
+  `fates-slice-002-2026-08-09` lock/snapshot/evidence remains historical and
+  unchanged.
+- The Integration checkpoint is the tagged
+  `fates-slice-003a-v0.1.0-protocol-1.4.0` commit reported in the final
+  closeout. The active slot is restored to `status: idle` and
+  `activeSliceId: null`.
+- The new lock replaces only the prior pushed-untagged Moirae compatibility
+  reference. Runtime Contracts, Mnemosyne, Ananke, and Horae responsibilities
+  and sealed checkpoints remain unchanged.
+
+### Final validation and security disposition
+
+- Moirae owner-local validation passed: environment 5/5, build, format check,
+  11 files / 139 tests, and lint with 23 pre-existing warnings and 0 errors.
+  Moirae remote CI passed for the pushed implementation checkpoint.
+- Horae aggregate validation and Ananke build/lint/full-suite/focused checks
+  remain green against their sealed Slice 02 checkpoints. The known Ananke
+  `validate:quick` `uv_os_get_passwd` / `ENOMEM` wrapper limitation remains
+  separately recorded and is not acceptance evidence.
+- Integration JSON/schema, lock, matrix, slice, boundary, and 55-test checks
+  passed before final sealing; the final post-seal validation is recorded with
+  the closeout checkpoint and CI result.
+- ENDPOINT SECURITY INTERACTION — Defender blocked/remediated the initial PowerShell acceptance harness before successful 003A live acceptance. This event is not evidence of Ananke/Horae/Moirae malware and is not being suppressed or bypassed.
+- `credential disposition: provider-side revoked/rotated; former exposed credential set invalid`
+- `moirae-slice02-live-origin` is retained as an inherited sealed Horae/Slice 02
+  route-origin compatibility identifier, not the new implementation identity;
+  the new implementation identity is the Moirae commit/tag above.
+
+### Sealed claim boundary and stop condition
+
+003A claims only independent Moirae process-origin participation, bounded
+Moirae → Horae routing, fresh Horae inspection, canonical Ananke authority,
+exactly one harmless producer-owned effect/read, preserved end-to-end
+correlation/evidence, typed result return, bounded fail-closed behavior, and
+deterministic coverage for additional non-live failure states. It does not
+claim OS filesystem/network/shell/subprocess containment, browser/extension
+containment, credential isolation, arbitrary IPC containment, direct-Ananke or
+alternate-MCP operating-system prevention, complete bypass resistance, or
+full-machine security. FATES-SLICE-003B was not started; stop after this seal.

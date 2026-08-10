@@ -51,11 +51,11 @@ describe('fates-lock verification', () => {
     assert.strictEqual(lock.repositories.horae.checkpointState, 'sealed_tagged');
   });
 
-  it('Moirae Code tag remains null', () => {
+  it('Moirae Code records the sealed 003A implementation checkpoint', () => {
     const lock = JSON.parse(readFileSync(resolve(root, 'fates-lock.json'), 'utf-8'));
-    assert.strictEqual(lock.repositories['moirae-code'].tag, null);
-    assert.strictEqual(lock.repositories['moirae-code'].checkpointState, 'pushed_untagged');
-    assert.strictEqual(lock.repositories['moirae-code'].commit, 'a4783db271a61848c66ac4f6652a539bdb515e28');
+    assert.strictEqual(lock.repositories['moirae-code'].tag, 'moirae-fates-slice-003a-v0.1.0-protocol-1.4.0');
+    assert.strictEqual(lock.repositories['moirae-code'].checkpointState, 'sealed_tagged');
+    assert.strictEqual(lock.repositories['moirae-code'].commit, 'f9b28fb0099d5d32d5debd4db7376066bfc2ac93');
   });
 
   it('sealed checkpoint requires a tag', () => {
@@ -68,7 +68,7 @@ describe('fates-lock verification', () => {
     }
   });
 
-  it('pushed_untagged requires null tag', () => {
+  it('any pushed_untagged checkpoint requires null tag', () => {
     const lock = JSON.parse(readFileSync(resolve(root, 'fates-lock.json'), 'utf-8'));
     for (const [name, repo] of Object.entries(lock.repositories)) {
       if (repo.checkpointState === 'pushed_untagged') {
@@ -108,11 +108,10 @@ describe('fates-lock verification', () => {
     assert.strictEqual(lock.repositories.adrasteia.tag, 'adrasteia-adoption-v0.4.0-protocol-1.4.0');
   });
 
-  it('rejects pushed_untagged with a tag (Ajv)', () => {
+  it('sealed lock has no pushed_untagged checkpoint (Ajv)', () => {
     const lock = JSON.parse(readFileSync(resolve(root, 'fates-lock.json'), 'utf-8'));
-    // Real lock: moirae-code is pushed_untagged with null tag
-    assert.strictEqual(lock.repositories['moirae-code'].tag, null);
-    assert.strictEqual(lock.repositories['moirae-code'].checkpointState, 'pushed_untagged');
+    assert.strictEqual(lock.sealStatus, 'sealed');
+    assert.ok(Object.values(lock.repositories).every(repo => repo.checkpointState === 'sealed_tagged'));
   });
 
   it('snapshotPath references an existing file', () => {
@@ -121,9 +120,9 @@ describe('fates-lock verification', () => {
     assert.ok(existsSync(resolve(root, lock.snapshotPath)), `snapshot ${lock.snapshotPath} must exist`);
   });
 
-  it('sealStatus is provisional (not sealed)', () => {
+  it('sealStatus is sealed after the 003A checkpoint transaction', () => {
     const lock = JSON.parse(readFileSync(resolve(root, 'fates-lock.json'), 'utf-8'));
-    assert.strictEqual(lock.sealStatus, 'provisional');
+    assert.strictEqual(lock.sealStatus, 'sealed');
   });
 
   it('integrationLevel is runtime_validated', () => {

@@ -6,9 +6,9 @@
       "sliceId": "FATES-SLICE-001",
       "title": "Adrasteia Stage-A adoption",
       "implementationStatus": "completed",
-      "sealStatus": "provisional",
+      "sealStatus": "sealed",
       "integrationLevel": "inspection_only",
-      "compatibilitySet": "fates-slice-002-2026-08-09",
+      "compatibilitySet": "fates-slice-003a-2026-08-10",
       "repositories": {
         "adrasteia": {
           "url": "https://github.com/hourwise/Project-Adrasteia",
@@ -40,9 +40,9 @@
         },
         "moirae-code": {
           "url": "https://github.com/hourwise/Project-Moirae-Code",
-          "tag": null,
-          "commit": "a4783db271a61848c66ac4f6652a539bdb515e28",
-          "checkpointState": "pushed_untagged",
+          "tag": "moirae-fates-slice-003a-v0.1.0-protocol-1.4.0",
+          "commit": "f9b28fb0099d5d32d5debd4db7376066bfc2ac93",
+          "checkpointState": "sealed_tagged",
           "role": "governed-host — inspection-only reference; untagged provisional checkpoint"
         }
       },
@@ -83,10 +83,37 @@
     },
     {
       "sliceId": "FATES-SLICE-003",
-      "title": "Qualified context retrieval",
-      "implementationStatus": "planned",
-      "sealStatus": "provisional",
-      "integrationLevel": null
+      "title": "Constrained host route completion and process-origin proof (003A)",
+      "implementationStatus": "completed",
+      "sealStatus": "sealed",
+      "integrationLevel": "runtime_validated",
+      "compatibilitySet": "fates-slice-003a-2026-08-10",
+      "repositories": {
+        "ananke": {
+          "tag": "ananke-fates-slice-002-v0.2.0-protocol-1.4.0",
+          "commit": "52b512885edf3fec7ff7ce4b4dcbd3958b170ba4",
+          "checkpointState": "sealed_tagged",
+          "role": "sealed Slice 02 action authority and sole physical reader"
+        },
+        "horae": {
+          "tag": "horae-fates-slice-002-v0.1.0-protocol-1.4.0",
+          "commit": "9566eb2764339d6a6fe143c1630eeb009e00a7bd",
+          "checkpointState": "sealed_tagged",
+          "role": "sealed Slice 02 relay and 003A consumer"
+        },
+        "moirae-code": {
+          "tag": "moirae-fates-slice-003a-v0.1.0-protocol-1.4.0",
+          "commit": "f9b28fb0099d5d32d5debd4db7376066bfc2ac93",
+          "checkpointState": "sealed_tagged",
+          "role": "bounded host/origin owner"
+        }
+      },
+      "explicitLimits": [
+        "The successful live route proves only the bounded Moirae process-origin and Moirae -> Horae -> canonical Ananke -> Horae -> Moirae path with one harmless producer-owned read/effect.",
+        "Attempt 0 Defender interaction and Attempt 1 harness configuration failure remain part of the accepted chronology; neither is a Fates runtime failure or a confirmed false positive.",
+        "Timeout, post-dispatch indeterminate loss, and wrong producer/capability live induction remain deterministic or not-live-induced evidence.",
+        "003B OS containment, credential isolation, complete bypass resistance, qualified memory retrieval, durable recovery, and content preflight are not implemented or claimed."
+      ]
     },
     {
       "sliceId": "FATES-SLICE-004",

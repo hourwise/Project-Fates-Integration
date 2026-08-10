@@ -2,13 +2,13 @@
   "$schema": "./schemas/active-slice.schema.json",
   "status": "idle",
   "activeSliceId": null,
-  "baselineCompatibilitySet": "fates-slice-002-2026-08-09",
+  "baselineCompatibilitySet": "fates-slice-003a-2026-08-10",
   "nextRecommendedSlice": "FATES-SLICE-003",
   "activationRequirements": {
-    "acceptedScope": "Active for fates.slice02.inspect-fixed-fixture.v1 only; see docs/decisions/FATES-SLICE-002-activation-decision.json.",
-    "ownerOrder": "Integration evidence freeze -> Ananke bounded adapter -> Horae handoff/relay -> Moirae constrained host -> Integration real proof.",
-    "acceptanceCriteria": "Activation criteria and unchanged post-implementation acceptance requirements are recorded in docs/decisions/FATES-SLICE-002-activation-decision.json.",
-    "startingCheckpoints": "Exact fates-lock.json checkpoints for fates-stage-a-2026-07 are copied in the activation decision; the lock remains unchanged.",
-    "userAuthorisation": "Explicit user authorization was recorded for this task at the activation timestamp in docs/decisions/FATES-SLICE-002-activation-decision.json."
+    "acceptedScope": "FATES-SLICE-003A only: complete the smallest Moirae constrained host boundary and prove the bounded Moirae -> Horae -> canonical Ananke -> Horae -> Moirae route for fates.slice02.inspect-fixed-fixture.v1; see docs/decisions/FATES-SLICE-003A-activation-decision.json.",
+    "ownerOrder": "Moirae constrained host -> Horae consumer validation against the sealed Slice 02 checkpoint -> Ananke consumer validation against the sealed Slice 02 checkpoint -> Integration evidence and control validation.",
+    "acceptanceCriteria": "The 003A process-origin, route, freshness, canonical-binding, one-read, typed-result, correlation/evidence, fail-closed, no-retry/duplicate, and clean-stop criteria are recorded in docs/decisions/FATES-SLICE-003A-activation-decision.json. Formal live acceptance remains a later review gate.",
+    "startingCheckpoints": "The exact current fates-lock.json entries for fates-slice-002-2026-08-09 are copied in the 003A activation decision; fates-lock.json, compatibility-matrix.json, and the Slice 02 snapshot remain unchanged.",
+    "userAuthorisation": "Explicit user authorization for bounded FATES-SLICE-003A preparation and activation was recorded in the current task approval at the activation timestamp in docs/decisions/FATES-SLICE-003A-activation-decision.json."
   }
 }

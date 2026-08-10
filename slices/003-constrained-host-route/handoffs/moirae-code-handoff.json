@@ -1,0 +1,45 @@
+{
+  "$schema": "../../../schemas/handoff.schema.json",
+  "_note": "Completed FATES-SLICE-003A Moirae constrained-host implementation handoff. The prior locked and design-only Moirae checkpoints remain historical references; this packet identifies the validated implementation checkpoint.",
+  "sliceId": "FATES-SLICE-003",
+  "repository": "moirae-code",
+  "handoffStatus": "completed",
+  "startingCommit": "1e99a0ca80289253c2fed96c93b42c5230e46a8e",
+  "endingCommit": "f9b28fb0099d5d32d5debd4db7376066bfc2ac93",
+  "tag": "moirae-fates-slice-003a-v0.1.0-protocol-1.4.0",
+  "protocol": "1.4.0",
+  "contractsUsed": [
+    "project-runtime-contracts@0.4.0",
+    "protocol 1.4.0; minimum 1.0.0"
+  ],
+  "publicSurfacesAddedOrChanged": [
+    "@moirae/diagnostics-cli run-003a command for the bounded owner-local/live acceptance launch.",
+    "Slice03AHost fixed action/request construction with process-origin evidence, bounded host context, Horae-only transport, typed route result, and bounded timeout.",
+    "Deterministic fail-closed coverage for malformed configuration/results, origin or endpoint drift, denial, timeout, indeterminate result, transport failure, no retry, and no alternate path.",
+    "Workspace dependency and TypeScript project-reference wiring for @moirae/host-contracts, including reproducible package-lock metadata."
+  ],
+  "explicitlyUnavailableSurfaces": [
+    "No generic action input, arbitrary filesystem access, fixture read, direct Ananke client, alternate MCP transport, retry, fallback, duplicate dispatch, persistence, recovery, credential handling, or credential brokerage.",
+    "No OS filesystem/network/shell/subprocess, browser/extension, arbitrary IPC, or complete local-machine bypass containment is claimed.",
+    "FATES-SLICE-003B and qualified Mnemosyne context retrieval are not implemented or started."
+  ],
+  "breakingChanges": [],
+  "migrationNotes": "The bounded route is invoked only through the reviewed 003A launch configuration. Consumers must preserve the established Horae base-url contract, exact fixed action/fixture arguments, origin identity, and typed result boundary; no Slice 02 consumer source change is required.",
+  "testsRun": [
+    "npm.cmd run validate: environment, Adrasteia baseline, peer checkpoints, build, lint, format check, and 11 files / 139 tests passed; lint reported 23 pre-existing warnings and 0 errors.",
+    "Focused apps/diagnostics-cli/src/slice03a-host.test.ts: 8/8 tests passed.",
+    "Moirae GitHub Actions CI passed for f9b28fb0099d5d32d5debd4db7376066bfc2ac93: https://github.com/hourwise/Project-Moirae-Code/actions/runs/31379524691"
+  ],
+  "consumerTestsRequired": [
+    "Integration must pin the exact Moirae tag and commit, preserve the accepted Attempt 0/1/2 chronology, and use the separate Node acceptance driver only as tooling.",
+    "Horae and Ananke remain pinned to the sealed Slice 02 checkpoints; the live route must remain Horae-only from Moirae with Ananke as the sole authority and physical reader."
+  ],
+  "knownConstraints": [
+    "The live route proves bounded process-origin participation and governed routing only; it does not prove OS containment or complete bypass resistance.",
+    "Live timeout, post-dispatch indeterminate transport loss, and wrong producer/capability induction were not performed; deterministic owner-local coverage remains the evidence for those states.",
+    "The live artifact string moirae-slice02-live-origin is inherited sealed-route/origin compatibility identity, not this implementation's Git/checkpoint identity."
+  ],
+  "pushStatus": "pushed",
+  "ciStatus": "passing",
+  "worktreeState": "clean"
+}

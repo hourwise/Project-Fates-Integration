@@ -11,11 +11,11 @@ import { spawnSync } from 'node:child_process';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
 describe('slice verification', () => {
-  it('completed Slice 02 leaves the active slot idle', () => {
+  it('returns the sealed 003A control slice to idle without changing Slice 02 history', () => {
     const activeSlice = JSON.parse(readFileSync(resolve(root, 'active-slice.json'), 'utf-8'));
     assert.strictEqual(activeSlice.status, 'idle');
     assert.strictEqual(activeSlice.activeSliceId, null);
-    assert.strictEqual(activeSlice.baselineCompatibilitySet, 'fates-slice-002-2026-08-09');
+    assert.strictEqual(activeSlice.baselineCompatibilitySet, 'fates-slice-003a-2026-08-10');
     assert.strictEqual(activeSlice.nextRecommendedSlice, 'FATES-SLICE-003');
   });
 

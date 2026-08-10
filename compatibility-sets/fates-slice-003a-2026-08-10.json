@@ -1,9 +1,10 @@
 {
-  "$schema": "./schemas/fates-lock.schema.json",
+  "$schema": "../schemas/fates-lock.schema.json",
+  "_note": "Immutable historical snapshot of the sealed fates-slice-003a-2026-08-10 compatibility set. FATES-SLICE-003A is sealed only for its bounded process-origin and governed route claim; future host-containment and memory capabilities remain outside this snapshot.",
   "schemaVersion": "1.0.0",
   "compatibilitySetId": "fates-slice-003a-2026-08-10",
   "snapshotPath": "compatibility-sets/fates-slice-003a-2026-08-10.json",
-  "previousCompatibilitySet": "fates-stage-a-2026-07",
+  "previousCompatibilitySet": "fates-slice-002-2026-08-09",
   "updatedAt": "2026-08-10T10:32:34.7199714Z",
   "sealStatus": "sealed",
   "integrationLevel": "runtime_validated",
@@ -37,24 +38,24 @@
       "tag": "mnemosyne-adrasteia-adoption-v0.1.0-protocol-1.4.0",
       "commit": "f4ab76a9760f856d78908d35facceb068d78c8e5",
       "checkpointState": "sealed_tagged",
-      "role": "memory-provenance"
+      "role": "memory-provenance; outside 003A route"
     },
     "horae": {
       "url": "https://github.com/hourwise/Project-Horae",
       "tag": "horae-fates-slice-002-v0.1.0-protocol-1.4.0",
       "commit": "9566eb2764339d6a6fe143c1630eeb009e00a7bd",
       "checkpointState": "sealed_tagged",
-      "role": "discovery-composition"
+      "role": "discovery-composition and sole 003A relay"
     },
     "moirae-code": {
       "url": "https://github.com/hourwise/Project-Moirae-Code",
       "tag": "moirae-fates-slice-003a-v0.1.0-protocol-1.4.0",
       "commit": "f9b28fb0099d5d32d5debd4db7376066bfc2ac93",
       "checkpointState": "sealed_tagged",
-      "role": "governed-host"
+      "role": "bounded governed host/origin"
     }
   },
-  "notes": "Sealed runtime-validated FATES-SLICE-003A compatibility set. The bounded live route is independently evidenced as Moirae -> Horae -> canonical Ananke -> Horae -> originating Moirae, with the tagged Ananke and Horae Slice 02 checkpoints and the new tagged Moirae 003A host checkpoint. Runtime Contracts remains project-runtime-contracts@0.4.0 at protocol 1.4.0 with the exact Stage-A artifact digest. The sealed status is limited to this compatibility set and does not claim OS containment, credential isolation, arbitrary host governance, qualified memory handoff, durable recovery, or content preflight.",
+  "notes": "The sealed FATES-SLICE-003A set records the validated three-process bounded route and replaces the prior pushed_untagged Moirae compatibility reference with the independently tagged implementation checkpoint. It does not reopen or alter the historical fates-slice-002-2026-08-09 snapshot or Slice 02 seal.",
   "knownLimits": [
     "Live timeout and post-dispatch indeterminate transport loss were not induced; owner-local deterministic tests cover those semantics",
     "No qualified memory handoff",
