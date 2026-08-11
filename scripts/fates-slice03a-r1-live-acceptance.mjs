@@ -692,6 +692,10 @@ function portableRepositoryId(repo) {
   return match ? PORTABLE_REPOSITORY_IDS[match[0]] : 'repo:unclassified';
 }
 
+function portableExecutableName(executable) {
+  return basename(String(executable ?? '').replaceAll('\\', '/'));
+}
+
 function replacePathVariants(value, path, replacement) {
   let result = value;
   const variants = new Set([
@@ -1006,7 +1010,7 @@ function safeChildRecord(record) {
   return {
     role: record.role,
     pid: record.pid,
-    executable: basename(record.executable),
+    executable: portableExecutableName(record.executable),
     cwd: record.repository,
     repository: record.repository,
     args: record.args.map((argument) => sanitizePortableText(argument)),
@@ -1236,7 +1240,7 @@ async function runApprovedExecution(approvedIntegrationSha, attemptId) {
       }],
       {
         effectCount: positive.effectCount,
-        processCorrelation: { moiraePid: moirae.pid, executable: basename(moirae.executable), cwd: moirae.repository, repository: moirae.repository, classification: 'PROCESS CORRELATION' },
+        processCorrelation: { moiraePid: moirae.pid, executable: portableExecutableName(moirae.executable), cwd: moirae.repository, repository: moirae.repository, classification: 'PROCESS CORRELATION' },
         fixtureDigest: positive.producer.actualFixtureDigest,
       },
     ));
