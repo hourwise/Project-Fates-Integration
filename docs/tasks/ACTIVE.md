@@ -1644,3 +1644,28 @@ Attempt-001 and attempt-002 evidence remain byte-for-byte unchanged. No live
 run, credential, fixture effect, component change, R1 seal, tag, or 003B work
 is authorized by this repair task. R1 remains active and unsealed; 003B
 remains paused.
+
+## FATES-SLICE-003A-R1 portable-evidence sanitizer correction - 2026-08-11
+
+Status: **CORRECTION VALIDATED; LIVE ACCEPTANCE NOT EXECUTED.** The Integration
+driver's generic Windows-path sanitizer previously matched an unbounded
+`<letter>:/...` substring, which could begin inside protocol, route, or
+audience strings. The correction requires a start-of-string, whitespace, or
+quote/delimiter boundary and preserves that delimiter while replacing only a
+genuine absolute host path. Unix-path sanitization and exact known-path
+replacement remain unchanged.
+
+Deterministic regression coverage proves preservation of HTTP/HTTPS endpoints,
+route identifiers, the full R1 audience, URNs, logical repository IDs, and
+structured Moirae stdout after evidence serialization. It also proves quoted,
+key/value, standalone, and diagnostic Windows paths remain sanitized, Unix
+paths remain sanitized, secret redaction remains independent, attempt-target
+retention remains exclusive, the R1 replay-seed validity remains exactly
+59,000 ms, and runtime child environment allowlists remain unchanged.
+
+The correction is limited to the Integration driver and its deterministic
+tests, with this record updated for traceability. Attempt-001 and attempt-002
+evidence remain byte-for-byte unchanged. Full Integration validation passed;
+no credential was generated, no Fates or scratch process was started, no
+fixture effect occurred, and no live acceptance or R1 seal occurred. R1
+remains active and unsealed; 003B remains paused.

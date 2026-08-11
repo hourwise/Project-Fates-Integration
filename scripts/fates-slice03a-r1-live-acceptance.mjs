@@ -728,7 +728,7 @@ function replacePathVariants(value, path, replacement) {
 
 export function sanitizePortableText(value) {
   let result = String(value ?? '');
-  result = result.replace(/[A-Za-z]:[\\/][^\r\n"'<>|{}]*/g, '[LOCAL_WINDOWS_PATH]');
+  result = result.replace(/(^|[\s("'=])[A-Za-z]:[\\/][^\r\n"'<>|{}()[\]]*/g, '$1[LOCAL_WINDOWS_PATH]');
   result = result.replace(/(^|[\s("'=])\/(?:Users|home|tmp|var|mnt|workspace)(?:\/[^\r\n"'<>|{} ]+)+/g, '$1[LOCAL_UNIX_PATH]');
   return result;
 }

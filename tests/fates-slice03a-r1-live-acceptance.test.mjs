@@ -29,6 +29,7 @@ import {
   reserveEvidenceTarget,
   runRedactionCanary,
   safeChildRecord,
+  sanitizePortableText,
   satisfiesR1Validity,
   serializeEvidence,
   validateAttemptId,
@@ -207,6 +208,63 @@ test('process evidence is portable and child output paths are sanitized', () => 
   assert.match(portable.stdout, /\/slice-02\/governed-actions/);
   assert.doesNotMatch(portable.stdout, /[A-Za-z]:[\\/]/);
   assert.doesNotMatch(portable.stderr, /[A-Za-z]:[\\/]|\/home\//);
+});
+
+test('portable text preserves protocols, routes, audiences, and logical IDs', () => {
+  const unchanged = [
+    'http://127.0.0.1:34212/api',
+    'https://example.invalid/path',
+    'POST:/slice-02/governed-actions',
+    'fates.slice03a.r1.horae:horae-r1-live-1:POST:/slice-02/governed-actions',
+    'urn:fates:slice02:inspect-fixed-fixture-request:r1-v2',
+    'route:/slice-02/governed-actions',
+    'repo:ananke',
+    'repo:horae',
+    'repo:moirae',
+  ];
+
+  for (const value of unchanged) assert.equal(sanitizePortableText(value), value);
+});
+
+test('portable text sanitizes bounded Windows and Unix absolute paths', () => {
+  const windowsPath = 'C:\\Users\\example\\repo';
+  const forwardSlashWindowsPath = 'D:/Users/example/project/file.txt';
+  assert.equal(sanitizePortableText(windowsPath), '[LOCAL_WINDOWS_PATH]');
+  assert.equal(sanitizePortableText(forwardSlashWindowsPath), '[LOCAL_WINDOWS_PATH]');
+  assert.equal(sanitizePortableText(`"${windowsPath}"`), '"[LOCAL_WINDOWS_PATH]"');
+  assert.equal(sanitizePortableText(`path=${windowsPath}`), 'path=[LOCAL_WINDOWS_PATH]');
+  assert.equal(sanitizePortableText(`diagnostic path ${windowsPath}`), 'diagnostic path [LOCAL_WINDOWS_PATH]');
+  assert.equal(sanitizePortableText('diagnostic path /home/runner/work/fates.log'), 'diagnostic path [LOCAL_UNIX_PATH]');
+  assert.doesNotMatch(sanitizePortableText(`host path ${windowsPath}`), /[A-Za-z]:[\\/]/);
+  assert.doesNotMatch(sanitizePortableText('host path /home/runner/work/fates.log'), /\/home\//);
+});
+
+test('structured Moirae stdout retains endpoint and audience semantics after sanitization', () => {
+  const endpoint = 'http://127.0.0.1:34212/api';
+  const audience = 'fates.slice03a.r1.horae:horae-r1-live-1:POST:/slice-02/governed-actions';
+  const record = {
+    role: 'Moirae',
+    pid: 1234,
+    executable: 'C:\\Program Files\\nodejs\\node.exe',
+    cwd: 'D:\\Users\\fleur\\Project Moirae Code',
+    repository: 'repo:moirae',
+    args: [],
+    spawnedAt: '2026-08-11T00:00:00.000Z',
+    envKeys: ['PATH'],
+    exitCode: 0,
+    signal: null,
+    spawnError: null,
+    cleanup: 'already-exited',
+    stdout: JSON.stringify({ endpoint, audience, cwd: 'C:\\Users\\example\\repo' }),
+    stderr: '',
+  };
+
+  const portable = safeChildRecord(record);
+  const serializedEvidence = serializeEvidence({ processes: [portable] });
+  const structured = JSON.parse(JSON.parse(serializedEvidence).processes[0].stdout);
+  assert.equal(structured.endpoint, endpoint);
+  assert.equal(structured.audience, audience);
+  assert.equal(structured.cwd, '[LOCAL_WINDOWS_PATH]');
 });
 
 test('default R1 request validity is current, bounded, deterministic, and digest-preserving', () => {
