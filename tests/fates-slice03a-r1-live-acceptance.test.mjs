@@ -17,6 +17,7 @@ import {
   buildRouteRequest,
   buildWrongAudience,
   childEnvironment,
+  gitPreflightEnvironment,
   parseCliArgs,
   runRedactionCanary,
   serializeEvidence,
@@ -91,6 +92,25 @@ test('child environments are explicit and keep the token out of Moirae', () => {
     'MOIRAE_003A_ARTIFACT',
     'MOIRAE_003A_SESSION_ID',
   ]);
+});
+
+test('Git preflight receives USERPROFILE without widening runtime child environments', () => {
+  const gitEnvironment = gitPreflightEnvironment({
+    PATH: 'safe-path',
+    SystemRoot: 'C:\\Windows',
+    USERPROFILE: 'C:\\Users\\USER',
+    HOME: 'C:\\Users\\USER',
+    GIT_CONFIG_COUNT: '1',
+  });
+  assert.deepEqual(Object.keys(gitEnvironment).sort(), ['PATH', 'SystemRoot', 'USERPROFILE']);
+  assert.equal(gitEnvironment.USERPROFILE, 'C:\\Users\\USER');
+  assert.equal(gitEnvironment.HOME, undefined);
+  assert.equal(gitEnvironment.GIT_CONFIG_COUNT, undefined);
+  const ananke = childEnvironment('ananke', { ANANKE_PORT: '34212' }, {
+    PATH: 'safe-path',
+    USERPROFILE: 'C:\\Users\\USER',
+  });
+  assert.equal(ananke.USERPROFILE, undefined);
 });
 
 test('synthetic random redaction canary passes through output, error, and evidence serialization', () => {

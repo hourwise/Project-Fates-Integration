@@ -93,6 +93,8 @@ export const ENV_ALLOWLISTS = Object.freeze({
   ],
 });
 
+const GIT_PREFLIGHT_ENVIRONMENT_KEYS = Object.freeze([...ENV_ALLOWLISTS.inherited, 'USERPROFILE']);
+
 const SOURCE_PATHS = Object.freeze({
   ananke: [
     'packages/runtime-core/package.json',
@@ -602,6 +604,10 @@ function inheritedEnv(parent = process.env) {
   return Object.fromEntries(ENV_ALLOWLISTS.inherited.flatMap((key) => parent[key] === undefined ? [] : [[key, parent[key]]]));
 }
 
+function gitPreflightEnvironment(parent = process.env) {
+  return Object.fromEntries(GIT_PREFLIGHT_ENVIRONMENT_KEYS.flatMap((key) => parent[key] === undefined ? [] : [[key, parent[key]]]));
+}
+
 function childEnvironment(role, values, parent = process.env) {
   const allowed = new Set([...ENV_ALLOWLISTS.inherited, ...ENV_ALLOWLISTS[role]]);
   const env = inheritedEnv(parent);
@@ -707,7 +713,7 @@ async function gitStatus(repo) {
   return new Promise((resolvePromise, reject) => {
     const child = spawn('git', ['status', '--porcelain', '--untracked-files=all'], {
       cwd: resolve(repo),
-      env: inheritedEnv(),
+      env: gitPreflightEnvironment(),
       shell: false,
       windowsHide: true,
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -1326,6 +1332,7 @@ export {
   EVIDENCE_SCHEMA,
   buildPlan,
   childEnvironment,
+  gitPreflightEnvironment,
   verifyStaticSource,
 };
 
