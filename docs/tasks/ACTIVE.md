@@ -1481,3 +1481,42 @@ evidence, tags, and 003B remain unchanged. No credential values are present
 in source, tests, logs, responses, or documentation. No live acceptance was
 run. R1 remains active and unsealed; stop before live acceptance, R1 sealing,
 or 003B work.
+
+## FATES-SLICE-003A-R1 Ananke authentication entrypoint remediation - 2026-08-11
+
+Status: **POST003A-R1-02 — ANANKE CANONICAL EXECUTABLE BLOCKER REMEDIATED IN
+TRACKED SOURCE; DEVELOPMENT-MODE-DISABLED NON-DEVELOPMENT STATIC BEARER
+ENTRYPOINT IMPLEMENTED; DETERMINISTIC VALIDATION PASSED; LIVE ACCEPTANCE STILL
+PENDING.**
+
+The approved Ananke remediation is committed and pushed at immutable commit
+`7c5cdecb078749acb129ba485daac43d7155ceb6` on
+`codex/slice-002-http-handoff-bridge`; ordinary Ananke CI completed
+successfully. The tracked canonical server now accepts one raw
+`ANANKE_EXECUTION_TOKEN` only when development mode is disabled, constructs a
+`StaticBearerExecutionAuthenticator`, and reports the existing non-development
+`workload-token` auth method. The server-owned profile remains the Horae relay
+service/agent pair with only the bounded fixed-fixture read scope:
+
+```text
+authenticated principal: horae-slice02-relay / service
+acting principal:       horae-slice02-relay-agent / agent
+resource scope:          bounded, fixed-fixture,
+                         fates.slice02.fixed-fixture.v1,
+                         read only
+```
+
+The bearer credential authenticates the configured Horae-to-Ananke credential
+holder. It does not authenticate the originating Moirae OS process. Environment
+variable custody is bounded R1 plumbing; future credential custody remains
+003B/later work. No credential value is recorded in source, tests, logs,
+responses, documentation, or acceptance evidence.
+
+Acceptance preparation previously stopped correctly because the old pinned
+Ananke server had no supported non-development execution entrypoint. That stop
+is not classified as a failed R1 acceptance attempt. No live route was run for
+this remediation, and no live acceptance claim is made.
+
+No active-slice, lock, matrix, compatibility snapshot, historical sealed
+evidence, tag, or seal state changed. Horae, Moirae Code, Mnemosyne, Runtime
+Contracts, and 003B remain unchanged; R1 remains active and unsealed.

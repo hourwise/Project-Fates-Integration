@@ -1467,15 +1467,24 @@ seal R1. The active control slot is the schema-constrained parent
 - **Validation / evidence:** The tracked Horae host now requires the raw
   `ANANKE_EXECUTION_TOKEN` environment input, constructs the Ananke bearer
   header internally, never accepts caller auth as an override, and fails closed
-  when the token or configured R1 replay-ledger path is missing. Tests
-  use runtime-generated ephemeral values only; Ananke source is unchanged.
-  Batch 2 immutable checkpoints are Project-Horae
+  when the token or configured R1 replay-ledger path is missing. Project-Ananke
+  now provides the canonical development-mode-disabled, non-development static
+  bearer entrypoint through `StaticBearerExecutionAuthenticator`, with the
+  server-owned Horae relay profile and `workload-token` auth method. Its
+  no-auth, malformed, wrong-token, whitespace, mutual-exclusion, readiness,
+  profile-scope, and no-development-fallback tests use runtime-generated
+  ephemeral values only; no credential value is present in source, logs,
+  arguments, or evidence. The Ananke canonical executable blocker is
+  **REMEDIATED IN TRACKED SOURCE** at immutable commit
+  `7c5cdecb078749acb129ba485daac43d7155ceb6`; ordinary CI completed
+  successfully. Batch 2 immutable checkpoints are Project-Horae
   `1d50b8df9943702a9724ded56a3454c882da8925` and Project-Moirae-Code
   `56f3bc84c84e36f75d2a4e46b393f86065a736d3`; both component pushes and
-  ordinary CI completed successfully. Production-mode Ananke live acceptance
-  remains separately authorized work.
-- **Planned slice / future task:** FATES-SLICE-003A-R1 production-style auth
-  validation.
+  ordinary CI completed successfully. **DEVELOPMENT-MODE-DISABLED
+  NON-DEVELOPMENT STATIC BEARER ENTRYPOINT IMPLEMENTED; DETERMINISTIC
+  VALIDATION PASSED; LIVE ACCEPTANCE STILL PENDING.**
+- **Planned slice / future task:** FATES-SLICE-003A-R1 live authentication
+  validation under separate owner approval.
 - **Disposition:** **VALIDATION_GAP**.
 
 ### POST003A-R1-03 - Bounded inspection/readiness/action handling
