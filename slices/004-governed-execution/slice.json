@@ -1,0 +1,100 @@
+{
+  "$schema": "../../schemas/slice.schema.json",
+  "sliceId": "FATES-SLICE-004",
+  "title": "Governed execution design umbrella; proposed 004A durable effect lifecycle",
+  "implementationStatus": "planned",
+  "sealStatus": "provisional",
+  "integrationLevel": null,
+  "objective": "Define and later prove a bounded Ananke-authoritative governed-effect lifecycle with durable pre-dispatch evidence, explicit dispatch/outcome/indeterminate states, idempotent duplicate handling, crash/restart recovery, and bounded reconciliation, without making an OS-containment or host-wide bypass claim.",
+  "owners": ["Ananke", "Horae", "Fates Integration"],
+  "repositoriesInvolved": [
+    {
+      "name": "ananke",
+      "url": "https://github.com/hourwise/Project-Ananke",
+      "role": "Primary 004A owner for authority binding, durable effect lifecycle, dispatch marker, adapter custody, outcome, duplicate handling, and reconciliation."
+    },
+    {
+      "name": "horae",
+      "url": "https://github.com/hourwise/Project-Horae",
+      "role": "Bounded canonical route, freshness/admission, relay, timeout and result projection; no authority or reconciliation."
+    },
+    {
+      "name": "fates-integration",
+      "url": "https://github.com/hourwise/Project-Fates-Integration",
+      "role": "Design gate, requirements, compatibility/checkpoint control, cross-Fate validation, evidence and eventual seal."
+    },
+    {
+      "name": "runtime-contracts",
+      "url": "https://github.com/hourwise/Project-Adrasteia",
+      "role": "No change in 004A unless a separately approved neutral structural contract need is proven."
+    },
+    {
+      "name": "moirae-code",
+      "url": "https://github.com/hourwise/Project-Moirae-Code",
+      "role": "No 004A implementation; host-mediated effects are deferred to 004B after 003B."
+    },
+    {
+      "name": "mnemosyne",
+      "url": "https://github.com/hourwise/Project-Mnemosyne",
+      "role": "No 004A implementation; memory/provenance remains outside the effect authority path."
+    }
+  ],
+  "startingCheckpoints": {
+    "compatibilitySetId": "fates-slice-003a-r1-2026-08-11",
+    "lockPath": "fates-lock.json",
+    "snapshotPath": "compatibility-sets/fates-slice-003a-r1-2026-08-11.json",
+    "activeSlicePath": "active-slice.json",
+    "activeSliceStatus": "idle",
+    "activeSliceId": null,
+    "r1SealCommit": "1ed2a5c45607585fa17d72ceed1be91b5f09881f",
+    "r1Tag": "fates-slice-003a-r1-v0.1.0-protocol-1.4.0",
+    "repositories": {
+      "integration": { "commit": "1ed2a5c45607585fa17d72ceed1be91b5f09881f", "checkpointState": "sealed_tagged" },
+      "ananke": { "commit": "dde9f74cbcfefea2176a6f0103e1f6b9064f4e64", "tag": "ananke-fates-slice-003a-r1-v0.1.0-protocol-1.4.0", "checkpointState": "sealed_tagged" },
+      "horae": { "commit": "3f531d4f5558a10a36aeae20c3458080eb4468b9", "tag": "horae-fates-slice-003a-r1-v0.1.0-protocol-1.4.0", "checkpointState": "sealed_tagged" },
+      "moirae-code": { "commit": "bc7b984bd2eb0e0f07a1cd7259a8eab21556f097", "tag": "moirae-fates-slice-003a-r1-v0.1.0-protocol-1.4.0", "checkpointState": "sealed_tagged" },
+      "mnemosyne": { "commit": "f4ab76a9760f856d78908d35facceb068d78c8e5", "checkpointState": "sealed_tagged" },
+      "runtime-contracts": { "commit": "bbf240b1fdcb9be1dbd30b13d2fe2708a22ec7b8", "tag": "adrasteia-adoption-v0.4.0-protocol-1.4.0", "tagTarget": "124b6aee2629a3147739934ad5f1b45b32c8ba46", "checkpointState": "documentation_head_with_immutable_adoption_tag" }
+    }
+  },
+  "contractChanges": [
+    "None authorized in this design checkpoint.",
+    "Any Runtime Contracts change requires a separate neutral-contract design gate and compatibility checkpoint."
+  ],
+  "repositoryOrder": [
+    "Owner selects one bounded non-hostile effect and its authoritative/reconciliation semantics",
+    "Ananke implements and validates durable authority/effect lifecycle",
+    "Horae validates canonical route, freshness, timeout, and result projection",
+    "Integration validates cross-Fate behavior and secret-free evidence",
+    "Owner separately authorizes any live acceptance and later seal"
+  ],
+  "requiredConsumerTests": [
+    "Ananke: approval binding, durable pre-dispatch intent, dispatch marker, authoritative success/failure, indeterminate state, duplicate handling, crash/restart recovery, bounded reconciliation, and secret-free audit.",
+    "Horae: fresh admission, canonical relay, bounded timeout/cancellation, late-result handling, and no authority/fallback/retry behavior.",
+    "Runtime Contracts: unchanged baseline validation; no structural field is treated as authority, persistence, or outcome truth.",
+    "Moirae and Mnemosyne: unchanged and outside 004A implementation; host containment and memory provenance require separate gates."
+  ],
+  "integrationTests": [
+    "One bounded route proves durable intent before dispatch and exactly one dispatch marker.",
+    "The six lifecycle distinctions are represented in portable, secret-free evidence.",
+    "Duplicate/replay and restart do not create a second effect call.",
+    "Pre-dispatch timeout is distinct from post-dispatch indeterminate timeout; reconciliation is separately evidenced.",
+    "No route, memory, host, or structural-contract participant widens Ananke authority.",
+    "No live acceptance is performed without a separate owner authorization."
+  ],
+  "breakingChanges": [],
+  "deferredWork": [
+    "FATES-SLICE-003B strict host containment.",
+    "FATES-SLICE-004B host-mediated developer effects after 003B and 004A.",
+    "Qualified Mnemosyne retrieval/provenance admission.",
+    "Generic arbitrary effects, automatic retry/fallback, provider failover, and exactly-once claims.",
+    "Any shared Runtime Contracts lifecycle/idempotency extension."
+  ],
+  "stopConditions": [
+    "Stop if implementation needs host containment, a Moirae source change, Mnemosyne authority, or a Runtime Contracts change not separately gated.",
+    "Stop if an effect cannot distinguish never-dispatched from possibly-dispatched or cannot be safely reconciled.",
+    "Stop if duplicate/restart can cause more than one effect call for one idempotency binding.",
+    "Stop on credential exposure, direct/fallback dispatch, unbounded retry, or evidence ambiguity.",
+    "Do not change active-slice.json, fates-lock.json, compatibility-matrix.json, the R1 snapshot/evidence, or historical tags during this design checkpoint."
+  ]
+}

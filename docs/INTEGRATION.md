@@ -1,8 +1,32 @@
 # The Fates — Integration State
 
-Audited 2026-08-09. “Integrated” below means demonstrated across real component boundaries; matching types or proposed ADRs alone do not qualify.
+Audited 2026-08-11. “Integrated” below means demonstrated across real component
+boundaries; matching types or proposed ADRs alone do not qualify. The older
+Slice 02 detail below is retained as historical evidence. The current R1
+reconciliation block is authoritative for present control state.
 
-## Shared protocol baseline
+## Current post-R1 reconciliation
+
+- Current compatibility set: `fates-slice-003a-r1-2026-08-11`.
+- Integration: sealed commit `1ed2a5c45607585fa17d72ceed1be91b5f09881f`, tag
+  `fates-slice-003a-r1-v0.1.0-protocol-1.4.0`.
+- Active control: idle, `activeSliceId: null`; next recommendation is
+  `FATES-SLICE-004`.
+- R1 is CLOSED / SEALED with bounded application-level identity and route
+  claims. It does not claim OS-authenticated process origin or host containment.
+- 003B remains PAUSED and is separately gated.
+- Slice 004 is proposed only. The recommended decomposition is 004A durable
+  governed-effect lifecycle -> 003B host containment -> 004B host-mediated
+  effects. No implementation, live acceptance, or generic governed-execution
+  claim follows from this document checkpoint.
+- The Runtime Contracts HEAD/tag lineage discrepancy is recorded in
+  `docs/decisions/FATES-SLICE-004-runtime-contracts-discrepancy.json`; neither
+  the lock nor the existing adoption tag is changed here.
+
+> The following Slice 02 detail is retained as historical evidence; the
+> reconciliation block above is authoritative for present control state.
+
+## Historical shared protocol baseline detail
 
 | Item | Current authority |
 | --- | --- |

@@ -1,6 +1,9 @@
 # The Fates — Integrated Source of Truth
 
-Audited 2026-08-09 from the six allowed repositories. This file records current evidence, not an aspirational architecture.
+Audited 2026-08-11 from the six allowed repositories. This file records current
+evidence, not an aspirational architecture. The older Slice 02 audit passages
+below are retained as historical evidence; the post-R1 reconciliation block is
+the current control-state authority.
 
 ## Purpose and evidence order
 
@@ -8,7 +11,33 @@ The Fates are a governed AI runtime ecosystem: Ananke governs effects, Mnemosyne
 
 When sources disagree, this audit prefers accepted non-superseded ADRs, current source/tests and manifests, exact integration locks/checkpoints, then current architecture/roadmaps. Proposed ADRs, research, old assessments, and blueprints do not establish implemented behavior.
 
-## Current integrated baseline
+## Current post-R1 control-state reconciliation - 2026-08-11
+
+- Current compatibility set: `fates-slice-003a-r1-2026-08-11`.
+- Integration seal: commit `1ed2a5c45607585fa17d72ceed1be91b5f09881f`, tag
+  `fates-slice-003a-r1-v0.1.0-protocol-1.4.0`.
+- `active-slice.json`: `status: idle`, `activeSliceId: null`,
+  `nextRecommendedSlice: FATES-SLICE-004`.
+- `FATES-SLICE-003A-R1`: CLOSED / SEALED. Its evidence, hashes, limitations,
+  and historical attempts remain immutable.
+- `FATES-SLICE-003B`: PAUSED; no implementation or activation is implied.
+- Proposed Slice 004 is a design-only umbrella. The recommended first
+  implementation is 004A, a narrow durable Ananke-authoritative effect
+  lifecycle. Host-mediated effects are deferred to 004B after 003B.
+- The exact lock and compatibility snapshot remain authoritative. No current
+  narrative text expands the sealed R1 claim into OS containment, generic
+  governed execution, durable recovery, or host-wide bypass closure.
+
+The Runtime Contracts lock/tag lineage discrepancy is recorded in
+[`docs/decisions/FATES-SLICE-004-runtime-contracts-discrepancy.json`](decisions/FATES-SLICE-004-runtime-contracts-discrepancy.json).
+The locked `bbf240...` checkout is a later documentation-only HEAD; the existing
+annotated adoption tag intentionally targets the immutable `124b6a...` package /
+protocol baseline. No tag, lock, or snapshot is changed by this reconciliation.
+
+> The following Slice 02 baseline detail is retained as historical evidence;
+> the reconciliation block above is the current control-state authority.
+
+## Historical integrated baseline detail
 
 - `fates-lock.json` and the current compatibility snapshot define `fates-slice-002-2026-08-09`: `runtime_validated`, `sealStatus: provisional` at global compatibility-set level. The FATES-SLICE-002 row and slice record are `completed` and `sealed`.
 - Runtime Contracts is pinned as `project-runtime-contracts@0.4.0`, protocol current `1.4.0`, minimum `1.0.0`, source commit `124b6aee…`, artifact SHA-256 `11ee062b…`.

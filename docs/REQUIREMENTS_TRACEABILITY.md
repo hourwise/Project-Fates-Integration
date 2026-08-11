@@ -1,8 +1,8 @@
 # The Fates — Requirements and Research Traceability
 
-**Status:** architecture/research baseline; FATES-SLICE-003A-R1 control activated; R1 Batch 2 committed and pushed; live acceptance pending
-**Date:** 2026-08-10
-**Compatibility baseline:** `fates-slice-003a-2026-08-10`
+**Status:** architecture/research baseline reconciled to sealed FATES-SLICE-003A-R1; Slice 004 design proposed only; no slice active
+**Date:** 2026-08-11
+**Compatibility baseline:** `fates-slice-003a-r1-2026-08-11`
 **Scope:** Ananke, Mnemosyne, Horae, Moirae Code, Runtime Contracts, and the Integration evidence layer
 
 This document reconciles the eleven post-Slice-02 research findings against the
@@ -13,7 +13,28 @@ register below records the owner-authorized FATES-SLICE-003A-R1 control
 activation without changing a component repository, contract, sealed artifact,
 or implementation claim.
 
-## Decision summary
+## Current post-R1 / proposed Slice 004 register
+
+The authoritative current state is R1 CLOSED / SEALED at Integration commit
+`1ed2a5c45607585fa17d72ceed1be91b5f09881f`, tag
+`fates-slice-003a-r1-v0.1.0-protocol-1.4.0`, with
+`active-slice.json.status: idle`, `activeSliceId: null`, and
+`nextRecommendedSlice: FATES-SLICE-004`. The R1 live-verification limitations,
+evidence hashes, and credential disposition remain exactly as sealed.
+
+The proposed Slice 004 requirements are recorded in
+[`docs/reviews/FATES-SLICE-004-proposed-requirements.md`](reviews/FATES-SLICE-004-proposed-requirements.md).
+They are planned only and recommend 004A durable governed-effect lifecycle,
+followed by the separately paused 003B containment proof before any 004B
+host-mediated effect. No POST004 requirement is implemented or live-validated.
+The Runtime Contracts HEAD/tag lineage discrepancy is recorded separately and
+does not change the current lock or snapshot.
+
+The pre-seal R1 activation, remediation, and acceptance sections later in this
+file are historical traceability records. They are not current control state
+and do not reopen or reinterpret the sealed R1 result.
+
+## Historical decision summary
 
 1. Slice 02 remains accepted and sealed at the slice level. Its global
    compatibility status remains `provisional` only because the locked Moirae

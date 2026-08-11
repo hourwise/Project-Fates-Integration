@@ -1703,3 +1703,37 @@ The Integration control state is `status: idle` with `activeSliceId: null` and
 the R1 snapshot as baseline. FATES-SLICE-003B remains paused and requires a
 separate owner activation decision. The final Integration seal commit and
 annotated R1 tag are recorded after the authorized Git transaction.
+
+## FATES-SLICE-004 design and source-of-truth reconciliation - 2026-08-11
+
+Status: **DESIGN CHECKPOINT ONLY - NOT ACTIVATED; IMPLEMENTATION NOT
+AUTHORIZED.** Owner approval accepted the prior NO-GO for direct Slice 004
+activation and authorized this bounded reconciliation only.
+
+The current authority is the sealed R1 compatibility set
+`fates-slice-003a-r1-2026-08-11`, Integration seal commit
+`1ed2a5c45607585fa17d72ceed1be91b5f09881f`, and tag
+`fates-slice-003a-r1-v0.1.0-protocol-1.4.0`. `active-slice.json` remains idle
+with `activeSliceId: null`; 003B remains paused. No lock, matrix, snapshot,
+active-slice state, sealed evidence, or historical tag changed.
+
+The proposed design gate defines FATES-SLICE-004 as an umbrella and recommends
+the narrower order `003A/R1 -> 004A -> 003B -> 004B`: 004A is a durable,
+Ananke-authoritative effect lifecycle with explicit pre-dispatch,
+post-dispatch, indeterminate, duplicate, and reconciliation semantics; 003B
+is the separate strict host-containment proof; 004B is later host-mediated
+effect work. The detailed definition and proposed implementation instruction
+are in [`docs/design/FATES-SLICE-004-design-gate.md`](../design/FATES-SLICE-004-design-gate.md),
+with proposed requirements in
+[`docs/reviews/FATES-SLICE-004-proposed-requirements.md`](../reviews/FATES-SLICE-004-proposed-requirements.md)
+and the non-active planned slice record in
+[`slices/004-governed-execution/slice.json`](../../slices/004-governed-execution/slice.json).
+
+The Runtime Contracts discrepancy is recorded without corrective tag or lock
+mutation: locked HEAD `bbf240...` is a later docs-only assessment, while the
+existing adoption tag targets immutable baseline `124b6a...`. This must receive
+an explicit future checkpoint decision before any lock update.
+
+No component source was changed, no credentials or live effect were created,
+and no Slice 004 acceptance was run. The remaining task is owner review of
+the proposed design and decomposition.

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "decisionId": "FATES-SLICE-004-runtime-contracts-discrepancy",
+  "title": "Runtime Contracts HEAD versus adoption-tag lineage",
+  "status": "recorded_for_owner_review",
+  "date": "2026-08-11",
+  "scope": "FATES-SLICE-004 design/reconciliation only",
+  "observed": {
+    "lockedHead": "bbf240b1fdcb9be1dbd30b13d2fe2708a22ec7b8",
+    "lockedHeadMeaning": "Documentation-only Slice 02 contract-sufficiency assessment; no package source or protocol change.",
+    "tag": "adrasteia-adoption-v0.4.0-protocol-1.4.0",
+    "tagTarget": "124b6aee2629a3147739934ad5f1b45b32c8ba46",
+    "tagMeaning": "Immutable Project Adrasteia package 0.4.0 / protocol 1.4.0 adoption baseline."
+  },
+  "assessment": "The existing tag intentionally names the published adoption baseline and therefore does not peel to the later documentation-only HEAD. The discrepancy is lock/tag lineage semantics, not a production-source or protocol mismatch.",
+  "currentDisposition": "Preserve both objects exactly. Do not move, recreate, delete, or retag the existing tag. Do not change fates-lock.json or the compatibility snapshot in this design checkpoint.",
+  "requiredFutureCorrection": "Before a future compatibility checkpoint, owners must either lock the exact tagged adoption commit when the later assessment docs are not part of the compatibility claim, or create a separately named tag/checkpoint for the documentation HEAD and update lock/snapshot together.",
+  "ownerDecisionRequired": true
+}
