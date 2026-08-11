@@ -17,9 +17,13 @@ export function parentSliceIdForSubslice(subsliceId) {
 }
 
 export function isEligibleSubsliceForActivation(subslice) {
-  return subslice?.implementationStatus === 'planned' &&
+  const readyForActivation = subslice?.implementationStatus === 'planned' &&
     subslice?.sealStatus === 'provisional' &&
-    subslice?.activation?.state === 'ready_for_activation' &&
+    subslice?.activation?.state === 'ready_for_activation';
+  const activeButUnimplemented = subslice?.implementationStatus === 'active' &&
+    subslice?.sealStatus === 'provisional' &&
+    subslice?.activation?.state === 'active';
+  return (readyForActivation || activeButUnimplemented) &&
     Array.isArray(subslice?.prerequisites) &&
     subslice.prerequisites.length > 0;
 }
@@ -106,7 +110,7 @@ export function validateActiveSubsliceState(activeSlice, canonicalRecords, subsl
   if (!isEligibleSubsliceForActivation(record)) {
     errors.push(
       `active sub-slice "${activeSubsliceId}" is not eligible: ` +
-      'it must be planned, provisional, and ready_for_activation',
+      'it must be planned/ready_for_activation or active/active, remain provisional, and declare prerequisites',
     );
   }
 
@@ -218,6 +222,10 @@ export function verifySlices(root = repositoryRoot) {
     if (subslice.activation?.state === 'ready_for_activation' &&
         (!Array.isArray(subslice.prerequisites) || subslice.prerequisites.length === 0)) {
       errors.push(`${record.path}: ready_for_activation sub-slice must declare prerequisites`);
+    }
+    if (subslice.activation?.state === 'active' &&
+        (subslice.implementationStatus !== 'active' || subslice.sealStatus !== 'provisional')) {
+      errors.push(`${record.path}: active sub-slice must be active and provisional`);
     }
     const existing = subslicesById.get(subslice.subsliceId) ?? [];
     existing.push(record);

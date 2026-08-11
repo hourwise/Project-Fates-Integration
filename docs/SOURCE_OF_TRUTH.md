@@ -16,20 +16,21 @@ When sources disagree, this audit prefers accepted non-superseded ADRs, current 
 - Current compatibility set: `fates-slice-003a-r1-2026-08-11`.
 - Integration seal: commit `1ed2a5c45607585fa17d72ceed1be91b5f09881f`, tag
   `fates-slice-003a-r1-v0.1.0-protocol-1.4.0`.
-- `active-slice.json`: `status: idle`, `activeSliceId: null`,
+- `active-slice.json`: `status: active`, `activeSliceId: FATES-SLICE-004`,
+  `activeSubsliceId: FATES-SLICE-004A`,
   `nextRecommendedSlice: FATES-SLICE-004`.
 - `FATES-SLICE-003A-R1`: CLOSED / SEALED. Its evidence, hashes, limitations,
   and historical attempts remain immutable.
 - `FATES-SLICE-003B`: PAUSED; no implementation or activation is implied.
-- Proposed Slice 004 is a design-only umbrella. The recommended first
-  implementation is 004A, a narrow durable Ananke-authoritative effect
-  lifecycle. Host-mediated effects are deferred to 004B after 003B.
+- Slice 004 remains a numeric design umbrella with its bounded 004A child
+  active in control state only. 004A is a narrow durable Ananke-authoritative
+  effect lifecycle; its implementation is not started. Host-mediated effects
+  are deferred to 004B after 003B.
 - Canonical slices remain numeric compatibility/control units. Letter-qualified
   sub-slices are bounded implementation or acceptance units owned by their
-  numeric parent. The proposed inactive 004A child is represented beneath
-  `FATES-SLICE-004`; it is not a compatibility-matrix peer, and the active
-  control remains `status: idle`, `activeSliceId: null`,
-  `activeSubsliceId: null`.
+  numeric parent. The 004A child is represented beneath `FATES-SLICE-004`; it
+  is not a compatibility-matrix peer. The active control is `status: active`,
+  with numeric parent `FATES-SLICE-004` and bounded child `FATES-SLICE-004A`.
 - The exact lock and compatibility snapshot remain authoritative. No current
   narrative text expands the sealed R1 claim into OS containment, generic
   governed execution, durable recovery, or host-wide bypass closure.

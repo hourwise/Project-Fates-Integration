@@ -1,34 +1,36 @@
 # FATES-SLICE-004A — Owner Decision and Activation-Package Preparation
 
-**Status:** DESIGN / CONTROL-PLANE REPRESENTATION PREPARED
+**Status:** ACTIVE CONTROL-PLANE CHECKPOINT
 **Date:** 2026-08-11
-**Activation:** NOT AUTHORIZED
+**Activation:** ACTIVE — CONTROL-PLANE ONLY
 **Implementation:** NOT STARTED
 **R1:** immutable and sealed
 **003B:** paused
 
-This package closes the remaining design questions for a later explicit
-FATES-SLICE-004A activation decision. The Integration control-plane now has an
-additive, inactive sub-slice representation for the bounded child beneath
-numeric `FATES-SLICE-004`; it does not activate or implement 004A, change a
-component repository, change the Integration matrix/lock/baseline, create a
-tag, generate a credential, start a process, or perform an effect.
+This package records the owner-authorized FATES-SLICE-004A activation. The
+Integration control-plane now identifies active numeric parent
+`FATES-SLICE-004` and active bounded child `FATES-SLICE-004A`; no component
+implementation has begun. The activation does not change a component
+repository, change the Integration matrix/lock/baseline, create a tag,
+generate a credential, start a process, or perform an effect.
 
 Canonical slices are numbered compatibility/control units. Letter-qualified
 sub-slices are bounded implementation or acceptance units owned by a canonical
 slice. `FATES-SLICE-004A` is therefore represented by
 `activeSliceId: FATES-SLICE-004` plus an optional
-`activeSubsliceId: FATES-SLICE-004A` only during a later explicit activation;
-it is not a compatibility-matrix peer.
+`activeSubsliceId: FATES-SLICE-004A`; it is not a compatibility-matrix peer.
 
 ## 1. Starting state
 
-The accepted starting compatibility set is
+The accepted starting compatibility set before activation was
 `fates-slice-003a-r1-2026-08-11`. The Integration seal is commit
 `1ed2a5c45607585fa17d72ceed1be91b5f09881f`, tagged
 `fates-slice-003a-r1-v0.1.0-protocol-1.4.0`. The active control state remains
 `status: idle`, `activeSliceId: null`, with `FATES-SLICE-004` as the next
-recommendation. R1 is CLOSED / SEALED and 003B is PAUSED.
+recommendation. Following the activation transaction, the active control state is now
+`status: active`, `activeSliceId: FATES-SLICE-004`,
+`activeSubsliceId: FATES-SLICE-004A`. R1 is CLOSED / SEALED and 003B is
+PAUSED.
 
 The exact inspected component checkpoints are:
 
@@ -406,21 +408,20 @@ reconciliation.
 
 ### Integration — control and evidence surfaces
 
-This control-plane checkpoint adds only the backward-compatible optional
-`activeSubsliceId` field and the inactive proposed child record
-`slices/004-governed-execution/subslices/004A-durable-governed-effect-lifecycle/subslice.json`.
-The active state remains idle/null. Only after a later activation authorization
-would the following be expected:
+This activation checkpoint changes only the active control state, the 004A
+activation metadata, and the required Integration task/source-of-truth records.
+The numeric matrix owner remains planned/provisional. The following remain
+future work after separate authorization:
 
-- `active-slice.json` activation state;
-- `compatibility-matrix.json` 004A row/status update;
-- activation metadata changing the optional sub-slice state;
-- a new compatibility snapshot and any lock update;
+- Ananke Batch 1 implementation and checkpoint;
+- any Horae consumer/integration work;
+- a new compatibility snapshot or lock update;
 - Ananke/Horae handoffs;
 - deterministic Integration tests;
 - a bounded acceptance driver and attempt evidence.
 
-None of the later activation changes listed above is authorized now.
+No implementation, live acceptance, credential, effect, tag, or seal is
+authorized by this activation checkpoint.
 
 ### Explicit zero-change components
 
@@ -432,10 +433,9 @@ None of the later activation changes listed above is authorized now.
 ## 12. Proposed formal 004A activation package
 
 - **Sub-slice ID:** `FATES-SLICE-004A` as the owner-facing implementation
-  sub-slice, represented beneath canonical `FATES-SLICE-004` using the
-  inactive `activeSubsliceId` field when later activated. The numeric owner
-  remains the only compatibility-matrix row; do not add or activate a matrix
-  row in this task.
+  sub-slice, represented beneath canonical `FATES-SLICE-004` by the active
+  `activeSubsliceId` field. The numeric owner remains the only
+  compatibility-matrix row; do not add or activate a matrix row.
 - **Title:** `FATES-SLICE-004A - Durable governed-effect lifecycle`.
 - **Objective:** Prove one Ananke-authoritative, durable, bounded governed
   effect with explicit dispatch, outcome, duplicate, indeterminate, and
@@ -532,9 +532,7 @@ No live process, port, credential, or effect was created in this preparation.
 
 ## Final recommendation
 
-**NO-GO - ACTIVATION NOT AUTHORIZED.** The design is now sufficiently precise
-for a subsequent activation decision, and the Integration control-plane has a
-bounded child representation. 004A must not activate until a separate owner
-decision accepts the preferred sink contract, the SQLite execution-state
-design, the idempotency/reconciliation budgets, and the exact source-surface
-plan. This task does not authorize implementation.
+**ACTIVE — CONTROL-PLANE ONLY.** The owner-authorized activation is complete at
+Integration checkpoint `ff72abab61e877682f28423d4d5ae4695f01e614` plus this
+activation transaction. 004A remains unimplemented and provisional. A separate
+owner authorization is required before Ananke Batch 1 implementation begins.

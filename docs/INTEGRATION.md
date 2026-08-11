@@ -10,20 +10,22 @@ reconciliation block is authoritative for present control state.
 - Current compatibility set: `fates-slice-003a-r1-2026-08-11`.
 - Integration: sealed commit `1ed2a5c45607585fa17d72ceed1be91b5f09881f`, tag
   `fates-slice-003a-r1-v0.1.0-protocol-1.4.0`.
-- Active control: idle, `activeSliceId: null`; next recommendation is
+- Active control: `status: active`, `activeSliceId: FATES-SLICE-004`,
+  `activeSubsliceId: FATES-SLICE-004A`; next recommendation remains
   `FATES-SLICE-004`.
 - R1 is CLOSED / SEALED with bounded application-level identity and route
   claims. It does not claim OS-authenticated process origin or host containment.
 - 003B remains PAUSED and is separately gated.
-- Slice 004 is proposed only. The recommended decomposition is 004A durable
-  governed-effect lifecycle -> 003B host containment -> 004B host-mediated
-  effects. No implementation, live acceptance, or generic governed-execution
-  claim follows from this document checkpoint.
+- Slice 004 remains a planned numeric umbrella. Its bounded 004A durable
+  governed-effect lifecycle child is active in control state only; no
+  implementation, live acceptance, or generic governed-execution claim follows
+  from this activation checkpoint. The later decomposition remains 004A
+  implementation -> 003B host containment -> 004B host-mediated effects.
 - Canonical slices are numbered compatibility/control units. Letter-qualified
   sub-slices are bounded implementation or acceptance units owned by a
-  canonical slice. The proposed 004A child is stored beneath the numeric
+  canonical slice. The active 004A child is stored beneath the numeric
   `FATES-SLICE-004` owner and is not a separate compatibility-matrix row. The
-  control state remains idle with both active identifiers null.
+  control state records the numeric parent and bounded child separately.
 - The Runtime Contracts HEAD/tag lineage discrepancy is recorded in
   `docs/decisions/FATES-SLICE-004-runtime-contracts-discrepancy.json`; neither
   the lock nor the existing adoption tag is changed here.

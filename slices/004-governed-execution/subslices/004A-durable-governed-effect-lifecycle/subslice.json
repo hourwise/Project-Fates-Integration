@@ -3,7 +3,7 @@
   "subsliceId": "FATES-SLICE-004A",
   "parentSliceId": "FATES-SLICE-004",
   "title": "Durable governed-effect lifecycle",
-  "implementationStatus": "planned",
+  "implementationStatus": "active",
   "sealStatus": "provisional",
   "objective": "Prove one Ananke-authoritative, durable, bounded governed effect with explicit dispatch, outcome, duplicate, indeterminate, and reconciliation semantics.",
   "owners": ["Ananke", "Fates Integration"],
@@ -22,7 +22,7 @@
     "Deterministic owner-local tests and retained evidence"
   ],
   "nonScope": [
-    "FATES-SLICE-004A activation in active-slice.json",
+    "Ananke Batch 1 implementation and all later runtime work",
     "Horae route integration",
     "FATES-SLICE-003B and FATES-SLICE-004B",
     "Moirae, Mnemosyne, or Runtime Contracts source changes",
@@ -35,8 +35,8 @@
   ],
   "designPackage": "docs/design/FATES-SLICE-004A-activation-package.md",
   "activation": {
-    "state": "ready_for_activation",
-    "ownerDecision": "Control-plane representation is prepared; a separate owner decision is still required before 004A activation or implementation.",
+    "state": "active",
+    "ownerDecision": "Owner authorization activates the bounded 004A control state only; implementation remains separately gated.",
     "baselineCompatibilitySet": "fates-slice-003a-r1-2026-08-11"
   }
 }

@@ -11,14 +11,15 @@ import { spawnSync } from 'node:child_process';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
 describe('slice verification', () => {
-  it('closes the R1 control slot after the sealed qualification', () => {
+  it('records the active 004A control state after the sealed R1 baseline', () => {
     const activeSlice = JSON.parse(readFileSync(resolve(root, 'active-slice.json'), 'utf-8'));
-    assert.strictEqual(activeSlice.status, 'idle');
-    assert.strictEqual(activeSlice.activeSliceId, null);
+    assert.strictEqual(activeSlice.status, 'active');
+    assert.strictEqual(activeSlice.activeSliceId, 'FATES-SLICE-004');
+    assert.strictEqual(activeSlice.activeSubsliceId, 'FATES-SLICE-004A');
     assert.strictEqual(activeSlice.baselineCompatibilitySet, 'fates-slice-003a-r1-2026-08-11');
     assert.strictEqual(activeSlice.nextRecommendedSlice, 'FATES-SLICE-004');
-    assert.match(activeSlice.activationRequirements.acceptedScope, /FATES-SLICE-003A-R1/);
-    assert.strictEqual(activeSlice.status, 'idle', 'NO ACTIVE SLICE AFTER R1 SEAL');
+    assert.match(activeSlice.activationRequirements.acceptedScope, /FATES-SLICE-004A/);
+    assert.match(activeSlice.activationRequirements.userAuthorisation, /only the bounded FATES-SLICE-004A activation/);
   });
 
   it('template is not active', () => {

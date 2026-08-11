@@ -1795,3 +1795,30 @@ dedicated sub-slice schema. No lock, compatibility snapshot, matrix, sealed
 R1 evidence, component repository, tag, credential, process, or live effect
 changed. A separate owner authorization is still required before activating
 004A or beginning Batch 1.
+
+## FATES-SLICE-004A owner activation - 2026-08-11
+
+Status: **ACTIVE CONTROL-PLANE ONLY - IMPLEMENTATION NOT STARTED.** Owner
+authorization accepted Integration checkpoint
+`ff72abab61e877682f28423d4d5ae4695f01e614` and activated the bounded child
+under numeric parent `FATES-SLICE-004`.
+
+The resulting state is:
+
+```json
+{
+  "status": "active",
+  "activeSliceId": "FATES-SLICE-004",
+  "activeSubsliceId": "FATES-SLICE-004A"
+}
+```
+
+The 004A record is now `implementationStatus: active`,
+`activation.state: active`, and remains `sealStatus: provisional`. This is a
+control-state activation only. Ananke Batch 1, Horae integration, live effects,
+credentials, tags, sealing, 003B, and 004B remain unauthorized.
+
+The activation transaction records the exact R1 baseline, component pins, and
+activation checkpoint in `active-slice.json`. The numeric compatibility matrix,
+lock, R1 snapshot/evidence, and all component repositories remain unchanged.
+Integration validation and deterministic tests passed before commit.
