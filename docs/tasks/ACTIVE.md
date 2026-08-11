@@ -1622,3 +1622,25 @@ the Ananke and Moirae remediation checkpoints are the candidate pins above.
 No credential was generated, no Fates or scratch process was started, no
 fixture effect occurred, and no live acceptance or R1 seal occurred in this
 batch. R1 remains active and unsealed; 003B remains paused.
+
+## FATES-SLICE-003A-R1 attempt-002 replay-seed harness remediation - 2026-08-11
+
+Status: **ATTEMPT-002 FAILED / LIVE ACCEPTANCE INCOMPLETE; HARNESS DEFECT
+CONFIRMED AND REPAIR VALIDATED LOCALLY.** Attempt-002 remains preserved and
+must not be rewritten. Its positive route remains genuine **LIVE VERIFIED**
+with one dispatch, one producer read, and the expected fixed-fixture digest;
+the negative matrix remains incomplete because the replay seed stopped before
+the replay challenge.
+
+The confirmed defect was in the Integration driver’s default R1 receipt
+construction: `notBefore = now - 1,000 ms` and `expiresAt = now + 60,000 ms`
+created a 61,000 ms total validity interval, which the pinned Horae correctly
+rejected against its 60,000 ms maximum. The bounded repair captures one clock
+value and emits `notBefore = now - 1,000 ms` plus `expiresAt = now + 58,000 ms`,
+for an exact 59,000 ms interval. The R1 origin digest continues to cover the
+exact emitted validity values.
+
+Attempt-001 and attempt-002 evidence remain byte-for-byte unchanged. No live
+run, credential, fixture effect, component change, R1 seal, tag, or 003B work
+is authorized by this repair task. R1 remains active and unsealed; 003B
+remains paused.

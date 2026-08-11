@@ -294,6 +294,11 @@ const ROUTE_SCHEMA = Object.freeze({
   r1Sha256: '104ebc4267914426434968996b2ba2e774ad4ffd6bc2fb4c97b4193a1c7389db',
 });
 
+export const R1_MAX_VALIDITY_MS = 60_000;
+export const R1_DEFAULT_VALIDITY_MS = 59_000;
+const R1_DEFAULT_NOT_BEFORE_OFFSET_MS = 1_000;
+const R1_DEFAULT_EXPIRES_AFTER_MS = R1_DEFAULT_VALIDITY_MS - R1_DEFAULT_NOT_BEFORE_OFFSET_MS;
+
 const REQUEST_DEFAULTS = Object.freeze({
   tenantId: 'fates-003a-tenant',
   projectId: 'fates-003a-project',
@@ -305,13 +310,14 @@ export function buildRouteRequest({
   audience,
   identityVersion = 'r1-v2',
   validity,
+  nowMs,
   originId = `moirae-003a-origin-route-${randomUUID()}`,
   sessionId = `fates-003a-session-route-${randomUUID()}`,
 } = {}) {
-  const now = Date.now();
+  const now = nowMs ?? Date.now();
   const effectiveValidity = validity ?? {
-    notBefore: new Date(now - 1_000).toISOString(),
-    expiresAt: new Date(now + 60_000).toISOString(),
+    notBefore: new Date(now - R1_DEFAULT_NOT_BEFORE_OFFSET_MS).toISOString(),
+    expiresAt: new Date(now + R1_DEFAULT_EXPIRES_AFTER_MS).toISOString(),
   };
   const requestId = `moirae-003a-request-route-${randomUUID()}`;
   const correlationId = `moirae-003a-correlation-route-${randomUUID()}`;
@@ -371,6 +377,17 @@ export function buildRouteRequest({
     purpose: REQUEST_DEFAULTS.purpose,
     correlation: { requestId, correlationId, sessionId },
   };
+}
+
+export function satisfiesR1Validity(validity, nowMs = Date.now()) {
+  const notBefore = Date.parse(validity?.notBefore ?? '');
+  const expiresAt = Date.parse(validity?.expiresAt ?? '');
+  return Number.isFinite(notBefore)
+    && Number.isFinite(expiresAt)
+    && notBefore <= nowMs
+    && nowMs < expiresAt
+    && expiresAt > notBefore
+    && expiresAt - notBefore <= R1_MAX_VALIDITY_MS;
 }
 
 export function buildExpiredValidity(now = Date.now()) {

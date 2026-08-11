@@ -13,6 +13,8 @@ import {
   LIVE_CASE_ORDER,
   NEGATIVE_PORTS,
   RESIDUAL_LIMITATIONS,
+  R1_DEFAULT_VALIDITY_MS,
+  R1_MAX_VALIDITY_MS,
   assertIntegrationApproval,
   buildExpiredValidity,
   buildPlan,
@@ -27,6 +29,7 @@ import {
   reserveEvidenceTarget,
   runRedactionCanary,
   safeChildRecord,
+  satisfiesR1Validity,
   serializeEvidence,
   validateAttemptId,
 } from '../scripts/fates-slice03a-r1-live-acceptance.mjs';
@@ -206,19 +209,63 @@ test('process evidence is portable and child output paths are sanitized', () => 
   assert.doesNotMatch(portable.stderr, /[A-Za-z]:[\\/]|\/home\//);
 });
 
+test('default R1 request validity is current, bounded, deterministic, and digest-preserving', () => {
+  const fixedNow = Date.parse('2026-08-11T17:00:00.000Z');
+  const audience = `fates.slice03a.r1.horae:${FIXED.horaeInstance}:POST:/slice-02/governed-actions`;
+  const originalDateNow = Date.now;
+  let dateNowCalls = 0;
+  Date.now = () => {
+    dateNowCalls += 1;
+    return fixedNow;
+  };
+  let request;
+  try {
+    request = buildRouteRequest({ audience, originId: 'moirae-003a-origin-clock-test', sessionId: 'fates-003a-session-clock-test' });
+  } finally {
+    Date.now = originalDateNow;
+  }
+
+  const validity = request.origin.receipt.validity;
+  const notBefore = Date.parse(validity.notBefore);
+  const expiresAt = Date.parse(validity.expiresAt);
+  assert.equal(dateNowCalls, 1);
+  assert.equal(notBefore, fixedNow - 1_000);
+  assert.equal(expiresAt, fixedNow + 58_000);
+  assert.equal(expiresAt - notBefore, R1_DEFAULT_VALIDITY_MS);
+  assert.equal(R1_DEFAULT_VALIDITY_MS, 59_000);
+  assert.equal(R1_DEFAULT_VALIDITY_MS < R1_MAX_VALIDITY_MS, true);
+  assert.equal(satisfiesR1Validity(validity, fixedNow), true);
+  assert.equal(satisfiesR1Validity(validity, expiresAt - 1), true);
+  assert.equal(satisfiesR1Validity(validity, expiresAt), false);
+
+  const recomputed = buildRouteRequest({
+    audience,
+    originId: request.origin.receipt.originId,
+    sessionId: request.correlation.sessionId,
+    validity,
+    nowMs: fixedNow,
+  });
+  assert.equal(recomputed.origin.receipt.originDigest, request.origin.receipt.originDigest);
+});
+
 test('route-level identity fixtures cover replay, wrong audience, expiry, and legacy v1 without live processes', () => {
   const audience = `fates.slice03a.r1.horae:${FIXED.horaeInstance}:POST:/slice-02/governed-actions`;
-  const replayRequest = buildRouteRequest({ audience });
-  assert.equal(replayRequest.origin.receipt.audience, audience);
-  assert.equal(replayRequest.origin.receipt.originDigest, buildRouteRequest({ audience, originId: replayRequest.origin.receipt.originId, validity: replayRequest.origin.receipt.validity }).origin.receipt.originDigest);
+  const fixedNow = Date.parse('2026-08-11T17:00:00.000Z');
+  const replayAudience = `fates.slice03a.r1.horae:horae-r1-replay-seed:POST:/slice-02/governed-actions`;
+  const replayRequest = buildRouteRequest({ audience: replayAudience, nowMs: fixedNow });
+  assert.equal(replayRequest.origin.receipt.audience, replayAudience);
+  assert.equal(satisfiesR1Validity(replayRequest.origin.receipt.validity, fixedNow), true);
+  assert.equal(replayRequest.origin.receipt.originDigest, buildRouteRequest({ audience: replayAudience, originId: replayRequest.origin.receipt.originId, validity: replayRequest.origin.receipt.validity, nowMs: fixedNow }).origin.receipt.originDigest);
   const wrongAudience = buildWrongAudience(audience);
   assert.notEqual(wrongAudience, audience);
-  const wrongAudienceRequest = buildRouteRequest({ audience: wrongAudience });
+  const wrongAudienceRequest = buildRouteRequest({ audience: wrongAudience, nowMs: fixedNow });
   assert.equal(wrongAudienceRequest.origin.receipt.audience, wrongAudience);
+  assert.equal(satisfiesR1Validity(wrongAudienceRequest.origin.receipt.validity, fixedNow), true);
   const expired = buildExpiredValidity();
   assert.ok(Date.parse(expired.expiresAt) < Date.now());
-  const expiredRequest = buildRouteRequest({ audience, validity: expired });
+  const expiredRequest = buildRouteRequest({ audience, validity: expired, nowMs: fixedNow });
   assert.equal(expiredRequest.origin.receipt.validity.expiresAt, expired.expiresAt);
+  assert.equal(satisfiesR1Validity(expiredRequest.origin.receipt.validity, fixedNow), false);
   const legacy = buildRouteRequest({ audience, identityVersion: 'legacy-v1' });
   assert.equal(legacy.origin.receipt.schemaId, 'urn:fates:slice02:inspect-fixed-fixture-request:v1');
   assert.equal(legacy.origin.receipt.audience, undefined);
