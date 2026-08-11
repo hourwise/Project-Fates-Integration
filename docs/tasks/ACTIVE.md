@@ -1520,3 +1520,44 @@ this remediation, and no live acceptance claim is made.
 No active-slice, lock, matrix, compatibility snapshot, historical sealed
 evidence, tag, or seal state changed. Horae, Moirae Code, Mnemosyne, Runtime
 Contracts, and 003B remain unchanged; R1 remains active and unsealed.
+
+## FATES-SLICE-003A-R1 live acceptance preparation resumed - 2026-08-11
+
+Status: **PREPARATION ONLY - LIVE ACCEPTANCE NOT EXECUTED.** Owner approval
+authorizes preparation of a safer Node-based driver, not a live route or an R1
+seal. The new tracked driver is
+[`scripts/fates-slice03a-r1-live-acceptance.mjs`](../../scripts/fates-slice03a-r1-live-acceptance.mjs).
+The historical `scripts/fates-slice03a-live-acceptance.mjs` remains unchanged
+and is verified by its pre-existing SHA-256 marker in the new driver; no
+temporary executable or generated server source is used.
+
+The default `--plan` path started zero child processes and zero timeout
+servers. It verified the pinned Ananke, Horae, and Moirae HEADs, required
+tracked source/package paths, compiled dist entrypoints, canonical Ananke
+static-bearer entrypoint, Horae-derived `r1-v2` audience, Horae replay ledger
+configuration, and the unchanged historical driver. The execution preflight
+also requires clean component worktrees and free ports before any child is
+spawned. A synthetic random redaction canary passed through stdout, stderr,
+error, and evidence serialization paths without reproducing its value.
+
+The future driver uses Node `child_process.spawn` with explicit argument arrays,
+`shell: false`, separate allowlisted environments, bounded readiness polling,
+tracked PIDs, reverse-order exact-PID cleanup, and no PowerShell, bypass,
+alternate encoding, retry, fallback, or executable-name termination. The
+ephemeral execution credential is generated only in execution mode, supplied
+only to Ananke and Horae, and excluded from Moirae, argv, URLs, logs, output,
+plan, and evidence. The planned evidence path is
+`docs/evidence/FATES-SLICE-003A-R1-live-acceptance-2026-08-11.json`; no PASS
+artifact was created by this preparation task.
+
+The planned positive and negative matrix covers r1-v2 success, replay,
+wrong-audience, expiry, v1 rejection without downgrade, wrong-token versus
+missing-token startup distinction, restart replay, pre-dispatch timeout as
+`timed_out`/`dispatch_not_attempted`/HTTP 504, and bounded result projection.
+Timeout/projection and request-identity seam cases remain deterministic or
+future-live planning only where the current component interfaces do not expose
+a safe owner-approved live seam. No component source, active-slice, lock,
+matrix, compatibility snapshot, sealed evidence, tag, credential material, or
+003B state changed. R1 remains active and unsealed.
+
+credential disposition: provider-side revoked/rotated; former exposed credential set invalid
