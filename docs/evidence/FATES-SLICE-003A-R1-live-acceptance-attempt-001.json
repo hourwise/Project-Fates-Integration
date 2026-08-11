@@ -1,0 +1,254 @@
+{
+  "attemptId": "001",
+  "status": "FAIL / LIVE ACCEPTANCE INCOMPLETE",
+  "classification": "LIVE RUNTIME EXERCISED — POSITIVE ROUTE FAILED",
+  "rawEvidenceSha256": "7C70AAC73A39307293BB63D4FCEE7742E3900C5E1EE034D1BCD9078F87F06151",
+  "rawEvidenceDisposition": "owner-local immutable raw archive",
+  "runTimestamp": "2026-08-11T15:24:24.443Z",
+  "preparationStartingBaseline": "07ec80aabe2c62baaa776857fbcefafd154a74d7",
+  "previousPreparationCheckpoint": "17052be6335cae6081fafb6da7b48c0eef1a3cf3",
+  "integrationExecutionCheckpoint": "89c39b8195958b976033c751eab21c414bcca0bf",
+  "ownerApprovedIntegrationCheckpoint": "89c39b8195958b976033c751eab21c414bcca0bf",
+  "acceptanceDriverSha256": "43225f7268973bcbeb53a4d5e1e0eeaf8f85c5638bd598ac9a9209dfb7d7589e",
+  "pinnedCheckpoints": {
+    "ananke": "7c5cdecb078749acb129ba485daac43d7155ceb6",
+    "horae": "1d50b8df9943702a9724ded56a3454c882da8925",
+    "moirae": "56f3bc84c84e36f75d2a4e46b393f86065a736d3",
+    "mnemosyne": "f4ab76a9760f856d78908d35facceb068d78c8e5",
+    "runtimeContracts": "bbf240b1fdcb9be1dbd30b13d2fe2708a22ec7b8"
+  },
+  "sourcePreflight": {
+    "verified": true,
+    "failures": [],
+    "historicalDriver": {
+      "unchanged": true
+    }
+  },
+  "authentication": {
+    "anankeExecutionMode": "workload-token",
+    "developmentMode": false,
+    "credentialValue": "omitted",
+    "processOrigin": "not authenticated by this R1 layer"
+  },
+  "r1": {
+    "applicationIdentityVersion": "r1-v2",
+    "audience": "fates.slice03a.r1.horae:horae-r1-live-1:POST:/slice-02/governed-actions",
+    "horaeInstanceId": "horae-r1-live-1",
+    "replayLedger": "single authoritative Horae host; process-restart-persistent claim; no power-loss durability or multi-host exclusion"
+  },
+  "processes": [
+    {
+      "role": "Ananke",
+      "pid": 17088,
+      "executable": "node.exe",
+      "cwd": "repo:ananke",
+      "spawnedAt": "2026-08-11T15:24:24.456Z",
+      "exitCode": null,
+      "signal": "SIGTERM",
+      "cleanup": "exact-pid-termination-attempted"
+    },
+    {
+      "role": "Horae positive",
+      "pid": 6560,
+      "executable": "node.exe",
+      "cwd": "repo:horae",
+      "spawnedAt": "2026-08-11T15:24:25.243Z",
+      "exitCode": null,
+      "signal": "SIGTERM",
+      "cleanup": "exact-pid-termination-attempted"
+    },
+    {
+      "role": "Moirae",
+      "pid": 12724,
+      "executable": "node.exe",
+      "cwd": "repo:moirae",
+      "spawnedAt": "2026-08-11T15:24:25.722Z",
+      "exitCode": 0,
+      "signal": null,
+      "cleanup": "already-exited"
+    }
+  ],
+  "processCorrelation": {
+    "classification": "PROCESS CORRELATION",
+    "osAuthenticatedOrigin": "NOT CLAIMED",
+    "diagnostics": {
+      "ananke": "gateway reached running state",
+      "horae": "tracked host reached ready state",
+      "moirae": "emitted parseable JSON route result"
+    }
+  },
+  "positive": {
+    "classification": "NOT LIVE VERIFIED — POSITIVE ROUTE FAILED BEFORE RESULT",
+    "hostEvidence": {
+      "runtime": "moirae-code",
+      "instanceId": "moirae-live-origin-1",
+      "applicationIdentityVersion": "r1-v2",
+      "artifact": "moirae-slice02-live-origin",
+      "processId": 12724,
+      "startedAt": "2026-08-11T15:24:26.244Z",
+      "originId": "moirae-003a-origin-12724-b61b89ba-b2f6-4ebe-8053-719c99885fa4",
+      "originDigest": "e6f9f6a17e454c9fb691ad82f9da5b4fe2c97a77e1323256716829dbe420144d",
+      "requestId": "moirae-003a-request-606895ed-f500-4f10-b780-b43aa2cdaf34",
+      "correlationId": "moirae-003a-correlation-ccf13692-6b50-480b-ac78-0468ef7ff8ea",
+      "audience": "fates.slice03a.r1.horae:horae-r1-live-1:POST:/slice-02/governed-actions"
+    },
+    "request": {
+      "action": "fates.slice02.inspect-fixed-fixture.v1",
+      "route": "route:/slice-02/governed-actions",
+      "fixtureId": "fates.slice02.fixed-fixture.v1",
+      "expectedFixtureSha256": "7b28f52d84b07bed8b49650960607e8f8a9809cac299810aba691f7f52fe9ae8"
+    },
+    "horae": {
+      "httpStatus": 503,
+      "endpoint": "http://127.0.0.1:34216/slice-02/governed-actions"
+    },
+    "routeResult": {
+      "state": "stale",
+      "dispatchState": "rejected_before_dispatch",
+      "reason": "R1 application request validity is not current",
+      "routeId": "route_f78ea399-fa99-479a-be04-bb076d2642cb",
+      "eventId": "event_cf4664b0-86b6-401d-ba66-9f359f86be9d",
+      "receipt": "ABSENT / NOT ESTABLISHED",
+      "ananke": "ABSENT / NOT ESTABLISHED"
+    },
+    "anankeTypedResult": "ABSENT / NOT ESTABLISHED",
+    "producerEvidence": {
+      "readAttemptCount": "ABSENT / NOT ESTABLISHED",
+      "adapterInvocation": "ABSENT / NOT ESTABLISHED",
+      "actualFixtureDigest": "ABSENT / NOT ESTABLISHED",
+      "requestSchemaId": "ABSENT / NOT ESTABLISHED",
+      "requestSchemaSha256": "ABSENT / NOT ESTABLISHED"
+    },
+    "dispatchDelta": "ABSENT / NOT ESTABLISHED",
+    "producerReadDelta": "ABSENT / NOT ESTABLISHED",
+    "fixtureDigest": "ABSENT / NOT ESTABLISHED"
+  },
+  "cases": [
+    {
+      "id": "positive-r1-v2",
+      "status": "ATTEMPTED — FAILED BEFORE RESULT",
+      "dispatchDelta": "ABSENT / NOT ESTABLISHED",
+      "producerReadDelta": "ABSENT / NOT ESTABLISHED"
+    },
+    {
+      "id": "replay",
+      "status": "NOT RUN — POSITIVE ROUTE FAILED"
+    },
+    {
+      "id": "wrong-audience",
+      "status": "NOT RUN — POSITIVE ROUTE FAILED"
+    },
+    {
+      "id": "expired",
+      "status": "NOT RUN — POSITIVE ROUTE FAILED"
+    },
+    {
+      "id": "legacy-v1",
+      "status": "NOT RUN — POSITIVE ROUTE FAILED"
+    },
+    {
+      "id": "wrong-ananke-token",
+      "status": "NOT RUN — POSITIVE ROUTE FAILED"
+    },
+    {
+      "id": "missing-horae-auth",
+      "status": "NOT RUN — POSITIVE ROUTE FAILED"
+    },
+    {
+      "id": "pre-dispatch-timeout",
+      "status": "NOT RUN — POSITIVE ROUTE FAILED"
+    },
+    {
+      "id": "restart-replay",
+      "status": "NOT RUN — POSITIVE ROUTE FAILED"
+    },
+    {
+      "id": "result-projection",
+      "status": "DETERMINISTIC TEST VERIFIED — NOT LIVE INDUCED"
+    }
+  ],
+  "chronology": [
+    {
+      "event": "immutable preflight passed",
+      "timestamp": "ABSENT / NOT ESTABLISHED"
+    },
+    {
+      "event": "Ananke started",
+      "timestamp": "2026-08-11T15:24:24.456Z",
+      "pid": 17088
+    },
+    {
+      "event": "Horae positive host started",
+      "timestamp": "2026-08-11T15:24:25.243Z",
+      "pid": 6560
+    },
+    {
+      "event": "Moirae started",
+      "timestamp": "2026-08-11T15:24:25.722Z",
+      "pid": 12724
+    },
+    {
+      "event": "Moirae exited 0 and emitted parseable JSON",
+      "timestamp": "ABSENT / NOT ESTABLISHED",
+      "pid": 12724
+    },
+    {
+      "event": "Horae rejected positive route before dispatch",
+      "timestamp": "ABSENT / NOT ESTABLISHED",
+      "state": "stale",
+      "dispatchState": "rejected_before_dispatch"
+    },
+    {
+      "event": "verifyPositive rejected route result",
+      "timestamp": "ABSENT / NOT ESTABLISHED",
+      "reason": "positive route did not complete with result_received"
+    },
+    {
+      "event": "exact tracked cleanup completed",
+      "timestamp": "ABSENT / NOT ESTABLISHED"
+    }
+  ],
+  "cleanup": {
+    "trackedPidsAbsent": true,
+    "portsFree": true,
+    "ports": {
+      "ananke": 34212,
+      "horae": 34216,
+      "replayHorae": 34217,
+      "wrongAuthHorae": 34218,
+      "timeoutScratch": 34219,
+      "timeoutHorae": 34220,
+      "missingAuthHorae": 34221
+    },
+    "scratchResourcesClosed": true
+  },
+  "endpointSecurity": {
+    "status": "no endpoint-security interaction in this run",
+    "controlsChanged": false
+  },
+  "redactionCanary": {
+    "passed": true,
+    "fields": ["stdout", "stderr", "error", "evidence serialization"],
+    "trackedValues": 2
+  },
+  "credentialLeakScan": {
+    "retainedCredentialOccurrences": 0,
+    "retainedOutputScan": "passed without reproducing generated values"
+  },
+  "limitations": [
+    "another route-capable process can still mint a fresh valid v2 request",
+    "R1 does not authenticate originating Moirae OS-process identity",
+    "static bearer establishes Horae-to-Ananke credential possession only",
+    "environment-variable credential custody is bounded R1 plumbing",
+    "no artifact-bound producer attestation",
+    "replay ledger has no shared/multi-process exclusion guarantee",
+    "replay ledger has no power-loss durability guarantee",
+    "no exactly-once guarantee",
+    "no OS containment",
+    "no filesystem containment",
+    "no network containment",
+    "no IPC containment",
+    "no browser/extension containment",
+    "no 003B containment claim"
+  ]
+}

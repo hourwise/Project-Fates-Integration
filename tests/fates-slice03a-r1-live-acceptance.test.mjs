@@ -1,7 +1,9 @@
 import { test } from 'node:test';
 import { strict as assert } from 'node:assert';
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import {
   ACCEPTANCE_MATRIX,
@@ -17,10 +19,16 @@ import {
   buildRouteRequest,
   buildWrongAudience,
   childEnvironment,
+  EVIDENCE_PATH_TEMPLATE,
+  evidencePathForAttempt,
   gitPreflightEnvironment,
   parseCliArgs,
+  predecessorAttemptId,
+  reserveEvidenceTarget,
   runRedactionCanary,
+  safeChildRecord,
   serializeEvidence,
+  validateAttemptId,
 } from '../scripts/fates-slice03a-r1-live-acceptance.mjs';
 
 const root = resolve(import.meta.dirname, '..');
@@ -28,7 +36,12 @@ const driverPath = resolve(root, 'scripts/fates-slice03a-r1-live-acceptance.mjs'
 
 test('R1 plan has the required bounded matrix and preparation-only evidence status', () => {
   assert.equal(EVIDENCE_SCHEMA.status, 'NOT_EXECUTED / PREPARATION ONLY');
-  assert.equal(EVIDENCE_SCHEMA.evidencePath, 'docs/evidence/FATES-SLICE-003A-R1-live-acceptance-2026-08-11.json');
+  assert.equal(EVIDENCE_SCHEMA.evidencePath, EVIDENCE_PATH_TEMPLATE);
+  assert.equal(evidencePathForAttempt('002'), 'docs/evidence/FATES-SLICE-003A-R1-live-acceptance-attempt-002.json');
+  assert.equal(predecessorAttemptId('001'), null);
+  assert.equal(predecessorAttemptId('002'), '001');
+  assert.ok(EVIDENCE_SCHEMA.requiredTopLevel.includes('attemptId'));
+  assert.ok(EVIDENCE_SCHEMA.requiredTopLevel.includes('predecessorEvidencePath'));
   assert.ok(EVIDENCE_SCHEMA.requiredTopLevel.includes('acceptanceDriverSha256'));
   assert.ok(EVIDENCE_SCHEMA.requiredTopLevel.includes('integrationExecutionCheckpoint'));
   assert.ok(EVIDENCE_SCHEMA.requiredTopLevel.includes('ownerApprovedIntegrationCheckpoint'));
@@ -127,10 +140,13 @@ test('synthetic random redaction canary passes through output, error, and eviden
 
 test('owner-approved Integration SHA binding is explicit and fails closed', () => {
   const sha = 'a'.repeat(40);
-  assert.deepEqual(parseCliArgs([]), { mode: 'plan', approvedIntegrationSha: undefined });
-  assert.deepEqual(parseCliArgs(['--plan', '--approved-integration-sha', sha]), { mode: 'plan', approvedIntegrationSha: sha });
-  assert.deepEqual(parseCliArgs(['--execute', '--approved-integration-sha', sha]), { mode: 'execute', approvedIntegrationSha: sha });
+  assert.deepEqual(parseCliArgs([]), { mode: 'plan', approvedIntegrationSha: undefined, attemptId: undefined });
+  assert.deepEqual(parseCliArgs(['--plan', '--attempt-id', '002', '--approved-integration-sha', sha]), { mode: 'plan', approvedIntegrationSha: sha, attemptId: '002' });
+  assert.deepEqual(parseCliArgs(['--execute', '--attempt-id', '002', '--approved-integration-sha', sha]), { mode: 'execute', approvedIntegrationSha: sha, attemptId: '002' });
   assert.throws(() => parseCliArgs(['--execute']), /requires/);
+  assert.throws(() => parseCliArgs(['--execute', '--approved-integration-sha', sha]), /attempt-id/);
+  assert.throws(() => parseCliArgs(['--plan', '--attempt-id', '2']), /three-digit/);
+  assert.throws(() => validateAttemptId('000'), /positive/);
   assert.throws(() => parseCliArgs(['--execute', '--approved-integration-sha', 'not-a-sha']), /exactly 40/);
   assert.throws(() => assertIntegrationApproval(sha, 'b'.repeat(40)), /does not equal/);
   assert.deepEqual(assertIntegrationApproval(sha, sha), { actual: sha, approved: sha });
@@ -139,6 +155,55 @@ test('owner-approved Integration SHA binding is explicit and fails closed', () =
   assert.equal(plan.preparationStartingBaseline, '07ec80aabe2c62baaa776857fbcefafd154a74d7');
   assert.equal(plan.previousPreparationCheckpoint, '17052be6335cae6081fafb6da7b48c0eef1a3cf3');
   assert.equal(plan.acceptanceDriverSha256.length, 64);
+});
+
+test('attempt evidence targets are exclusive, deterministic, and preserve predecessor linkage', async () => {
+  const temporaryRoot = await mkdtemp(join(tmpdir(), 'fates-r1-attempt-target-test-'));
+  try {
+    const target = await reserveEvidenceTarget(temporaryRoot, '002');
+    assert.equal(target, 'docs/evidence/FATES-SLICE-003A-R1-live-acceptance-attempt-002.json');
+    const reserved = JSON.parse(await readFile(resolve(temporaryRoot, target), 'utf8'));
+    assert.deepEqual(reserved, {
+      schemaVersion: EVIDENCE_SCHEMA.schemaVersion,
+      status: 'IN_PROGRESS / RESERVED',
+      attemptId: '002',
+      predecessorAttemptId: '001',
+      predecessorEvidencePath: 'docs/evidence/FATES-SLICE-003A-R1-live-acceptance-attempt-001.json',
+      evidencePath: target,
+      reservation: 'exclusive target reserved before credential generation or child-process creation',
+    });
+    await assert.rejects(() => reserveEvidenceTarget(temporaryRoot, '002'), /EEXIST|already exists/);
+    assert.notEqual(evidencePathForAttempt('001'), target);
+  } finally {
+    await rm(temporaryRoot, { recursive: true, force: true });
+  }
+});
+
+test('process evidence is portable and child output paths are sanitized', () => {
+  const record = {
+    role: 'Moirae',
+    pid: 1234,
+    executable: 'C:\\Program Files\\nodejs\\node.exe',
+    cwd: 'D:\\Users\\fleur\\Project Moirae Code',
+    repository: 'repo:moirae',
+    args: ['apps/diagnostics-cli/dist/index.js', 'run-003a'],
+    spawnedAt: '2026-08-11T00:00:00.000Z',
+    envKeys: ['PATH'],
+    exitCode: 0,
+    signal: null,
+    spawnError: null,
+    cleanup: 'already-exited',
+    stdout: JSON.stringify({ hostEvidence: { executable: 'C:\\Program Files\\nodejs\\node.exe', cwd: 'D:\\Users\\fleur\\Project Moirae Code' }, routeResult: { route: '/slice-02/governed-actions' } }),
+    stderr: 'diagnostic path /home/runner/work/fates.log and C:\\Users\\USER\\Temp\\fates.log',
+  };
+  const portable = safeChildRecord(record);
+  assert.equal(portable.executable, 'node.exe');
+  assert.equal(portable.cwd, 'repo:moirae');
+  assert.equal(portable.repository, 'repo:moirae');
+  assert.match(portable.stdout, /repo:moirae/);
+  assert.match(portable.stdout, /\/slice-02\/governed-actions/);
+  assert.doesNotMatch(portable.stdout, /[A-Za-z]:[\\/]/);
+  assert.doesNotMatch(portable.stderr, /[A-Za-z]:[\\/]|\/home\//);
 });
 
 test('route-level identity fixtures cover replay, wrong audience, expiry, and legacy v1 without live processes', () => {

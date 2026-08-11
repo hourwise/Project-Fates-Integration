@@ -9,26 +9,27 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { existsSync, readFileSync, statSync } from 'node:fs';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, open as openFile, rm, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
-import { join, relative, resolve, dirname } from 'node:path';
+import { basename, join, relative, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createConnection } from 'node:net';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const NODE = process.execPath;
 const LEGACY_DRIVER = resolve(ROOT, 'scripts/fates-slice03a-live-acceptance.mjs');
-const EVIDENCE_PATH = 'docs/evidence/FATES-SLICE-003A-R1-live-acceptance-2026-08-11.json';
+export const EVIDENCE_PATH_TEMPLATE = 'docs/evidence/FATES-SLICE-003A-R1-live-acceptance-attempt-<attemptId>.json';
 const LEGACY_DRIVER_SHA256 = '77ad8c51d80d689396de4d2753344b9a4cf3b2ee6b52423863ed3a246f4bd99e';
 export const PREPARATION_STARTING_BASELINE = '07ec80aabe2c62baaa776857fbcefafd154a74d7';
 export const PREVIOUS_PREPARATION_CHECKPOINT = '17052be6335cae6081fafb6da7b48c0eef1a3cf3';
 const SHA_PATTERN = /^[0-9a-f]{40}$/i;
+const ATTEMPT_ID_PATTERN = /^[0-9]{3}$/;
 
 export const PINNED = Object.freeze({
-  ananke: '7c5cdecb078749acb129ba485daac43d7155ceb6',
-  horae: '1d50b8df9943702a9724ded56a3454c882da8925',
-  moirae: '56f3bc84c84e36f75d2a4e46b393f86065a736d3',
+  ananke: 'dde9f74cbcfefea2176a6f0103e1f6b9064f4e64',
+  horae: '3f531d4f5558a10a36aeae20c3458080eb4468b9',
+  moirae: 'bc7b984bd2eb0e0f07a1cd7259a8eab21556f097',
   mnemosyne: 'f4ab76a9760f856d78908d35facceb068d78c8e5',
   runtimeContracts: 'bbf240b1fdcb9be1dbd30b13d2fe2708a22ec7b8',
 });
@@ -40,6 +41,15 @@ export const REPOSITORIES = Object.freeze({
   mnemosyne: 'D:/Users/fleur/Project Mnemosyne',
   runtimeContracts: 'D:/Users/fleur/Project Runtime Contracts',
   integration: ROOT,
+});
+
+const PORTABLE_REPOSITORY_IDS = Object.freeze({
+  ananke: 'repo:ananke',
+  horae: 'repo:horae',
+  moirae: 'repo:moirae',
+  mnemosyne: 'repo:mnemosyne',
+  runtimeContracts: 'repo:runtime-contracts',
+  integration: 'repo:integration',
 });
 
 export const PORTS = Object.freeze({ ananke: 34212, horae: 34216 });
@@ -200,8 +210,12 @@ export const LIVE_CASE_ORDER = Object.freeze([
 const EVIDENCE_SCHEMA = Object.freeze({
   schemaVersion: 'fates-slice03a-r1-live-acceptance-v2',
   status: 'NOT_EXECUTED / PREPARATION ONLY',
-  evidencePath: EVIDENCE_PATH,
+  evidencePath: EVIDENCE_PATH_TEMPLATE,
   requiredTopLevel: [
+    'attemptId',
+    'predecessorAttemptId',
+    'predecessorEvidencePath',
+    'evidencePath',
     'status',
     'runTimestamp',
     'preparationStartingBaseline',
@@ -224,7 +238,7 @@ const EVIDENCE_SCHEMA = Object.freeze({
     'credentialDisposition',
     'endpointSecurity',
   ],
-  processRecord: ['role', 'pid', 'executable', 'cwd', 'spawnedAt', 'exitCode', 'signal', 'cleanup'],
+  processRecord: ['role', 'pid', 'executable', 'cwd', 'repository', 'spawnedAt', 'exitCode', 'signal', 'cleanup'],
   chronologyRecord: ['timestamp', 'role', 'event', 'pid', 'dispatchState', 'effectCount'],
 });
 
@@ -474,23 +488,71 @@ export function validateSha(value, label = 'SHA') {
   return value.toLowerCase();
 }
 
+export function validateAttemptId(value) {
+  if (typeof value !== 'string' || !ATTEMPT_ID_PATTERN.test(value) || Number(value) < 1) {
+    throw new Error('attempt ID must be a positive three-digit decimal identifier, for example 002');
+  }
+  return value;
+}
+
+export function evidencePathForAttempt(attemptId) {
+  return `docs/evidence/FATES-SLICE-003A-R1-live-acceptance-attempt-${validateAttemptId(attemptId)}.json`;
+}
+
+export function predecessorAttemptId(attemptId) {
+  const current = Number(validateAttemptId(attemptId));
+  return current === 1 ? null : String(current - 1).padStart(3, '0');
+}
+
+export async function reserveEvidenceTarget(root, attemptId) {
+  const relativePath = evidencePathForAttempt(attemptId);
+  const absolutePath = resolve(root, relativePath);
+  await mkdir(dirname(absolutePath), { recursive: true });
+  const handle = await openFile(absolutePath, 'wx');
+  try {
+    const previous = predecessorAttemptId(attemptId);
+    await handle.writeFile(`${serializeEvidence({
+      schemaVersion: EVIDENCE_SCHEMA.schemaVersion,
+      status: 'IN_PROGRESS / RESERVED',
+      attemptId,
+      predecessorAttemptId: previous,
+      predecessorEvidencePath: previous ? evidencePathForAttempt(previous) : null,
+      evidencePath: relativePath,
+      reservation: 'exclusive target reserved before credential generation or child-process creation',
+    })}\n`, 'utf8');
+  } finally {
+    await handle.close();
+  }
+  return relativePath;
+}
+
 export function parseCliArgs(args) {
   if (!Array.isArray(args)) throw new Error('arguments must be an array');
-  const mode = args[0] ?? '--plan';
-  if (mode !== '--plan' && mode !== '--execute') {
-    throw new Error('Usage: node scripts/fates-slice03a-r1-live-acceptance.mjs [--plan [--approved-integration-sha <sha>]|--execute --approved-integration-sha <sha>]');
-  }
+  let mode = '--plan';
   let approvedIntegrationSha;
-  if (args.length > 1) {
-    if (args.length !== 3 || args[1] !== '--approved-integration-sha') {
-      throw new Error('Usage: node scripts/fates-slice03a-r1-live-acceptance.mjs [--plan [--approved-integration-sha <sha>]|--execute --approved-integration-sha <sha>]');
+  let attemptId;
+  for (let index = 0; index < args.length; index += 1) {
+    const argument = args[index];
+    if (argument === '--plan' || argument === '--execute') {
+      if (mode !== '--plan' || (argument === '--plan' && index !== 0)) {
+        throw new Error('plan/execute mode may be specified only once');
+      }
+      mode = argument;
+    } else if (argument === '--approved-integration-sha') {
+      if (approvedIntegrationSha !== undefined || args[index + 1] === undefined) throw new Error('approved Integration SHA must be supplied once');
+      approvedIntegrationSha = validateSha(args[++index], 'approved Integration SHA');
+    } else if (argument === '--attempt-id') {
+      if (attemptId !== undefined || args[index + 1] === undefined) throw new Error('attempt ID must be supplied once');
+      attemptId = validateAttemptId(args[++index]);
+    } else {
+      throw new Error('Usage: node scripts/fates-slice03a-r1-live-acceptance.mjs [--plan|--execute] [--attempt-id <NNN>] [--approved-integration-sha <sha>]');
     }
-    approvedIntegrationSha = validateSha(args[2], 'approved Integration SHA');
   }
-  if (mode === '--execute' && !approvedIntegrationSha) {
-    throw new Error('--execute requires --approved-integration-sha <40-hex-sha>');
+  if (mode === '--execute') {
+    if (!approvedIntegrationSha) throw new Error('--execute requires --approved-integration-sha <40-hex-sha>');
+    if (!attemptId) throw new Error('--execute requires --attempt-id <three-digit-id>');
   }
-  return { mode: mode === '--execute' ? 'execute' : 'plan', approvedIntegrationSha };
+  return { mode: mode === '--execute' ? 'execute' : 'plan', approvedIntegrationSha, attemptId };
 }
 
 export function assertIntegrationApproval(actualHead, approvedIntegrationSha) {
@@ -502,7 +564,9 @@ export function assertIntegrationApproval(actualHead, approvedIntegrationSha) {
   return { actual, approved };
 }
 
-function buildPlan(approvedIntegrationSha) {
+function buildPlan(approvedIntegrationSha, attemptId) {
+  const previousAttempt = attemptId ? predecessorAttemptId(attemptId) : null;
+  const evidencePath = attemptId ? evidencePathForAttempt(attemptId) : null;
   const sourcePreflight = verifyStaticSource();
   const heads = {};
   const headFailures = [];
@@ -518,6 +582,10 @@ function buildPlan(approvedIntegrationSha) {
 
   return {
     mode: 'plan',
+    attemptId: attemptId ?? null,
+    predecessorAttemptId: previousAttempt,
+    predecessorEvidencePath: previousAttempt ? evidencePathForAttempt(previousAttempt) : null,
+    evidencePath,
     processesStarted: 0,
     timeoutServersStarted: 0,
     driver: relative(ROOT, fileURLToPath(import.meta.url)),
@@ -560,7 +628,7 @@ function buildPlan(approvedIntegrationSha) {
       ananke: 'node packages/runtime-core/dist/server.js',
       horae: 'node packages/slice02-host/dist/index.js',
       moirae: 'node apps/diagnostics-cli/dist/index.js run-003a',
-      execute: 'node scripts/fates-slice03a-r1-live-acceptance.mjs --execute --approved-integration-sha <OWNER_APPROVED_SHA>',
+      execute: 'node scripts/fates-slice03a-r1-live-acceptance.mjs --execute --attempt-id <ATTEMPT_ID> --approved-integration-sha <OWNER_APPROVED_SHA>',
     },
     endpoints: {
       anankeTransport: `http://127.0.0.1:${PORTS.ananke}`,
@@ -616,6 +684,42 @@ function childEnvironment(role, values, parent = process.env) {
     env[key] = value;
   }
   return env;
+}
+
+function portableRepositoryId(repo) {
+  const resolvedRepo = resolve(repo);
+  const match = Object.entries(REPOSITORIES).find(([, path]) => resolve(path) === resolvedRepo);
+  return match ? PORTABLE_REPOSITORY_IDS[match[0]] : 'repo:unclassified';
+}
+
+function replacePathVariants(value, path, replacement) {
+  let result = value;
+  const variants = new Set([
+    path,
+    path.replaceAll('\\', '/'),
+    path.replaceAll('/', '\\'),
+    JSON.stringify(path).slice(1, -1),
+    JSON.stringify(path.replaceAll('\\', '/')).slice(1, -1),
+  ]);
+  for (const variant of variants) if (variant) result = result.split(variant).join(replacement);
+  return result;
+}
+
+export function sanitizePortableText(value) {
+  let result = String(value ?? '');
+  result = result.replace(/[A-Za-z]:[\\/][^\r\n"'<>|{}]*/g, '[LOCAL_WINDOWS_PATH]');
+  result = result.replace(/(^|[\s("'=])\/(?:Users|home|tmp|var|mnt|workspace)(?:\/[^\r\n"'<>|{} ]+)+/g, '$1[LOCAL_UNIX_PATH]');
+  return result;
+}
+
+function sanitizeChildOutput(value, record) {
+  let result = String(value ?? '');
+  result = replacePathVariants(result, record.executable, 'node.exe');
+  result = replacePathVariants(result, record.cwd, record.repository);
+  for (const [name, repo] of Object.entries(REPOSITORIES)) {
+    result = replacePathVariants(result, resolve(repo), PORTABLE_REPOSITORY_IDS[name]);
+  }
+  return sanitizePortableText(result);
 }
 
 function redactText(value, secrets = []) {
@@ -745,6 +849,7 @@ async function assertAllRepositoriesClean() {
 
 function spawnTracked(role, repo, args, values, secrets, runDirectory, environmentRole = role.toLowerCase()) {
   const cwd = resolve(repo);
+  const repository = portableRepositoryId(repo);
   const env = childEnvironment(environmentRole, values);
   const startedAt = new Date().toISOString();
   const child = spawn(NODE, args, {
@@ -759,6 +864,7 @@ function spawnTracked(role, repo, args, values, secrets, runDirectory, environme
     pid: child.pid,
     executable: NODE,
     cwd,
+    repository,
     args: [...args],
     spawnedAt: startedAt,
     envKeys: Object.keys(env).sort(),
@@ -900,17 +1006,18 @@ function safeChildRecord(record) {
   return {
     role: record.role,
     pid: record.pid,
-    executable: record.executable,
-    cwd: record.cwd,
-    args: record.args,
+    executable: basename(record.executable),
+    cwd: record.repository,
+    repository: record.repository,
+    args: record.args.map((argument) => sanitizePortableText(argument)),
     spawnedAt: record.spawnedAt,
     envKeys: record.envKeys,
     exitCode: record.exitCode,
     signal: record.signal,
-    spawnError: record.spawnError,
+    spawnError: sanitizeChildOutput(record.spawnError, record),
     cleanup: record.cleanup,
-    stdout: record.stdout,
-    stderr: record.stderr,
+    stdout: sanitizeChildOutput(record.stdout, record),
+    stderr: sanitizeChildOutput(record.stderr, record),
   };
 }
 
@@ -1000,7 +1107,7 @@ function verifyPositive(result, moiraeRecord, anankeInstance, endpoints) {
   };
 }
 
-async function runApprovedExecution(approvedIntegrationSha) {
+async function runApprovedExecution(approvedIntegrationSha, attemptId) {
   const sourcePreflight = verifyStaticSource();
   if (!sourcePreflight.verified) throw new Error(`static source preflight failed: ${sourcePreflight.failures.join('; ')}`);
   for (const name of PREFLIGHT_REPOSITORIES) {
@@ -1010,6 +1117,8 @@ async function runApprovedExecution(approvedIntegrationSha) {
   await assertAllRepositoriesClean();
   const canary = runRedactionCanary();
   await assertPortsFree();
+  const evidencePath = await reserveEvidenceTarget(ROOT, attemptId);
+  const previousAttempt = predecessorAttemptId(attemptId);
 
   const executionToken = randomBytes(32).toString('base64url');
   const runDirectory = await mkdtemp(join(tmpdir(), 'fates-slice03a-r1-'));
@@ -1027,6 +1136,10 @@ async function runApprovedExecution(approvedIntegrationSha) {
   };
   const evidence = {
     status: 'IN_PROGRESS / LIVE ACCEPTANCE',
+    attemptId,
+    predecessorAttemptId: previousAttempt,
+    predecessorEvidencePath: previousAttempt ? evidencePathForAttempt(previousAttempt) : null,
+    evidencePath,
     runTimestamp: new Date().toISOString(),
     preparationStartingBaseline: PREPARATION_STARTING_BASELINE,
     previousPreparationCheckpoint: PREVIOUS_PREPARATION_CHECKPOINT,
@@ -1055,7 +1168,7 @@ async function runApprovedExecution(approvedIntegrationSha) {
     cases: [],
     chronology: [],
     cleanup: 'pending',
-    limitations: buildPlan(approvedIntegrationSha).limitations,
+    limitations: buildPlan(approvedIntegrationSha, attemptId).limitations,
     credentialDisposition: 'credential disposition: provider-side revoked/rotated; former exposed credential set invalid',
     endpointSecurity: { status: 'no endpoint-security interaction in this run', controlsChanged: false },
     redactionCanary: canary,
@@ -1123,7 +1236,7 @@ async function runApprovedExecution(approvedIntegrationSha) {
       }],
       {
         effectCount: positive.effectCount,
-        processCorrelation: { moiraePid: moirae.pid, executable: moirae.executable, classification: 'PROCESS CORRELATION' },
+        processCorrelation: { moiraePid: moirae.pid, executable: basename(moirae.executable), cwd: moirae.repository, repository: moirae.repository, classification: 'PROCESS CORRELATION' },
         fixtureDigest: positive.producer.actualFixtureDigest,
       },
     ));
@@ -1306,7 +1419,7 @@ async function runApprovedExecution(approvedIntegrationSha) {
     evidence.credentialLeakScan = { retainedCredentialOccurrences: 0, retainedOutputScan: 'passed without reproducing generated values' };
     assertNoSecretMaterial({ evidence, processes: evidence.processes }, secrets);
     await rm(runDirectory, { recursive: true, force: true });
-    await writeFile(resolve(ROOT, EVIDENCE_PATH), `${serializeEvidence(evidence, secrets)}\n`, 'utf8');
+    await writeFile(resolve(ROOT, evidencePath), `${serializeEvidence(evidence, secrets)}\n`, 'utf8');
     if (replayToken) replayToken = null;
     if (wrongAuthToken) wrongAuthToken = null;
     secrets.length = 0;
@@ -1317,14 +1430,14 @@ async function runApprovedExecution(approvedIntegrationSha) {
 async function main() {
   const parsed = parseCliArgs(process.argv.slice(2));
   if (parsed.mode === 'plan') {
-    const plan = buildPlan(parsed.approvedIntegrationSha);
+    const plan = buildPlan(parsed.approvedIntegrationSha, parsed.attemptId);
     const canary = runRedactionCanary();
     plan.redactionCanary = canary;
     console.log(JSON.stringify(plan, null, 2));
     if (!plan.sourcePreflight.verified || plan.sourcePreflight.headFailures.length > 0) process.exitCode = 1;
     return;
   }
-  await runApprovedExecution(parsed.approvedIntegrationSha);
+  await runApprovedExecution(parsed.approvedIntegrationSha, parsed.attemptId);
 }
 
 export {
@@ -1333,6 +1446,7 @@ export {
   buildPlan,
   childEnvironment,
   gitPreflightEnvironment,
+  safeChildRecord,
   verifyStaticSource,
 };
 

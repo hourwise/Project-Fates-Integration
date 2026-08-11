@@ -1546,8 +1546,11 @@ tracked PIDs, reverse-order exact-PID cleanup, and no PowerShell, bypass,
 alternate encoding, retry, fallback, or executable-name termination. The
 ephemeral execution credential is generated only in execution mode, supplied
 only to Ananke and Horae, and excluded from Moirae, argv, URLs, logs, output,
-plan, and evidence. The planned evidence path is
-`docs/evidence/FATES-SLICE-003A-R1-live-acceptance-2026-08-11.json`; no PASS
+plan, and evidence. Execution now requires an explicit narrowly validated
+`--attempt-id <NNN>` and reserves the corresponding portable target
+`docs/evidence/FATES-SLICE-003A-R1-live-acceptance-attempt-<NNN>.json`
+exclusively before credential generation or child-process creation. Each target
+records its predecessor attempt without overwriting earlier evidence; no PASS
 artifact was created by this preparation task.
 
 The planned positive and negative matrix covers r1-v2 success, replay,
@@ -1588,3 +1591,34 @@ Moirae process-origin evidence. No PowerShell, bypass, development auth,
 automatic retry, alternate positive route, component change, live process,
 fixed-fixture effect, evidence artifact, commit, push, tag, seal, lock/matrix
 change, or 003B work occurred in this correction task.
+
+## FATES-SLICE-003A-R1 remediation batch - 2026-08-11
+
+Status: **REMEDIATION CHECKPOINT - PREPARATION ONLY; LIVE ACCEPTANCE NOT
+EXECUTED.** The owner-approved remediation preserves historical attempt 001 as
+`FAIL / LIVE ACCEPTANCE INCOMPLETE` and retains its portable derived evidence
+at
+[`docs/evidence/FATES-SLICE-003A-R1-live-acceptance-attempt-001.json`](../evidence/FATES-SLICE-003A-R1-live-acceptance-attempt-001.json).
+The original raw attempt artifact remains outside this repository in the
+owner-controlled archive and is not rewritten.
+
+The candidate component checkpoints for a future owner-authorized attempt are:
+
+- Ananke `dde9f74cbcfefea2176a6f0103e1f6b9064f4e64`
+- Horae `3f531d4f5558a10a36aeae20c3458080eb4468b9`
+- Moirae `bc7b984bd2eb0e0f07a1cd7259a8eab21556f097`
+- Mnemosyne `f4ab76a9760f856d78908d35facceb068d78c8e5`
+- Runtime Contracts `bbf240b1fdcb9be1dbd30b13d2fe2708a22ec7b8`
+
+The driver now supports explicit attempt IDs, predecessor linkage, atomic
+exclusive evidence-target reservation, non-overwriting attempt retention,
+portable repository/process evidence, and child-output path sanitization. The
+runtime remains Node-only with argument-array spawning, `shell: false`, the
+existing runtime child-environment allowlists, tracked-PID cleanup, bounded
+readiness, and no security-control changes. Horae's reviewed deterministic
+compatibility test is pushed at `3f531d4f5558a10a36aeae20c3458080eb4468b9`;
+the Ananke and Moirae remediation checkpoints are the candidate pins above.
+
+No credential was generated, no Fates or scratch process was started, no
+fixture effect occurred, and no live acceptance or R1 seal occurred in this
+batch. R1 remains active and unsealed; 003B remains paused.
