@@ -1822,3 +1822,49 @@ The activation transaction records the exact R1 baseline, component pins, and
 activation checkpoint in `active-slice.json`. The numeric compatibility matrix,
 lock, R1 snapshot/evidence, and all component repositories remain unchanged.
 Integration validation and deterministic tests passed before commit.
+
+## FATES-SLICE-004A Ananke Batch 1 implementation - 2026-08-11
+
+Status: **BATCH 1 IMPLEMENTED - ACTIVE AND PROVISIONAL; NOT SEALED.** Owner
+approval authorized the bounded Ananke Batch 1 implementation only. The
+Ananke checkpoint is `74beb0d` on `codex/slice-002-http-handoff-bridge`, pushed
+for CI verification. No other Fate, Runtime Contracts, Adrasteia, sealed R1
+evidence, tag, credential, live effect, 003B, 004B, or control-plane state was
+changed.
+
+Ananke now owns a versioned SQLite execution-state store distinct from audit.
+It persists approval/action binding digests, durable intent, dispatch markers,
+provider outcome or explicit unknown state, reconciliation attempts, and
+terminal unresolved state. All lifecycle transitions are explicit, optimistic
+version checked, and transactionally paired with transition records. The
+coordinator sends only bounded identifiers and digests to a provider client,
+suppresses duplicate scoped idempotency keys, exposes deterministic crash
+failpoints, converts restart ambiguity to reconciliation, and never
+redispatches an uncertain effect. Audit projection uses the existing
+sanitizer-facing interface and does not include raw arguments or secrets.
+
+The Integration repository adds the disposable independent receipt-sink
+fixture at
+[`fixtures/slice-004a-receipt-sink/server.mjs`](../../fixtures/slice-004a-receipt-sink/server.mjs)
+and its deterministic process-boundary test. The fixture has its own atomic
+JSON provider-state file, duplicate/conflict handling, status lookup, and no
+credential or external provider dependency. The test starts, stops, and
+restarts the fixture and independently inspects its provider state; it is not
+live acceptance evidence.
+
+Validation passed before this checkpoint:
+
+- Ananke build, full test suite (18 files / 148 tests), lint, formatting, and
+  focused Batch 1 lifecycle tests (7 tests).
+- Integration `npm.cmd run validate` and complete deterministic test suite (80
+  tests), including the receipt-sink process/state-separation test.
+- `git diff --check` passed for both repositories.
+
+The 004A record remains `implementationStatus: active` and
+`sealStatus: provisional`; the numeric compatibility matrix and lock remain at
+the sealed R1 baseline. Remaining POST004 requirements that are not classified
+by this Batch 1 checkpoint include any future bounded host-mediated/strict
+containment work, later provider credential/effect brokerage, cross-Fate
+integration, and owner-authorized live acceptance. The next bounded step is a
+separate owner review of this checkpoint followed by an explicit Batch 2
+authorization; no further implementation begins under this record.
