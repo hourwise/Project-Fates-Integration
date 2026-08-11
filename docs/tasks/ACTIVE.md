@@ -1561,3 +1561,30 @@ matrix, compatibility snapshot, sealed evidence, tag, credential material, or
 003B state changed. R1 remains active and unsealed.
 
 credential disposition: provider-side revoked/rotated; former exposed credential set invalid
+
+## FATES-SLICE-003A-R1 live acceptance driver correction - 2026-08-11
+
+Status: **CORRECTION/PREPARATION ONLY - LIVE ACCEPTANCE NOT EXECUTED.** The
+owner-approved correction removes self-referential Integration pinning from the
+driver. Immutable component checkpoints remain pinned; the future live command
+must supply an explicit `--approved-integration-sha <40-hex-sha>` argument and
+the driver must require exact equality with the actual clean Integration HEAD
+before generating any credential or starting any acceptance process.
+
+The evidence identity is separated into the preparation starting baseline
+`07ec80aabe2c62baaa776857fbcefafd154a74d7`, previous preparation checkpoint
+`17052be6335cae6081fafb6da7b48c0eef1a3cf3`, actual runtime Integration HEAD,
+owner-approved Integration checkpoint, and the SHA-256 of the exact executed
+driver. The historical baseline is not used as the execution checkpoint.
+
+The corrected future execution path preserves the real Moirae -> tracked Horae
+-> canonical Ananke -> fixed-fixture positive route and adds executable bounded
+negative cases for route-level replay, wrong audience, explicit expiry, legacy
+v1 rejection, isolated wrong-auth Horae, missing Horae auth configuration,
+localhost-only scratch inspection timeout, and process-restart-persistent
+replay. Result projection remains **DETERMINISTIC TEST VERIFIED / NOT LIVE
+INDUCED**. Driver-generated route-level invalid requests are not represented as
+Moirae process-origin evidence. No PowerShell, bypass, development auth,
+automatic retry, alternate positive route, component change, live process,
+fixed-fixture effect, evidence artifact, commit, push, tag, seal, lock/matrix
+change, or 003B work occurred in this correction task.

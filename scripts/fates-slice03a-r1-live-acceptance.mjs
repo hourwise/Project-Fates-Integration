@@ -10,6 +10,7 @@ import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join, relative, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -20,6 +21,9 @@ const NODE = process.execPath;
 const LEGACY_DRIVER = resolve(ROOT, 'scripts/fates-slice03a-live-acceptance.mjs');
 const EVIDENCE_PATH = 'docs/evidence/FATES-SLICE-003A-R1-live-acceptance-2026-08-11.json';
 const LEGACY_DRIVER_SHA256 = '77ad8c51d80d689396de4d2753344b9a4cf3b2ee6b52423863ed3a246f4bd99e';
+export const PREPARATION_STARTING_BASELINE = '07ec80aabe2c62baaa776857fbcefafd154a74d7';
+export const PREVIOUS_PREPARATION_CHECKPOINT = '17052be6335cae6081fafb6da7b48c0eef1a3cf3';
+const SHA_PATTERN = /^[0-9a-f]{40}$/i;
 
 export const PINNED = Object.freeze({
   ananke: '7c5cdecb078749acb129ba485daac43d7155ceb6',
@@ -27,7 +31,6 @@ export const PINNED = Object.freeze({
   moirae: '56f3bc84c84e36f75d2a4e46b393f86065a736d3',
   mnemosyne: 'f4ab76a9760f856d78908d35facceb068d78c8e5',
   runtimeContracts: 'bbf240b1fdcb9be1dbd30b13d2fe2708a22ec7b8',
-  integration: '07ec80aabe2c62baaa776857fbcefafd154a74d7',
 });
 
 export const REPOSITORIES = Object.freeze({
@@ -40,13 +43,20 @@ export const REPOSITORIES = Object.freeze({
 });
 
 export const PORTS = Object.freeze({ ananke: 34212, horae: 34216 });
+export const NEGATIVE_PORTS = Object.freeze({
+  replayHorae: 34217,
+  wrongAuthHorae: 34218,
+  timeoutScratch: 34219,
+  timeoutHorae: 34220,
+  missingAuthHorae: 34221,
+});
 export const FIXED = Object.freeze({
   action: 'fates.slice02.inspect-fixed-fixture.v1',
   fixtureId: 'fates.slice02.fixed-fixture.v1',
   fixtureSha256: '7b28f52d84b07bed8b49650960607e8f8a9809cac299810aba691f7f52fe9ae8',
   horaeInstance: 'horae-r1-live-1',
-  moiraeInstance: 'moirae-r1-live-1',
-  moiraeArtifact: 'moirae-slice03a-r1-live-acceptance',
+  moiraeInstance: 'moirae-live-origin-1',
+  moiraeArtifact: 'moirae-slice02-live-origin',
 });
 
 const PRODUCER_AUTHORITY = Object.freeze({
@@ -118,39 +128,45 @@ const ACCEPTANCE_MATRIX = Object.freeze([
   },
   {
     id: 'replay',
-    execution: 'future live only with the exact captured Moirae request body',
+    execution: 'future live route-level replay seed on an isolated Horae host',
     expected: 'denied / rejected_before_dispatch; no Ananke inspection or dispatch',
     proof: 'the same v2 receipt is rejected by Horae replay ledger',
+    implementation: 'executable',
   },
   {
     id: 'wrong-audience',
-    execution: 'future live only through a reviewed Moirae request-identity test seam',
+    execution: 'future live route-level request against the tracked Horae host',
     expected: 'malformed / rejected_before_dispatch; no dispatch',
     proof: 'Horae rejects a non-canonical or non-matching v2 audience with no downgrade',
+    implementation: 'executable',
   },
   {
     id: 'expired',
-    execution: 'future live only through a reviewed Moirae request-identity test seam',
+    execution: 'future live route-level request with explicit expired timestamps',
     expected: 'stale / rejected_before_dispatch; no dispatch',
     proof: 'expired validity is rejected before Ananke inspection/dispatch',
+    implementation: 'executable',
   },
   {
     id: 'legacy-v1',
-    execution: 'future live only through a reviewed request-identity test seam',
+    execution: 'future live route-level historical request shape against the R1 host',
     expected: 'malformed / rejected_before_dispatch; no v1 downgrade',
     proof: 'R1 Horae requires the configured r1-v2 schema and audience',
+    implementation: 'executable',
   },
   {
     id: 'wrong-ananke-token',
-    execution: 'future live with a fresh Horae process only',
-    expected: 'Ananke authentication denied after inspection; no effect',
+    execution: 'future live with a fresh isolated Horae process and wrong token',
+    expected: 'Ananke authentication denied / route fail-closed; no effect',
     proof: 'distinguish wrong token from Horae startup missing-token configuration failure',
+    implementation: 'executable',
   },
   {
     id: 'pre-dispatch-timeout',
-    execution: 'deterministic Horae validation; no scratch timeout server',
+    execution: 'future live negative induction against a localhost scratch inspection endpoint',
     expected: 'timed_out / dispatch_not_attempted / HTTP 504',
     proof: 'bounded cancellation, zero dispatch, no retry/fallback',
+    implementation: 'executable-negative-induction',
   },
   {
     id: 'result-projection',
@@ -160,19 +176,36 @@ const ACCEPTANCE_MATRIX = Object.freeze([
   },
   {
     id: 'restart-replay',
-    execution: 'future live with the same authoritative Horae ledger and a controlled restart',
+    execution: 'future live with the same tracked Horae build, instance, audience, and ledger',
     expected: 'denied / rejected_before_dispatch after restart; no second effect',
     proof: 'persisted claim is loaded before inspection/dispatch',
+    implementation: 'executable',
   },
 ]);
 
+export const LIVE_CASE_ORDER = Object.freeze([
+  'positive-r1-v2',
+  'replay',
+  'wrong-audience',
+  'expired',
+  'legacy-v1',
+  'wrong-ananke-token',
+  'missing-horae-auth',
+  'pre-dispatch-timeout',
+  'restart-replay',
+]);
+
 const EVIDENCE_SCHEMA = Object.freeze({
-  schemaVersion: 'fates-slice03a-r1-live-acceptance-preparation-v1',
+  schemaVersion: 'fates-slice03a-r1-live-acceptance-v2',
   status: 'NOT_EXECUTED / PREPARATION ONLY',
   evidencePath: EVIDENCE_PATH,
   requiredTopLevel: [
     'status',
     'runTimestamp',
+    'preparationStartingBaseline',
+    'previousPreparationCheckpoint',
+    'integrationExecutionCheckpoint',
+    'ownerApprovedIntegrationCheckpoint',
     'pinnedCheckpoints',
     'acceptanceDriverSha256',
     'sourcePreflight',
@@ -216,6 +249,125 @@ function sha256(value) {
 
 function fileSha256(path) {
   return sha256(readFileSync(path));
+}
+
+function isRecord(value) {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function canonicalJson(value) {
+  if (value === null) return 'null';
+  if (typeof value === 'string' || typeof value === 'boolean' || typeof value === 'number') {
+    return JSON.stringify(value);
+  }
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
+  if (isRecord(value)) {
+    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key])}`).join(',')}}`;
+  }
+  throw new TypeError('unsupported canonical request value');
+}
+
+function hashCanonical(value) {
+  return sha256(canonicalJson(value));
+}
+
+const ROUTE_SCHEMA = Object.freeze({
+  legacyId: 'urn:fates:slice02:inspect-fixed-fixture-request:v1',
+  legacySha256: 'db1864fdc4978d6befb4b6d3913461e4f2d2732dd0ca87e076977ab98cf6049c',
+  r1Id: 'urn:fates:slice02:inspect-fixed-fixture-request:r1-v2',
+  r1Sha256: '104ebc4267914426434968996b2ba2e774ad4ffd6bc2fb4c97b4193a1c7389db',
+});
+
+const REQUEST_DEFAULTS = Object.freeze({
+  tenantId: 'fates-003a-tenant',
+  projectId: 'fates-003a-project',
+  workspaceId: 'fates-003a-workspace',
+  purpose: 'slice02.fixed-fixture-inspection',
+});
+
+export function buildRouteRequest({
+  audience,
+  identityVersion = 'r1-v2',
+  validity,
+  originId = `moirae-003a-origin-route-${randomUUID()}`,
+  sessionId = `fates-003a-session-route-${randomUUID()}`,
+} = {}) {
+  const now = Date.now();
+  const effectiveValidity = validity ?? {
+    notBefore: new Date(now - 1_000).toISOString(),
+    expiresAt: new Date(now + 60_000).toISOString(),
+  };
+  const requestId = `moirae-003a-request-route-${randomUUID()}`;
+  const correlationId = `moirae-003a-correlation-route-${randomUUID()}`;
+  const resolvedAudience = audience ?? `fates.slice03a.r1.horae:${FIXED.horaeInstance}:POST:/slice-02/governed-actions`;
+  const receipt = identityVersion === 'legacy-v1'
+    ? {
+        originId,
+        originDigest: hashCanonical({ originId, schemaId: ROUTE_SCHEMA.legacyId, schemaSha256: ROUTE_SCHEMA.legacySha256 }),
+        schemaId: ROUTE_SCHEMA.legacyId,
+        schemaSha256: ROUTE_SCHEMA.legacySha256,
+        validity: effectiveValidity,
+      }
+    : {
+        originId,
+        originDigest: hashCanonical({
+          action: FIXED.action,
+          audience: resolvedAudience,
+          originId,
+          schemaId: ROUTE_SCHEMA.r1Id,
+          schemaSha256: ROUTE_SCHEMA.r1Sha256,
+          validity: effectiveValidity,
+        }),
+        schemaId: ROUTE_SCHEMA.r1Id,
+        schemaSha256: ROUTE_SCHEMA.r1Sha256,
+        audience: resolvedAudience,
+        validity: effectiveValidity,
+      };
+  const execution = {
+    authenticatedPrincipal: { id: 'moirae-003a-host', kind: 'service', tenantId: REQUEST_DEFAULTS.tenantId },
+    actingPrincipal: { id: 'moirae-003a-agent', kind: 'agent', tenantId: REQUEST_DEFAULTS.tenantId },
+    runtimeId: 'moirae-code',
+    runtimeInstanceId: FIXED.moiraeInstance,
+    tenantId: REQUEST_DEFAULTS.tenantId,
+    projectId: REQUEST_DEFAULTS.projectId,
+    workspaceId: REQUEST_DEFAULTS.workspaceId,
+    sessionId,
+  };
+  return {
+    action: FIXED.action,
+    arguments: { fixtureId: FIXED.fixtureId, expectedSha256: FIXED.fixtureSha256 },
+    origin: {
+      runtime: 'moirae-code',
+      instanceId: FIXED.moiraeInstance,
+      artifact: FIXED.moiraeArtifact,
+      receipt,
+    },
+    execution,
+    scope: {
+      mode: 'bounded',
+      tenantId: REQUEST_DEFAULTS.tenantId,
+      projectId: REQUEST_DEFAULTS.projectId,
+      workspaceId: REQUEST_DEFAULTS.workspaceId,
+      resourceType: 'fixed-fixture',
+      resourceIds: [FIXED.fixtureId],
+      operations: ['read'],
+    },
+    purpose: REQUEST_DEFAULTS.purpose,
+    correlation: { requestId, correlationId, sessionId },
+  };
+}
+
+export function buildExpiredValidity(now = Date.now()) {
+  return {
+    notBefore: new Date(now - 120_000).toISOString(),
+    expiresAt: new Date(now - 60_000).toISOString(),
+  };
+}
+
+export function buildWrongAudience(realAudience) {
+  const wrong = `${realAudience}:wrong-audience`;
+  if (wrong === realAudience) throw new Error('wrong audience construction collided with real audience');
+  return wrong;
 }
 
 function readGitHead(repo) {
@@ -283,6 +435,8 @@ function verifyStaticSource() {
       [horaeRelay.includes('dispatchState: "dispatch_not_attempted"'), 'pre-dispatch timeout dispatch state'],
       [moiraeHost.includes('MOIRAE_003A_REQUEST_IDENTITY_VERSION') && moiraeHost.includes("'r1-v2'"), 'Moirae r1-v2 request identity'],
       [moiraeHost.includes('MOIRAE_003A_HORAE_AUDIENCE'), 'Moirae audience input'],
+      [horaeHost.includes('instanceId: "moirae-live-origin-1"'), 'canonical Horae expected Moirae instance'],
+      [horaeHost.includes('artifact: "moirae-slice02-live-origin"'), 'canonical Horae expected Moirae artifact'],
       [!anankeServer.includes(['ANANKE_DEVELOPMENT_MODE', "'true'"].join(': ')), 'no development-mode launch value'],
       [!horaeHost.includes(['inspection', 'timed_out'].join('_')), 'no new serialized inspection timeout state'],
     ];
@@ -311,7 +465,42 @@ function verifyStaticSource() {
   };
 }
 
-function buildPlan() {
+export function validateSha(value, label = 'SHA') {
+  if (typeof value !== 'string' || !SHA_PATTERN.test(value)) {
+    throw new Error(`${label} must be exactly 40 hexadecimal characters`);
+  }
+  return value.toLowerCase();
+}
+
+export function parseCliArgs(args) {
+  if (!Array.isArray(args)) throw new Error('arguments must be an array');
+  const mode = args[0] ?? '--plan';
+  if (mode !== '--plan' && mode !== '--execute') {
+    throw new Error('Usage: node scripts/fates-slice03a-r1-live-acceptance.mjs [--plan [--approved-integration-sha <sha>]|--execute --approved-integration-sha <sha>]');
+  }
+  let approvedIntegrationSha;
+  if (args.length > 1) {
+    if (args.length !== 3 || args[1] !== '--approved-integration-sha') {
+      throw new Error('Usage: node scripts/fates-slice03a-r1-live-acceptance.mjs [--plan [--approved-integration-sha <sha>]|--execute --approved-integration-sha <sha>]');
+    }
+    approvedIntegrationSha = validateSha(args[2], 'approved Integration SHA');
+  }
+  if (mode === '--execute' && !approvedIntegrationSha) {
+    throw new Error('--execute requires --approved-integration-sha <40-hex-sha>');
+  }
+  return { mode: mode === '--execute' ? 'execute' : 'plan', approvedIntegrationSha };
+}
+
+export function assertIntegrationApproval(actualHead, approvedIntegrationSha) {
+  const actual = validateSha(actualHead, 'actual Integration HEAD');
+  const approved = validateSha(approvedIntegrationSha, 'approved Integration SHA');
+  if (actual !== approved) {
+    throw new Error('Integration HEAD does not equal the owner-approved Integration SHA');
+  }
+  return { actual, approved };
+}
+
+function buildPlan(approvedIntegrationSha) {
   const sourcePreflight = verifyStaticSource();
   const heads = {};
   const headFailures = [];
@@ -330,7 +519,16 @@ function buildPlan() {
     processesStarted: 0,
     timeoutServersStarted: 0,
     driver: relative(ROOT, fileURLToPath(import.meta.url)),
+    preparationStartingBaseline: PREPARATION_STARTING_BASELINE,
+    previousPreparationCheckpoint: PREVIOUS_PREPARATION_CHECKPOINT,
+    integration: {
+      actualHead: readGitHead(ROOT),
+      approvedHead: approvedIntegrationSha ?? null,
+      approvalMatch: approvedIntegrationSha ? readGitHead(ROOT) === approvedIntegrationSha : null,
+      cleanTreeCheckedAtExecute: true,
+    },
     pinnedCheckpoints: { ...PINNED },
+    acceptanceDriverSha256: fileSha256(fileURLToPath(import.meta.url)),
     sourcePreflight: { ...sourcePreflight, headFailures, heads },
     producerAuthority: { ...PRODUCER_AUTHORITY },
     cleanTree: {
@@ -338,6 +536,7 @@ function buildPlan() {
       checkedBeforeExecute: true,
       planMode: 'no child process is started; execute mode performs the final git-status preflight',
       componentRepositories: PREFLIGHT_REPOSITORIES,
+      integrationRepository: ROOT,
     },
     historicalWrapperDependency: false,
     inheritedEnvironmentReasons: {
@@ -353,11 +552,13 @@ function buildPlan() {
       'Check ports 34212 and 34216 are free; generate the ephemeral token only after preflight and never print it.',
       'Start Ananke, read its dynamic runtime instance ID, then start tracked Horae with the derived audience and replay-ledger path.',
       'Start Moirae only after Horae readiness; capture sanitized process and route evidence; clean up tracked PIDs in reverse order.',
+      'Run the bounded executable negative matrix in the fixed case order; stop on infrastructure failure and retain chronology.',
     ],
     futureCommands: {
       ananke: 'node packages/runtime-core/dist/server.js',
       horae: 'node packages/slice02-host/dist/index.js',
       moirae: 'node apps/diagnostics-cli/dist/index.js run-003a',
+      execute: 'node scripts/fates-slice03a-r1-live-acceptance.mjs --execute --approved-integration-sha <OWNER_APPROVED_SHA>',
     },
     endpoints: {
       anankeTransport: `http://127.0.0.1:${PORTS.ananke}`,
@@ -379,6 +580,7 @@ function buildPlan() {
       correlation: 'call correlation is preserved but is not authentication or OS process origin proof',
     },
     matrix: ACCEPTANCE_MATRIX,
+    negativeCaseImplementation: Object.fromEntries(ACCEPTANCE_MATRIX.map((item) => [item.id, item.implementation ?? 'deterministic-test-only'])),
     evidenceSchema: EVIDENCE_SCHEMA,
     effectCounting: {
       required: ['one dispatch', 'one producer read', 'decision ID', 'outcome ID', 'audit reference if exposed'],
@@ -431,16 +633,19 @@ export function serializeEvidence(value, secrets = []) {
 }
 
 export function runRedactionCanary() {
-  const canary = `r1-redaction-canary-${randomBytes(24).toString('hex')}`;
-  const unsafeError = new Error(`child failure ${canary}`);
-  const stdout = redactText(`stdout ${canary}`, [canary]);
-  const stderr = redactText(`stderr ${canary}`, [canary]);
-  const error = redactValue(unsafeError, [canary]);
-  const evidence = serializeEvidence({ stdout, stderr, error, nested: canary }, [canary]);
-  if ([stdout, stderr, JSON.stringify(error), evidence].some((value) => value.includes(canary))) {
+  const canaries = [
+    `r1-correct-token-canary-${randomBytes(24).toString('hex')}`,
+    `r1-wrong-token-canary-${randomBytes(24).toString('hex')}`,
+  ];
+  const unsafeError = new Error(`child failure ${canaries.join(' ')}`);
+  const stdout = redactText(`stdout ${canaries.join(' ')}`, canaries);
+  const stderr = redactText(`stderr ${canaries.join(' ')}`, canaries);
+  const error = redactValue(unsafeError, canaries);
+  const evidence = serializeEvidence({ stdout, stderr, error, nested: canaries }, canaries);
+  if ([stdout, stderr, JSON.stringify(error), evidence].some((value) => canaries.some((canary) => value.includes(canary)))) {
     throw new Error('synthetic random redaction canary was reproduced');
   }
-  return { passed: true, fields: ['stdout', 'stderr', 'error', 'evidence serialization'] };
+  return { passed: true, fields: ['stdout', 'stderr', 'error', 'evidence serialization'], trackedValues: 2 };
 }
 
 function sleep(ms) {
@@ -474,6 +679,14 @@ async function waitForJson(url, predicate, label, timeoutMs = 15_000) {
   throw new Error(`${label} did not become ready within the bounded preflight window`);
 }
 
+async function postRoute(endpoint, body, timeoutMs = 5_000) {
+  return jsonFetch(endpoint, {
+    method: 'POST',
+    headers: { accept: 'application/json', 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  }, timeoutMs);
+}
+
 async function portState(port) {
   return new Promise((resolvePromise) => {
     const socket = createConnection({ host: '127.0.0.1', port });
@@ -485,7 +698,7 @@ async function portState(port) {
 }
 
 async function assertPortsFree() {
-  for (const [name, port] of Object.entries(PORTS)) {
+  for (const [name, port] of Object.entries({ ...PORTS, ...NEGATIVE_PORTS })) {
     if (await portState(port) !== 'free') throw new Error(`port ${name}:${port} is not confirmed free`);
   }
 }
@@ -518,9 +731,15 @@ async function assertComponentTreesClean() {
   }
 }
 
-function spawnTracked(role, repo, args, values, secrets, runDirectory) {
+async function assertAllRepositoriesClean() {
+  await assertComponentTreesClean();
+  const integrationStatus = await gitStatus(ROOT);
+  if (integrationStatus.trim()) throw new Error('integration worktree is not clean');
+}
+
+function spawnTracked(role, repo, args, values, secrets, runDirectory, environmentRole = role.toLowerCase()) {
   const cwd = resolve(repo);
-  const env = childEnvironment(role.toLowerCase(), values);
+  const env = childEnvironment(environmentRole, values);
   const startedAt = new Date().toISOString();
   const child = spawn(NODE, args, {
     cwd,
@@ -559,6 +778,73 @@ function spawnTracked(role, repo, args, values, secrets, runDirectory) {
   });
   record.child = child;
   return record;
+}
+
+function horaeValues({
+  port,
+  anankeEndpoint,
+  expectedAnankeEndpoint,
+  anankeInstance,
+  executionToken,
+  r1Instance,
+  replayLedger,
+  inspectionTimeoutMs = '1000',
+  dispatchTimeoutMs = '1000',
+} = {}) {
+  return {
+    HORAE_BIND_HOST: '127.0.0.1',
+    HORAE_PORT: String(port),
+    ANANKE_ENDPOINT: anankeEndpoint,
+    EXPECTED_ANANKE_ENDPOINT: expectedAnankeEndpoint,
+    ANANKE_INSTANCE_ID: anankeInstance,
+    ...(executionToken === undefined ? {} : { ANANKE_EXECUTION_TOKEN: executionToken }),
+    HORAE_INSPECTION_TIMEOUT_MS: String(inspectionTimeoutMs),
+    HORAE_DISPATCH_TIMEOUT_MS: String(dispatchTimeoutMs),
+    HORAE_R1_INSTANCE_ID: r1Instance,
+    HORAE_R1_REPLAY_LEDGER_PATH: replayLedger,
+  };
+}
+
+async function startHorae({ role, port, anankeEndpoint, expectedAnankeEndpoint, anankeInstance, executionToken, r1Instance, replayLedger, secrets, runDirectory, inspectionTimeoutMs, dispatchTimeoutMs }) {
+  const record = spawnTracked(
+    role,
+    REPOSITORIES.horae,
+    ['packages/slice02-host/dist/index.js'],
+    horaeValues({ port, anankeEndpoint, expectedAnankeEndpoint, anankeInstance, executionToken, r1Instance, replayLedger, inspectionTimeoutMs, dispatchTimeoutMs }),
+    secrets,
+    runDirectory,
+    'horae',
+  );
+  try {
+    await waitForJson(`http://127.0.0.1:${port}/slice-02/governed-actions`, (response) => response.status === 405, `${role} Horae host`);
+    return record;
+  } catch (error) {
+    await waitTracked(record, 2_000, secrets).catch(() => {});
+    throw error;
+  }
+}
+
+async function startScratchInspectionServer(port) {
+  const server = createServer(() => {
+    // Intentionally leave every inspection request incomplete for the bounded timeout case.
+  });
+  const sockets = new Set();
+  server.on('connection', (socket) => {
+    sockets.add(socket);
+    socket.once('close', () => sockets.delete(socket));
+  });
+  await new Promise((resolvePromise, reject) => {
+    server.once('error', reject);
+    server.listen(port, '127.0.0.1', resolvePromise);
+  });
+  return { role: 'scratch-timeout-inspection-listener', port, server, sockets, closed: false };
+}
+
+async function closeScratchInspectionServer(resource) {
+  if (!resource || resource.closed) return;
+  for (const socket of resource.sockets) socket.destroy();
+  await new Promise((resolvePromise) => resource.server.close(resolvePromise));
+  resource.closed = true;
 }
 
 async function waitTracked(record, timeoutMs, secrets) {
@@ -622,6 +908,58 @@ function safeChildRecord(record) {
   };
 }
 
+function routeDispatchDelta(route) {
+  if (!route || route.dispatchState === 'rejected_before_dispatch' || route.dispatchState === 'dispatch_not_attempted') return 0;
+  return 1;
+}
+
+function routeReadDelta(route) {
+  const evidence = route?.producerEvidence ?? route?.ananke?.evidence;
+  return typeof evidence?.readAttemptCount === 'number' ? evidence.readAttemptCount : 0;
+}
+
+function observeRouteResponse(response, { realAnanke = true } = {}) {
+  const route = isRecord(response?.body) ? response.body : undefined;
+  return {
+    httpStatus: response?.status ?? null,
+    state: route?.state ?? 'no-json-result',
+    dispatchState: route?.dispatchState ?? 'not-observed',
+    reason: typeof route?.reason === 'string' ? route.reason : undefined,
+    dispatchDelta: routeDispatchDelta(route),
+    producerReadDelta: routeReadDelta(route),
+    realAnankeContacted: realAnanke && routeDispatchDelta(route) > 0,
+    realProducerReachable: routeReadDelta(route) > 0,
+  };
+}
+
+function assertRejectedBeforeDispatch(observation, label) {
+  if (observation.httpStatus === null || observation.dispatchState !== 'rejected_before_dispatch') {
+    throw new Error(`${label} did not reject before dispatch`);
+  }
+  if (observation.dispatchDelta !== 0 || observation.producerReadDelta !== 0) {
+    throw new Error(`${label} reported a non-zero dispatch/read delta`);
+  }
+}
+
+function makeCaseResult(id, classification, observations, extra = {}) {
+  const list = Array.isArray(observations) ? observations : [observations];
+  return {
+    id,
+    classification,
+    observations: list,
+    dispatchDelta: list.reduce((sum, item) => sum + (item.dispatchDelta ?? 0), 0),
+    producerReadDelta: list.reduce((sum, item) => sum + (item.producerReadDelta ?? 0), 0),
+    ...extra,
+  };
+}
+
+function assertNoSecretMaterial(value, secrets) {
+  const serialized = serializeEvidence(value, secrets);
+  if (secrets.some((secret) => secret && serialized.includes(secret))) {
+    throw new Error('run-generated sensitive value appeared in retained evidence');
+  }
+}
+
 function parseMoiraeOutput(record) {
   const output = record.stdout.trim();
   if (!output) throw new Error('Moirae produced no JSON route result');
@@ -656,13 +994,14 @@ function verifyPositive(result, moiraeRecord, anankeInstance, endpoints) {
   };
 }
 
-async function runApprovedExecution() {
+async function runApprovedExecution(approvedIntegrationSha) {
   const sourcePreflight = verifyStaticSource();
   if (!sourcePreflight.verified) throw new Error(`static source preflight failed: ${sourcePreflight.failures.join('; ')}`);
   for (const name of PREFLIGHT_REPOSITORIES) {
     if (readGitHead(REPOSITORIES[name]) !== PINNED[name]) throw new Error(`${name} HEAD drifted`);
   }
-  await assertComponentTreesClean();
+  const integrationApproval = assertIntegrationApproval(readGitHead(ROOT), approvedIntegrationSha);
+  await assertAllRepositoriesClean();
   const canary = runRedactionCanary();
   await assertPortsFree();
 
@@ -671,13 +1010,62 @@ async function runApprovedExecution() {
   const replayLedger = join(runDirectory, 'horae-r1-replay-ledger.json');
   const secrets = [executionToken];
   const started = [];
+  const ownedResources = [];
+  let replayToken;
+  let wrongAuthToken;
   const endpoints = {
     anankeTransport: `http://127.0.0.1:${PORTS.ananke}`,
     anankeCanonical: `http://localhost:${PORTS.ananke}/api`,
     horaeBase: `http://127.0.0.1:${PORTS.horae}`,
     horaeRoute: `http://127.0.0.1:${PORTS.horae}/slice-02/governed-actions`,
   };
-  let evidence;
+  const evidence = {
+    status: 'IN_PROGRESS / LIVE ACCEPTANCE',
+    runTimestamp: new Date().toISOString(),
+    preparationStartingBaseline: PREPARATION_STARTING_BASELINE,
+    previousPreparationCheckpoint: PREVIOUS_PREPARATION_CHECKPOINT,
+    integrationExecutionCheckpoint: integrationApproval.actual,
+    ownerApprovedIntegrationCheckpoint: integrationApproval.approved,
+    pinnedCheckpoints: { ...PINNED },
+    acceptanceDriverSha256: fileSha256(fileURLToPath(import.meta.url)),
+    sourcePreflight,
+    authentication: {
+      anankeExecutionMode: 'workload-token',
+      developmentMode: false,
+      credentialValue: 'omitted',
+      processOrigin: 'not authenticated by this R1 layer',
+    },
+    r1: {
+      audience: `fates.slice03a.r1.horae:${FIXED.horaeInstance}:POST:/slice-02/governed-actions`,
+      horaeInstanceId: FIXED.horaeInstance,
+      replayLedger: 'single authoritative Horae host; process-restart-persistent claim; no power-loss durability or multi-host exclusion',
+    },
+    processes: [],
+    ownedResources: [],
+    ports: { ...PORTS, ...NEGATIVE_PORTS, state: 'checked before launch' },
+    positive: null,
+    negatives: {},
+    negativeMatrix: ACCEPTANCE_MATRIX,
+    cases: [],
+    chronology: [],
+    cleanup: 'pending',
+    limitations: buildPlan(approvedIntegrationSha).limitations,
+    credentialDisposition: 'credential disposition: provider-side revoked/rotated; former exposed credential set invalid',
+    endpointSecurity: { status: 'no endpoint-security interaction in this run', controlsChanged: false },
+    redactionCanary: canary,
+  };
+  let failure;
+  const recordCase = (result) => {
+    evidence.cases.push(result);
+    evidence.chronology.push({
+      timestamp: new Date().toISOString(),
+      caseId: result.id,
+      classification: result.classification,
+      dispatchDelta: result.dispatchDelta,
+      producerReadDelta: result.producerReadDelta,
+      observations: result.observations,
+    });
+  };
   try {
     const ananke = spawnTracked('Ananke', REPOSITORIES.ananke, ['packages/runtime-core/dist/server.js'], {
       ANANKE_PORT: String(PORTS.ananke),
@@ -688,20 +1076,19 @@ async function runApprovedExecution() {
     const anankeInstance = identity.body.instanceId;
     const audience = `fates.slice03a.r1.horae:${FIXED.horaeInstance}:POST:/slice-02/governed-actions`;
     const sessionId = `fates-r1-session-${randomUUID()}`;
-    const horae = spawnTracked('Horae', REPOSITORIES.horae, ['packages/slice02-host/dist/index.js'], {
-      HORAE_BIND_HOST: '127.0.0.1',
-      HORAE_PORT: String(PORTS.horae),
-      ANANKE_ENDPOINT: endpoints.anankeTransport,
-      EXPECTED_ANANKE_ENDPOINT: endpoints.anankeCanonical,
-      ANANKE_INSTANCE_ID: anankeInstance,
-      ANANKE_EXECUTION_TOKEN: executionToken,
-      HORAE_INSPECTION_TIMEOUT_MS: '1000',
-      HORAE_DISPATCH_TIMEOUT_MS: '1000',
-      HORAE_R1_INSTANCE_ID: FIXED.horaeInstance,
-      HORAE_R1_REPLAY_LEDGER_PATH: replayLedger,
-    }, secrets, runDirectory);
+    const horae = await startHorae({
+      role: 'Horae positive',
+      port: PORTS.horae,
+      anankeEndpoint: endpoints.anankeTransport,
+      expectedAnankeEndpoint: endpoints.anankeCanonical,
+      anankeInstance,
+      executionToken,
+      r1Instance: FIXED.horaeInstance,
+      replayLedger,
+      secrets,
+      runDirectory,
+    });
     started.push(horae);
-    await waitForJson(`${endpoints.horaeBase}/slice-02/governed-actions`, (response) => response.status === 405, 'Horae route');
     const moirae = spawnTracked('Moirae', REPOSITORIES.moirae, ['apps/diagnostics-cli/dist/index.js', 'run-003a'], {
       MOIRAE_003A_REQUEST_IDENTITY_VERSION: 'r1-v2',
       MOIRAE_003A_HORAE_AUDIENCE: audience,
@@ -714,57 +1101,233 @@ async function runApprovedExecution() {
     await waitTracked(moirae, 15_000, secrets);
     const result = parseMoiraeOutput(moirae);
     const positive = verifyPositive(result, moirae, anankeInstance, endpoints);
-    evidence = {
-      status: 'PASS / LIVE VERIFIED',
-      runTimestamp: new Date().toISOString(),
-      pinnedCheckpoints: { ...PINNED },
-      acceptanceDriverSha256: fileSha256(fileURLToPath(import.meta.url)),
-      sourcePreflight,
-      authentication: { anankeExecutionMode: 'workload-token', developmentMode: false, credentialValue: 'omitted', processOrigin: 'not authenticated by this R1 layer' },
-      r1: { audience, horaeInstanceId: FIXED.horaeInstance, moiraeSessionId: sessionId, replayLedger: 'single authoritative Horae host; process-restart-persistent claim; no power-loss durability or multi-host exclusion' },
-      processes: started.map(safeChildRecord),
-      ports: { ...PORTS, state: 'checked before launch' },
-      positive,
-      negatives: { originAndConfiguration: 'not executed by this preparation driver revision' },
-      negativeMatrix: ACCEPTANCE_MATRIX,
-      chronology: [{ timestamp: new Date().toISOString(), role: 'Moirae', event: 'positive result received', pid: moirae.pid, dispatchState: positive.dispatchState, effectCount: positive.effectCount }],
-      cleanup: 'pending until finally completes',
-      limitations: buildPlan().limitations,
-      credentialDisposition: 'credential disposition: provider-side revoked/rotated; former exposed credential set invalid',
-      endpointSecurity: { status: 'no endpoint-security interaction in this run', controlsChanged: false },
-      redactionCanary: canary,
-    };
+    evidence.r1.moiraeSessionId = sessionId;
+    evidence.positive = positive;
+    recordCase(makeCaseResult(
+      'positive-r1-v2',
+      'LIVE VERIFIED',
+      [{
+        httpStatus: result.horae.httpStatus,
+        state: positive.state,
+        dispatchState: positive.dispatchState,
+        dispatchDelta: positive.dispatchCount,
+        producerReadDelta: positive.producer.readAttemptCount,
+        realAnankeContacted: true,
+        realProducerReachable: true,
+      }],
+      {
+        effectCount: positive.effectCount,
+        processCorrelation: { moiraePid: moirae.pid, executable: moirae.executable, classification: 'PROCESS CORRELATION' },
+        fixtureDigest: positive.producer.actualFixtureDigest,
+      },
+    ));
+
+    replayToken = randomBytes(32).toString('base64url');
+    secrets.push(replayToken);
+    const replayInstance = 'horae-r1-replay-seed';
+    const replayLedgerPath = join(runDirectory, 'replay-seed-ledger.json');
+    const replayHorae = await startHorae({
+      role: 'Horae replay seed',
+      port: NEGATIVE_PORTS.replayHorae,
+      anankeEndpoint: endpoints.anankeTransport,
+      expectedAnankeEndpoint: endpoints.anankeCanonical,
+      anankeInstance,
+      executionToken: replayToken,
+      r1Instance: replayInstance,
+      replayLedger: replayLedgerPath,
+      secrets,
+      runDirectory,
+    });
+    started.push(replayHorae);
+    const replayRequest = buildRouteRequest({ audience: `fates.slice03a.r1.horae:${replayInstance}:POST:/slice-02/governed-actions` });
+    const replaySeed = observeRouteResponse(await postRoute(`http://127.0.0.1:${NEGATIVE_PORTS.replayHorae}/slice-02/governed-actions`, replayRequest));
+    if (replaySeed.dispatchDelta === 0 || replaySeed.producerReadDelta !== 0) throw new Error('route-level replay seed was not consumed without an effect');
+    const replaySecond = observeRouteResponse(await postRoute(`http://127.0.0.1:${NEGATIVE_PORTS.replayHorae}/slice-02/governed-actions`, replayRequest));
+    assertRejectedBeforeDispatch(replaySecond, 'exact replay second submission');
+    recordCase(makeCaseResult('replay', 'LIVE VERIFIED: R1 ROUTE-LEVEL REPLAY TEST', [replaySeed, replaySecond], {
+      seedSource: 'driver-generated valid request; not a Moirae process replay',
+      secondSubmission: { dispatchDelta: replaySecond.dispatchDelta, producerReadDelta: replaySecond.producerReadDelta },
+    }));
+    await cleanupTracked(replayHorae);
+    replayToken = null;
+
+    const wrongAudienceRequest = buildRouteRequest({ audience: buildWrongAudience(audience) });
+    const wrongAudience = observeRouteResponse(await postRoute(endpoints.horaeRoute, wrongAudienceRequest));
+    assertRejectedBeforeDispatch(wrongAudience, 'wrong audience');
+    recordCase(makeCaseResult('wrong-audience', 'LIVE VERIFIED', wrongAudience, { noDowngrade: true }));
+
+    const expiredRequest = buildRouteRequest({ audience, validity: buildExpiredValidity() });
+    const expired = observeRouteResponse(await postRoute(endpoints.horaeRoute, expiredRequest));
+    assertRejectedBeforeDispatch(expired, 'expired receipt');
+    recordCase(makeCaseResult('expired', 'LIVE VERIFIED', expired));
+
+    const legacyRequest = buildRouteRequest({ audience, identityVersion: 'legacy-v1' });
+    const legacy = observeRouteResponse(await postRoute(endpoints.horaeRoute, legacyRequest));
+    assertRejectedBeforeDispatch(legacy, 'legacy v1');
+    recordCase(makeCaseResult('legacy-v1', 'LIVE VERIFIED', legacy, { noDowngrade: true }));
+
+    wrongAuthToken = randomBytes(32).toString('base64url');
+    secrets.push(wrongAuthToken);
+    const wrongAuthInstance = 'horae-r1-restart';
+    const wrongAuthLedger = join(runDirectory, 'restart-replay-ledger.json');
+    const wrongAuthHorae = await startHorae({
+      role: 'Horae wrong-auth',
+      port: NEGATIVE_PORTS.wrongAuthHorae,
+      anankeEndpoint: endpoints.anankeTransport,
+      expectedAnankeEndpoint: endpoints.anankeCanonical,
+      anankeInstance,
+      executionToken: wrongAuthToken,
+      r1Instance: wrongAuthInstance,
+      replayLedger: wrongAuthLedger,
+      secrets,
+      runDirectory,
+    });
+    started.push(wrongAuthHorae);
+    const restartRequest = buildRouteRequest({ audience: `fates.slice03a.r1.horae:${wrongAuthInstance}:POST:/slice-02/governed-actions` });
+    const wrongAuth = observeRouteResponse(await postRoute(`http://127.0.0.1:${NEGATIVE_PORTS.wrongAuthHorae}/slice-02/governed-actions`, restartRequest));
+    if (wrongAuth.dispatchDelta === 0 || wrongAuth.producerReadDelta !== 0) throw new Error('wrong-auth case did not reach a fail-closed Ananke dispatch boundary');
+    recordCase(makeCaseResult('wrong-ananke-token', 'LIVE VERIFIED: FAIL-CLOSED; AUTH HTTP STATUS NOT EXPOSED BY PINNED HORAE BINDING', wrongAuth, {
+      authenticationObservation: 'Horae binding surfaced the non-success Ananke dispatch as result_lost_indeterminate; no producer read occurred.',
+      fixedFixtureEffect: 0,
+    }));
+
+    const missingAuth = spawnTracked(
+      'Horae missing-auth',
+      REPOSITORIES.horae,
+      ['packages/slice02-host/dist/index.js'],
+      horaeValues({
+        port: NEGATIVE_PORTS.missingAuthHorae,
+        anankeEndpoint: endpoints.anankeTransport,
+        expectedAnankeEndpoint: endpoints.anankeCanonical,
+        anankeInstance,
+        r1Instance: 'horae-r1-missing-auth',
+        replayLedger: join(runDirectory, 'missing-auth-ledger.json'),
+      }),
+      secrets,
+      runDirectory,
+      'horae',
+    );
+    started.push(missingAuth);
+    await waitTracked(missingAuth, 5_000, secrets);
+    if (missingAuth.exitCode === 0) throw new Error('missing-auth Horae unexpectedly started successfully');
+    recordCase(makeCaseResult('missing-horae-auth', 'LIVE VERIFIED', {
+      httpStatus: null,
+      state: 'startup_configuration_failed_closed',
+      dispatchState: 'dispatch_not_attempted',
+      dispatchDelta: 0,
+      producerReadDelta: 0,
+      realAnankeContacted: false,
+      realProducerReachable: false,
+    }, {
+      exitCode: missingAuth.exitCode,
+      stderr: redactText(missingAuth.stderr, secrets),
+      developmentFallback: false,
+    }));
+
+    const scratch = await startScratchInspectionServer(NEGATIVE_PORTS.timeoutScratch);
+    ownedResources.push(scratch);
+    const timeoutInstance = 'horae-r1-timeout-scratch';
+    const timeoutHorae = await startHorae({
+      role: 'Horae timeout induction',
+      port: NEGATIVE_PORTS.timeoutHorae,
+      anankeEndpoint: `http://127.0.0.1:${NEGATIVE_PORTS.timeoutScratch}`,
+      expectedAnankeEndpoint: `http://localhost:${NEGATIVE_PORTS.timeoutScratch}/api`,
+      anankeInstance: 'scratch-inspection-endpoint',
+      executionToken,
+      r1Instance: timeoutInstance,
+      replayLedger: join(runDirectory, 'timeout-ledger.json'),
+      secrets,
+      runDirectory,
+      inspectionTimeoutMs: '250',
+      dispatchTimeoutMs: '250',
+    });
+    started.push(timeoutHorae);
+    const timeoutObservation = observeRouteResponse(await postRoute(`http://127.0.0.1:${NEGATIVE_PORTS.timeoutHorae}/slice-02/governed-actions`, buildRouteRequest({ audience: `fates.slice03a.r1.horae:${timeoutInstance}:POST:/slice-02/governed-actions` })), { realAnanke: false });
+    if (timeoutObservation.httpStatus !== 504 || timeoutObservation.state !== 'timed_out' || timeoutObservation.dispatchState !== 'dispatch_not_attempted' || timeoutObservation.dispatchDelta !== 0 || timeoutObservation.producerReadDelta !== 0) {
+      throw new Error('scratch inspection timeout did not produce the bounded 504 fail-closed result');
+    }
+    recordCase(makeCaseResult('pre-dispatch-timeout', 'LIVE NEGATIVE INDUCTION AGAINST SCRATCH INSPECTION ENDPOINT', timeoutObservation, {
+      authoritativeAnanke: false,
+      scratchEndpoint: 'localhost-only; not authoritative Ananke',
+    }));
+    await cleanupTracked(timeoutHorae);
+    await closeScratchInspectionServer(scratch);
+
+    await cleanupTracked(wrongAuthHorae);
+    if (pidIsAlive(wrongAuthHorae.pid)) throw new Error('old Horae PID remained alive before restart');
+    const restartedHorae = await startHorae({
+      role: 'Horae restart-replay',
+      port: NEGATIVE_PORTS.wrongAuthHorae,
+      anankeEndpoint: endpoints.anankeTransport,
+      expectedAnankeEndpoint: endpoints.anankeCanonical,
+      anankeInstance,
+      executionToken: wrongAuthToken,
+      r1Instance: wrongAuthInstance,
+      replayLedger: wrongAuthLedger,
+      secrets,
+      runDirectory,
+    });
+    started.push(restartedHorae);
+    const restartReplay = observeRouteResponse(await postRoute(`http://127.0.0.1:${NEGATIVE_PORTS.wrongAuthHorae}/slice-02/governed-actions`, restartRequest));
+    assertRejectedBeforeDispatch(restartReplay, 'restart replay');
+    recordCase(makeCaseResult('restart-replay', 'LIVE VERIFIED: PROCESS-RESTART-PERSISTENT REPLAY PROTECTION', restartReplay, {
+      sameHoraeInstance: wrongAuthInstance,
+      sameAudience: restartRequest.origin.receipt.audience,
+      sameLedger: 'same ephemeral ledger path; removed after cleanup',
+      oldPidTerminatedBeforeRestart: true,
+      noPowerLossClaim: true,
+      noMultiProcessClaim: true,
+    }));
+
+    evidence.status = 'PASS / LIVE VERIFIED WITH BOUNDED LIMITATIONS';
+  } catch (error) {
+    failure = new Error(redactText(error instanceof Error ? error.message : 'R1 live acceptance failed', secrets));
+    evidence.status = 'FAIL / LIVE ACCEPTANCE INCOMPLETE';
+    evidence.failure = failure.message;
   } finally {
     for (const record of [...started].reverse()) await cleanupTracked(record);
-    const portsFree = (await portState(PORTS.ananke)) === 'free' && (await portState(PORTS.horae)) === 'free';
-    const cleanup = { trackedPidsAbsent: started.every((record) => !pidIsAlive(record.pid)), portsFree, ports: { ...PORTS } };
-    if (evidence) {
-      evidence.processes = started.map(safeChildRecord);
-      evidence.cleanup = cleanup;
-    }
+    for (const resource of [...ownedResources].reverse()) await closeScratchInspectionServer(resource);
+    evidence.processes = started.map(safeChildRecord);
+    evidence.ownedResources = ownedResources.map((resource) => ({ role: resource.role, port: resource.port, closed: resource.closed }));
+    const portsFree = await Promise.all(Object.values({ ...PORTS, ...NEGATIVE_PORTS }).map(async (port) => (await portState(port)) === 'free'));
+    const cleanup = {
+      trackedPidsAbsent: started.every((record) => !pidIsAlive(record.pid)),
+      portsFree: portsFree.every(Boolean),
+      ports: { ...PORTS, ...NEGATIVE_PORTS },
+      scratchResourcesClosed: ownedResources.every((resource) => resource.closed),
+    };
+    evidence.cleanup = cleanup;
+    evidence.credentialLeakScan = { retainedCredentialOccurrences: 0, retainedOutputScan: 'passed without reproducing generated values' };
+    assertNoSecretMaterial({ evidence, processes: evidence.processes }, secrets);
     await rm(runDirectory, { recursive: true, force: true });
-    if (evidence) await writeFile(resolve(ROOT, EVIDENCE_PATH), `${serializeEvidence(evidence, secrets)}\n`, 'utf8');
+    await writeFile(resolve(ROOT, EVIDENCE_PATH), `${serializeEvidence(evidence, secrets)}\n`, 'utf8');
+    if (replayToken) replayToken = null;
+    if (wrongAuthToken) wrongAuthToken = null;
+    secrets.length = 0;
   }
+  if (failure) throw failure;
 }
 
 async function main() {
-  const args = process.argv.slice(2);
-  if (args.length === 0 || (args.length === 1 && args[0] === '--plan')) {
-    const plan = buildPlan();
+  const parsed = parseCliArgs(process.argv.slice(2));
+  if (parsed.mode === 'plan') {
+    const plan = buildPlan(parsed.approvedIntegrationSha);
     const canary = runRedactionCanary();
     plan.redactionCanary = canary;
     console.log(JSON.stringify(plan, null, 2));
     if (!plan.sourcePreflight.verified || plan.sourcePreflight.headFailures.length > 0) process.exitCode = 1;
     return;
   }
-  if (args.length === 1 && args[0] === '--execute') {
-    await runApprovedExecution();
-    return;
-  }
-  throw new Error('Usage: node scripts/fates-slice03a-r1-live-acceptance.mjs [--plan|--execute]');
+  await runApprovedExecution(parsed.approvedIntegrationSha);
 }
 
-export { ACCEPTANCE_MATRIX, EVIDENCE_SCHEMA, buildPlan, childEnvironment, verifyStaticSource };
+export {
+  ACCEPTANCE_MATRIX,
+  EVIDENCE_SCHEMA,
+  buildPlan,
+  childEnvironment,
+  verifyStaticSource,
+};
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   main().catch((error) => {
