@@ -41,3 +41,39 @@ and acceptance checkpoint.
   memory use remain separate requirements.
 - A shared Runtime Contracts lifecycle/idempotency shape is not assumed; it
   requires its own contract gate if implementation proves a neutral need.
+
+## FATES-SLICE-004A refinement checkpoint
+
+The following refinements remain **PROPOSED / PLANNED** and do not change the
+status of POST004-01 through POST004-12:
+
+- **POST004-03A** - Durable approved-intent snapshot is committed before any
+  provider call.
+- **POST004-03B** - The provider-call ordering test proves that no dispatch is
+  possible before the intent transaction commits.
+- **POST004-05A** - A unique durable dispatch marker is committed before the
+  provider submit.
+- **POST004-05B** - A missing result after the marker is indeterminate and is
+  never treated as a confirmed failure or safe retry.
+- **POST004-06A** - Duplicate handling covers pre-dispatch, in-progress,
+  terminal, indeterminate, concurrent, and modified-binding requests.
+- **POST004-07A** - Reconciliation is read-only, Ananke-authorized, bounded,
+  and based on provider operation evidence; it never blindly resubmits.
+- **POST004-09A** - Evidence includes provider operation IDs, transition IDs,
+  request/evidence digests, and reconciliation evidence without secrets or
+  host paths.
+- **POST004-10A** - Late-result joining and crash/restart recovery cannot
+  create a second dispatch.
+- **POST004-13** - The selected provider exposes an operation receipt/status
+  contract that distinguishes accepted, rejected, unknown, duplicate, and
+  unresolved states without resubmission. **Classification:** PLANNED;
+  provider-contract and independent-sink integration verification.
+- **POST004-14** - Conflict and terminal-unresolved states are retained and
+  require matching late evidence or explicit owner disposition; they cannot
+  be erased or silently retried. **Classification:** PLANNED;
+  conflict, retention, operator-review, and evidence-integrity verification.
+
+The preferred 004A effect is the dedicated disposable operation-receipt sink
+described in the owner activation package. These refinements are not an
+implementation authorization and do not activate the numeric FATES-SLICE-004
+matrix row.

@@ -1729,6 +1729,36 @@ with proposed requirements in
 and the non-active planned slice record in
 [`slices/004-governed-execution/slice.json`](../../slices/004-governed-execution/slice.json).
 
+## FATES-SLICE-004A owner decision / activation-package preparation - 2026-08-11
+
+Status: **PLAN / DESIGN / INSPECT ONLY - NOT ACTIVATED; IMPLEMENTATION NOT
+AUTHORIZED.** Owner approval accepted the FATES-SLICE-004 decomposition and
+authorized preparation of the next 004A decision package.
+
+Inspection identified four candidate effects. The preferred effect is a new,
+independently running disposable operation-receipt sink with provider status
+lookup, deterministic success/failure, response-loss injection, and no
+credential requirement. It is the smallest effect that can prove durable
+intent, a dispatch marker, provider evidence, indeterminate recovery, and
+reconciliation without a real-world side effect or a host-containment claim.
+
+The proposed lifecycle, SQLite execution-intent architecture, idempotency and
+reconciliation budgets, custody boundaries, refined POST004-01 through
+POST004-14 register, exact likely implementation surfaces, deterministic test
+matrix, and future live-acceptance shape are recorded in
+[`docs/design/FATES-SLICE-004A-activation-package.md`](../design/FATES-SLICE-004A-activation-package.md).
+
+All requirements remain PROPOSED / PLANNED. Moirae, Mnemosyne, and Runtime
+Contracts require zero 004A implementation changes; the existing Slice 02
+Horae relay remains sealed and is not repurposed. The Runtime Contracts
+recommendation is disposition A: future locks identify the immutable tagged
+protocol/adoption baseline, while later documentation heads remain outside
+locked component identity.
+
+No component source/test change, matrix/lock/active-slice/snapshot change,
+credential, process, port, effect, tag, or R1 modification occurred. Final
+recommendation: **NO-GO - PREREQUISITE WORK REQUIRED** before activation.
+
 The Runtime Contracts discrepancy is recorded without corrective tag or lock
 mutation: locked HEAD `bbf240...` is a later docs-only assessment, while the
 existing adoption tag targets immutable baseline `124b6a...`. This must receive
