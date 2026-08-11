@@ -1,5 +1,6 @@
 {
-  "$schema": "./schemas/fates-lock.schema.json",
+  "$schema": "../schemas/fates-lock.schema.json",
+  "_note": "Additive immutable R1 qualification snapshot for historical fates-slice-003a-2026-08-10. Historical 003A evidence and compatibility records remain unchanged.",
   "schemaVersion": "1.0.0",
   "compatibilitySetId": "fates-slice-003a-r1-2026-08-11",
   "snapshotPath": "compatibility-sets/fates-slice-003a-r1-2026-08-11.json",
@@ -37,24 +38,24 @@
       "tag": "mnemosyne-adrasteia-adoption-v0.1.0-protocol-1.4.0",
       "commit": "f4ab76a9760f856d78908d35facceb068d78c8e5",
       "checkpointState": "sealed_tagged",
-      "role": "memory-provenance"
+      "role": "memory-provenance; outside the R1 route"
     },
     "horae": {
       "url": "https://github.com/hourwise/Project-Horae",
       "tag": "horae-fates-slice-003a-r1-v0.1.0-protocol-1.4.0",
       "commit": "3f531d4f5558a10a36aeae20c3458080eb4468b9",
       "checkpointState": "sealed_tagged",
-      "role": "discovery-composition"
+      "role": "tracked discovery-composition and R1 relay host"
     },
     "moirae-code": {
       "url": "https://github.com/hourwise/Project-Moirae-Code",
       "tag": "moirae-fates-slice-003a-r1-v0.1.0-protocol-1.4.0",
       "commit": "bc7b984bd2eb0e0f07a1cd7259a8eab21556f097",
       "checkpointState": "sealed_tagged",
-      "role": "governed-host"
+      "role": "bounded governed host and request origin"
     }
   },
-  "notes": "Additive sealed R1 qualification of historical FATES-SLICE-003A. Attempt 003 is accepted as PASS / LIVE VERIFIED WITH BOUNDED LIMITATIONS at docs/evidence/FATES-SLICE-003A-R1-live-acceptance-attempt-003.json with SHA256 E573DE1CB599442CCBDD166103841372CEE8C7532B9108CA2CD2EE20ADF98B03. The live execution checkpoint is ed21a349e8de4c9c2a89db6380d6d17da90e85ba; the current pre-seal Integration checkpoint is e6b798764d31e6ae8b7a428d3a2fbf3f9c6d6733. The accepted route is Moirae -> tracked Horae -> canonical Ananke -> fixed-fixture adapter -> Ananke result -> Horae -> Moirae. Runtime Contracts remains project-runtime-contracts@0.4.0 at protocol 1.4.0 with the exact Stage-A artifact digest. Process evidence is PROCESS CORRELATION only, never AUTHENTICATED PROCESS ORIGIN.",
+  "notes": "Accepted R1 live evidence: docs/evidence/FATES-SLICE-003A-R1-live-acceptance-attempt-003.json, SHA256 E573DE1CB599442CCBDD166103841372CEE8C7532B9108CA2CD2EE20ADF98B03. Live execution ran at Integration checkpoint ed21a349e8de4c9c2a89db6380d6d17da90e85ba with driver SHA256 CAEE81C60B131646984B9B5898BAD8CA2D3A0C027A4F32B67CAC811ED361A4C0. The current pre-seal Integration checkpoint was e6b798764d31e6ae8b7a428d3a2fbf3f9c6d6733. This is an additive qualification of historical 003A, not a rewrite of historical evidence or the historical compatibility set.",
   "knownLimits": [
     "Another route-capable process may mint a fresh valid R1-v2 request",
     "R1 does not authenticate originating Moirae OS-process identity",
@@ -73,6 +74,7 @@
     "No credential-isolation proof",
     "No complete bypass-resistance proof",
     "No FATES-SLICE-003B containment claim",
-    "Result projection remains DETERMINISTIC TEST VERIFIED rather than a stronger live claim"
+    "Process evidence is PROCESS CORRELATION only, never AUTHENTICATED PROCESS ORIGIN",
+    "Result projection remains DETERMINISTIC TEST VERIFIED"
   ]
 }

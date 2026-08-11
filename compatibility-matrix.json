@@ -1,6 +1,6 @@
 {
   "$schema": "./schemas/compatibility-matrix.schema.json",
-  "compatibilitySetId": "fates-stage-a-2026-07",
+  "compatibilitySetId": "fates-slice-003a-r1-2026-08-11",
   "rows": [
     {
       "sliceId": "FATES-SLICE-001",
@@ -8,7 +8,7 @@
       "implementationStatus": "completed",
       "sealStatus": "sealed",
       "integrationLevel": "inspection_only",
-      "compatibilitySet": "fates-slice-003a-2026-08-10",
+      "compatibilitySet": "fates-slice-003a-r1-2026-08-11",
       "repositories": {
         "adrasteia": {
           "url": "https://github.com/hourwise/Project-Adrasteia",
@@ -19,8 +19,8 @@
         },
         "ananke": {
           "url": "https://github.com/hourwise/Project-Ananke",
-          "tag": "ananke-fates-slice-002-v0.2.0-protocol-1.4.0",
-          "commit": "52b512885edf3fec7ff7ce4b4dcbd3958b170ba4",
+          "tag": "ananke-fates-slice-003a-r1-v0.1.0-protocol-1.4.0",
+          "commit": "dde9f74cbcfefea2176a6f0103e1f6b9064f4e64",
           "checkpointState": "sealed_tagged",
           "role": "action-authority — adopts Adrasteia contracts"
         },
@@ -33,24 +33,26 @@
         },
         "horae": {
           "url": "https://github.com/hourwise/Project-Horae",
-          "tag": "horae-fates-slice-002-v0.1.0-protocol-1.4.0",
-          "commit": "9566eb2764339d6a6fe143c1630eeb009e00a7bd",
+          "tag": "horae-fates-slice-003a-r1-v0.1.0-protocol-1.4.0",
+          "commit": "3f531d4f5558a10a36aeae20c3458080eb4468b9",
           "checkpointState": "sealed_tagged",
           "role": "discovery-composition — adopts Adrasteia contracts"
         },
         "moirae-code": {
           "url": "https://github.com/hourwise/Project-Moirae-Code",
-          "tag": "moirae-fates-slice-003a-v0.1.0-protocol-1.4.0",
-          "commit": "f9b28fb0099d5d32d5debd4db7376066bfc2ac93",
+          "tag": "moirae-fates-slice-003a-r1-v0.1.0-protocol-1.4.0",
+          "commit": "bc7b984bd2eb0e0f07a1cd7259a8eab21556f097",
           "checkpointState": "sealed_tagged",
           "role": "governed-host — inspection-only reference; untagged provisional checkpoint"
         }
       },
       "explicitLimits": [
-        "No complete governed execution",
-        "No qualified memory handoff",
-        "No durable recovery",
-        "No content preflight"
+        "This living matrix references the current additive R1 qualification set; historical Stage-A and 003A snapshots remain immutable.",
+        "R1 does not authenticate originating Moirae OS-process identity; retained process evidence is PROCESS CORRELATION only.",
+        "Static bearer proves Horae-to-Ananke credential possession only; no credential-isolation proof is made.",
+        "No artifact-bound producer attestation, shared/multi-process replay-ledger exclusion, fsync/power-loss durability, or exactly-once guarantee.",
+        "No OS, filesystem, network, IPC, browser/extension, complete bypass-resistance, or FATES-SLICE-003B containment claim.",
+        "Result projection remains DETERMINISTIC TEST VERIFIED; timeout and projection semantics retain their stated evidence classifications."
       ]
     },
     {
@@ -83,36 +85,39 @@
     },
     {
       "sliceId": "FATES-SLICE-003",
-      "title": "Constrained host route completion and process-origin proof (003A)",
+      "title": "Constrained host route completion and R1 qualification (003A)",
       "implementationStatus": "completed",
       "sealStatus": "sealed",
       "integrationLevel": "runtime_validated",
-      "compatibilitySet": "fates-slice-003a-2026-08-10",
+      "compatibilitySet": "fates-slice-003a-r1-2026-08-11",
       "repositories": {
         "ananke": {
-          "tag": "ananke-fates-slice-002-v0.2.0-protocol-1.4.0",
-          "commit": "52b512885edf3fec7ff7ce4b4dcbd3958b170ba4",
+          "tag": "ananke-fates-slice-003a-r1-v0.1.0-protocol-1.4.0",
+          "commit": "dde9f74cbcfefea2176a6f0103e1f6b9064f4e64",
           "checkpointState": "sealed_tagged",
           "role": "sealed Slice 02 action authority and sole physical reader"
         },
         "horae": {
-          "tag": "horae-fates-slice-002-v0.1.0-protocol-1.4.0",
-          "commit": "9566eb2764339d6a6fe143c1630eeb009e00a7bd",
+          "tag": "horae-fates-slice-003a-r1-v0.1.0-protocol-1.4.0",
+          "commit": "3f531d4f5558a10a36aeae20c3458080eb4468b9",
           "checkpointState": "sealed_tagged",
           "role": "sealed Slice 02 relay and 003A consumer"
         },
         "moirae-code": {
-          "tag": "moirae-fates-slice-003a-v0.1.0-protocol-1.4.0",
-          "commit": "f9b28fb0099d5d32d5debd4db7376066bfc2ac93",
+          "tag": "moirae-fates-slice-003a-r1-v0.1.0-protocol-1.4.0",
+          "commit": "bc7b984bd2eb0e0f07a1cd7259a8eab21556f097",
           "checkpointState": "sealed_tagged",
           "role": "bounded host/origin owner"
         }
       },
       "explicitLimits": [
-        "The successful live route proves only the bounded Moirae process-origin and Moirae -> Horae -> canonical Ananke -> Horae -> Moirae path with one harmless producer-owned read/effect.",
-        "Attempt 0 Defender interaction and Attempt 1 harness configuration failure remain part of the accepted chronology; neither is a Fates runtime failure or a confirmed false positive.",
-        "Timeout, post-dispatch indeterminate loss, and wrong producer/capability live induction remain deterministic or not-live-induced evidence.",
-        "003B OS containment, credential isolation, complete bypass resistance, qualified memory retrieval, durable recovery, and content preflight are not implemented or claimed."
+        "Attempt 001 and Attempt 002 remain historical failed attempts; Attempt 003 is the accepted PASS / LIVE VERIFIED WITH BOUNDED LIMITATIONS record.",
+        "Another route-capable process may mint a fresh valid R1-v2 request; R1 does not authenticate originating Moirae OS-process identity.",
+        "Static bearer proves Horae-to-Ananke credential possession only; environment-variable credential custody is bounded R1 plumbing and no credential-isolation proof is made.",
+        "No artifact-bound producer attestation, host-local replay-ledger shared/multi-process exclusion, fsync/power-loss durability, or exactly-once guarantee.",
+        "No OS, filesystem, network, IPC, browser/extension, complete bypass-resistance, or FATES-SLICE-003B containment claim.",
+        "Process evidence remains PROCESS CORRELATION, never AUTHENTICATED PROCESS ORIGIN.",
+        "Result projection remains DETERMINISTIC TEST VERIFIED; the accepted live negative matrix retains its per-case classifications and no legacy downgrade or fallback."
       ]
     },
     {

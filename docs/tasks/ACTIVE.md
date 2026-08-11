@@ -1669,3 +1669,37 @@ evidence remain byte-for-byte unchanged. Full Integration validation passed;
 no credential was generated, no Fates or scratch process was started, no
 fixture effect occurred, and no live acceptance or R1 seal occurred. R1
 remains active and unsealed; 003B remains paused.
+
+## FATES-SLICE-003A-R1 seal and closure - 2026-08-11
+
+Status: **SEALED - PASS / LIVE VERIFIED WITH BOUNDED LIMITATIONS.** Owner
+authorization accepted the R1 qualification and the narrow stale-current-state
+test alignment. The current sealed compatibility set is
+`fates-slice-003a-r1-2026-08-11`, with the additive snapshot at
+[`compatibility-sets/fates-slice-003a-r1-2026-08-11.json`](../../compatibility-sets/fates-slice-003a-r1-2026-08-11.json)
+and the closure decision at
+[`docs/decisions/FATES-SLICE-003A-R1-seal-closure-decision.json`](../decisions/FATES-SLICE-003A-R1-seal-closure-decision.json).
+
+The accepted live record is Attempt 003 at execution checkpoint
+`ed21a349e8de4c9c2a89db6380d6d17da90e85ba`, evidence SHA-256
+`E573DE1CB599442CCBDD166103841372CEE8C7532B9108CA2CD2EE20ADF98B03`, using
+driver SHA-256
+`CAEE81C60B131646984B9B5898BAD8CA2D3A0C027A4F32B67CAC811ED361A4C0`.
+The current pre-seal Integration checkpoint was
+`e6b798764d31e6ae8b7a428d3a2fbf3f9c6d6733`. Attempts 001 and 002 remain
+preserved and unchanged. Historical 003A evidence, snapshot, and tag remain
+immutable.
+
+The five R1 requirements are closed with their truthful classifications:
+R1-01 and R1-02 are LIVE VERIFIED WITH BOUNDED LIMITATIONS; R1-01 is also
+STATIC SOURCE VERIFIED; R1-03 and R1-04 are DETERMINISTIC TEST VERIFIED and
+NOT LIVE INDUCED; R1-05 is LIVE VERIFIED WITH BOUNDED LIMITATIONS while true
+OS-authenticated process origin is OUT OF R1 SCOPE. No credential value is
+recorded. The credential disposition remains:
+
+`credential disposition: provider-side revoked/rotated; former exposed credential set invalid`
+
+The Integration control state is `status: idle` with `activeSliceId: null` and
+the R1 snapshot as baseline. FATES-SLICE-003B remains paused and requires a
+separate owner activation decision. The final Integration seal commit and
+annotated R1 tag are recorded after the authorized Git transaction.

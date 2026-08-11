@@ -1,0 +1,78 @@
+{
+  "sliceId": "FATES-SLICE-003",
+  "subphase": "FATES-SLICE-003A-R1",
+  "decisionKind": "seal-closure",
+  "decision": "SEALED",
+  "ownerAuthorization": {
+    "authorized": true,
+    "source": "Owner authorization in the current task attachment accepting the R1 seal and the narrow stale-current-state test alignment.",
+    "scope": "Seal the additive R1 qualification of historical 003A after green Integration validation; do not rewrite historical evidence, begin 003B, or alter component source.",
+    "staleTestAlignment": "Only tests/fates-lock.test.mjs and tests/slices.test.mjs were authorized for current-state assertion alignment."
+  },
+  "preSeal": {
+    "integrationCheckpoint": "e6b798764d31e6ae8b7a428d3a2fbf3f9c6d6733",
+    "historical003ATagTarget": "9a661407a50ae1278d0db6115dedf4151c0809f2",
+    "historicalEvidencePreserved": true
+  },
+  "liveQualification": {
+    "executionCheckpoint": "ed21a349e8de4c9c2a89db6380d6d17da90e85ba",
+    "attemptId": "003",
+    "status": "PASS / LIVE VERIFIED WITH BOUNDED LIMITATIONS",
+    "evidencePath": "docs/evidence/FATES-SLICE-003A-R1-live-acceptance-attempt-003.json",
+    "evidenceSha256": "E573DE1CB599442CCBDD166103841372CEE8C7532B9108CA2CD2EE20ADF98B03",
+    "driverSha256": "CAEE81C60B131646984B9B5898BAD8CA2D3A0C027A4F32B67CAC811ED361A4C0"
+  },
+  "compatibilitySet": {
+    "id": "fates-slice-003a-r1-2026-08-11",
+    "snapshotPath": "compatibility-sets/fates-slice-003a-r1-2026-08-11.json",
+    "previousId": "fates-slice-003a-2026-08-10",
+    "sealStatus": "sealed",
+    "integrationLevel": "runtime_validated",
+    "protocol": "1.4.0"
+  },
+  "acceptedComponentCheckpoints": {
+    "ananke": {
+      "commit": "dde9f74cbcfefea2176a6f0103e1f6b9064f4e64",
+      "tag": "ananke-fates-slice-003a-r1-v0.1.0-protocol-1.4.0"
+    },
+    "horae": {
+      "commit": "3f531d4f5558a10a36aeae20c3458080eb4468b9",
+      "tag": "horae-fates-slice-003a-r1-v0.1.0-protocol-1.4.0"
+    },
+    "moirae-code": {
+      "commit": "bc7b984bd2eb0e0f07a1cd7259a8eab21556f097",
+      "tag": "moirae-fates-slice-003a-r1-v0.1.0-protocol-1.4.0"
+    },
+    "mnemosyne": {
+      "commit": "f4ab76a9760f856d78908d35facceb068d78c8e5",
+      "tag": "mnemosyne-adrasteia-adoption-v0.1.0-protocol-1.4.0"
+    },
+    "runtime-contracts": {
+      "commit": "bbf240b1fdcb9be1dbd30b13d2fe2708a22ec7b8",
+      "tag": "adrasteia-adoption-v0.4.0-protocol-1.4.0"
+    }
+  },
+  "traceability": {
+    "POST003A-R1-01": "ACCEPTED - LIVE VERIFIED WITH BOUNDED LIMITATIONS; STATIC SOURCE VERIFIED",
+    "POST003A-R1-02": "ACCEPTED - LIVE VERIFIED WITH BOUNDED LIMITATIONS",
+    "POST003A-R1-03": "ACCEPTED - DETERMINISTIC TEST VERIFIED; NOT LIVE INDUCED",
+    "POST003A-R1-04": "ACCEPTED - DETERMINISTIC TEST VERIFIED; NOT LIVE INDUCED",
+    "POST003A-R1-05": "ACCEPTED - LIVE VERIFIED WITH BOUNDED LIMITATIONS; TRUE OS-AUTHENTICATED PROCESS ORIGIN OUT OF R1 SCOPE"
+  },
+  "controlState": {
+    "activeSlicePath": "active-slice.json",
+    "status": "idle",
+    "activeSliceId": null,
+    "baselineCompatibilitySet": "fates-slice-003a-r1-2026-08-11",
+    "r1": "closed/sealed",
+    "fatesSlice003B": "paused; separate owner activation required"
+  },
+  "claimBoundary": {
+    "processEvidence": "PROCESS CORRELATION only; never AUTHENTICATED PROCESS ORIGIN",
+    "resultProjection": "DETERMINISTIC TEST VERIFIED; NOT LIVE INDUCED",
+    "credentialDisposition": "credential disposition: provider-side revoked/rotated; former exposed credential set invalid",
+    "historicalAttempts": "Attempts 001 and 002 remain preserved failed/incomplete records; Attempt 003 is accepted and unchanged."
+  },
+  "finalSealCommit": "The containing Integration seal commit; exact SHA is reported after commit creation.",
+  "finalIntegrationTag": "fates-slice-003a-r1-v0.1.0-protocol-1.4.0"
+}

@@ -1437,18 +1437,23 @@ seal R1. The active control slot is the schema-constrained parent
   evidence); Moirae (originating route consumer).
 - **Invariant:** The accepted R1 route host is repository-owned, versioned,
   source/build identified, and has no alternate route or fallback.
-- **Implementation status:** **IMPLEMENTED + DETERMINISTICALLY VALIDATED; LIVE
-  ACCEPTANCE PENDING.**
+- **Implementation status:** **FULFILLED - LIVE VERIFIED WITH BOUNDED
+  LIMITATIONS.**
 - **Validation / evidence:** The tracked host is implemented at
   `Project-Horae/packages/slice02-host/src/index.ts` and delegates to the
   canonical `createSlice02Route`/`Slice02Relay`; Project-Horae Batch 1 commit
   `36e249386f15ff6c1e85fb98d4d8ab393b2880ae` is pushed and full Horae
-  validation passes. Future real-process acceptance must still record the
-  tracked artifact identity and reproduce the route from pinned source/build
-  inputs.
-- **Planned slice / future task:** FATES-SLICE-003A-R1 implementation and
-  reproducible acceptance.
-- **Disposition:** **NEW_REQUIREMENT**.
+  validation passes. Attempt 003 exercised the pinned Moirae -> tracked Horae
+  -> canonical Ananke route from live Integration checkpoint
+  `ed21a349e8de4c9c2a89db6380d6d17da90e85ba`. The accepted evidence is
+  `docs/evidence/FATES-SLICE-003A-R1-live-acceptance-attempt-003.json`, SHA-256
+  `E573DE1CB599442CCBDD166103841372CEE8C7532B9108CA2CD2EE20ADF98B03`.
+  The route host and source/build identity are also STATIC SOURCE VERIFIED.
+  Process evidence remains PROCESS CORRELATION, never AUTHENTICATED PROCESS
+  ORIGIN.
+- **Planned slice / future task:** FATES-SLICE-003B remains separate and
+  paused; no further R1 implementation is implied by closure.
+- **Disposition:** **ACCEPTED - LIVE VERIFIED WITH BOUNDED LIMITATIONS**.
 
 ### POST003A-R1-02 - Production-style live authentication validation
 
@@ -1463,7 +1468,8 @@ seal R1. The active control slot is the schema-constrained parent
   secret-free evidence).
 - **Invariant:** No R1 acceptance route enables `ANANKE_DEVELOPMENT_MODE`, and
   no credential value appears in source, logs, arguments, or evidence.
-- **Implementation status:** **IMPLEMENTED / DETERMINISTICALLY VALIDATED; LIVE ACCEPTANCE PENDING.**
+- **Implementation status:** **FULFILLED - LIVE VERIFIED WITH BOUNDED
+  LIMITATIONS.**
 - **Validation / evidence:** The tracked Horae host now requires the raw
   `ANANKE_EXECUTION_TOKEN` environment input, constructs the Ananke bearer
   header internally, never accepts caller auth as an override, and fails closed
@@ -1480,12 +1486,15 @@ seal R1. The active control slot is the schema-constrained parent
   successfully. Batch 2 immutable checkpoints are Project-Horae
   `1d50b8df9943702a9724ded56a3454c882da8925` and Project-Moirae-Code
   `56f3bc84c84e36f75d2a4e46b393f86065a736d3`; both component pushes and
-  ordinary CI completed successfully. **DEVELOPMENT-MODE-DISABLED
-  NON-DEVELOPMENT STATIC BEARER ENTRYPOINT IMPLEMENTED; DETERMINISTIC
-  VALIDATION PASSED; LIVE ACCEPTANCE STILL PENDING.**
-- **Planned slice / future task:** FATES-SLICE-003A-R1 live authentication
-  validation under separate owner approval.
-- **Disposition:** **VALIDATION_GAP**.
+  ordinary CI completed successfully. Attempt 003 recorded
+  `developmentMode: false` and the non-development static-bearer route under
+  the accepted live checkpoint. No credential value is retained in source,
+  logs, arguments, or evidence. **DEVELOPMENT-MODE-DISABLED
+  NON-DEVELOPMENT STATIC BEARER ENTRYPOINT IMPLEMENTED; LIVE VERIFIED WITH
+  BOUNDED LIMITATIONS.**
+- **Planned slice / future task:** FATES-SLICE-003B remains separate and
+  paused; credential custody and OS/process authentication remain outside R1.
+- **Disposition:** **ACCEPTED - LIVE VERIFIED WITH BOUNDED LIMITATIONS**.
 
 ### POST003A-R1-03 - Bounded inspection/readiness/action handling
 
@@ -1502,16 +1511,18 @@ seal R1. The active control slot is the schema-constrained parent
 - **Invariant:** A missing inspection/readiness/action deadline or cancellation
   cannot degrade into ordinary execution; the route fails closed and stops its
   bounded process set.
-- **Implementation status:** **IMPLEMENTED + DETERMINISTICALLY VALIDATED; LIVE
-  ACCEPTANCE PENDING.**
+- **Implementation status:** **FULFILLED - DETERMINISTIC TEST VERIFIED; NOT
+  LIVE INDUCED.**
 - **Validation / evidence:** `AbortSignal`-backed inspection and action
   inspection share one explicit pre-dispatch budget and return
   `timed_out`/`dispatch_not_attempted` before dispatch;
   deterministic mock and local HTTP hanging-peer tests pass. Project-Horae
   Batch 1 commit `36e249386f15ff6c1e85fb98d4d8ab393b2880ae` is pushed. Later
-  real-process acceptance remains required.
-- **Planned slice / future task:** FATES-SLICE-003A-R1 bounded relay handling.
-- **Disposition:** **NEW_REQUIREMENT**.
+  real-process evidence. The live Attempt-003 record does not induce a
+  hanging-peer timeout case; this limitation is retained explicitly.
+- **Planned slice / future task:** Any stronger host-containment or
+  process-origin proof belongs to FATES-SLICE-003B.
+- **Disposition:** **ACCEPTED - DETERMINISTIC TEST VERIFIED; NOT LIVE INDUCED**.
 
 ### POST003A-R1-04 - Bounded producer-result projection
 
@@ -1526,17 +1537,20 @@ seal R1. The active control slot is the schema-constrained parent
   (cross-runtime tests).
 - **Invariant:** Only explicitly approved result fields cross the Horae relay
   boundary, and producer-supplied extras cannot replace broker-owned values.
-- **Implementation status:** **IMPLEMENTED + DETERMINISTICALLY VALIDATED; LIVE
-  ACCEPTANCE PENDING.**
+- **Implementation status:** **FULFILLED - DETERMINISTIC TEST VERIFIED; NOT
+  LIVE INDUCED.**
 - **Validation / evidence:** `parseAnankeResult` now projects only the
   canonical GatewayExecutionResult fields, preserves Ananke's intentionally
   open evidence record, strips unexpected/inherited fields, and rejects
   malformed required result data; focused projection tests and full Horae
   validation pass. Project-Horae Batch 1 commit
-  `36e249386f15ff6c1e85fb98d4d8ab393b2880ae` is pushed. Later real-process
-  acceptance remains required.
-- **Planned slice / future task:** FATES-SLICE-003A-R1 result projection.
-- **Disposition:** **NEW_REQUIREMENT**.
+  `36e249386f15ff6c1e85fb98d4d8ab393b2880ae` is pushed. Attempt 003 did not
+  induce a live result-projection seam. The allowlist implementation is STATIC
+  SOURCE VERIFIED and its exact projection behavior is DETERMINISTIC TEST
+  VERIFIED; no stronger live projection claim is made.
+- **Planned slice / future task:** Any stronger result-projection claim
+  requires a separately authorized acceptance seam.
+- **Disposition:** **ACCEPTED - DETERMINISTIC TEST VERIFIED; NOT LIVE INDUCED**.
 
 ### POST003A-R1-05 - Replay-safe application identity and truthful origin semantics
 
@@ -1556,7 +1570,8 @@ seal R1. The active control slot is the schema-constrained parent
 - **Invariant:** R1 rejects malformed, wrong-audience, expired, and replayed
   application requests before dispatch and never labels PID correlation as
   OS-authenticated process origin.
-- **Implementation status:** **IMPLEMENTED / DETERMINISTICALLY VALIDATED; LIVE ACCEPTANCE PENDING.**
+- **Implementation status:** **FULFILLED - LIVE VERIFIED WITH BOUNDED
+  LIMITATIONS; STATIC SOURCE VERIFIED.**
 - **Validation / evidence:** R1 uses an explicitly versioned v2 receipt with a
   canonical Horae route audience, short validity window, and digest bound to
   identity, audience, schema, and validity. Horae claims consumed receipt
@@ -1583,14 +1598,15 @@ seal R1. The active control slot is the schema-constrained parent
   durability is not established because this R1 implementation does not fsync
   the ledger file and parent directory. R1 therefore claims process-restart-
   persistent replay protection within the supported single-authoritative-host
-  profile, not power-loss durable exactly-once semantics. Separately
-  authorized real-process acceptance remains required. The immutable Batch 2
+  profile, not power-loss durable exactly-once semantics. The accepted
+  Attempt-003 real-process record preserves these limits. The immutable Batch 2
   component checkpoints are Project-Horae
   `1d50b8df9943702a9724ded56a3454c882da8925` and Project-Moirae-Code
   `56f3bc84c84e36f75d2a4e46b393f86065a736d3`.
-- **Planned slice / future task:** FATES-SLICE-003A-R1 application identity;
-  true launch/process/channel identity remains FATES-SLICE-003B.
-- **Disposition:** **NEW_REQUIREMENT**.
+- **Planned slice / future task:** True launch/process/channel identity remains
+  FATES-SLICE-003B and is not claimed by this seal.
+- **Disposition:** **ACCEPTED - LIVE VERIFIED WITH BOUNDED LIMITATIONS; TRUE
+  OS-AUTHENTICATED PROCESS ORIGIN OUT OF R1 SCOPE**.
 
 R1 activation preserves the existing Fates ownership model: Ananke remains the
 sole authority, Horae remains discovery/freshness/relay authority, Moirae

@@ -11,13 +11,14 @@ import { spawnSync } from 'node:child_process';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
 describe('slice verification', () => {
-  it('activates the R1 control slot without changing sealed 003A or Slice 02 history', () => {
+  it('closes the R1 control slot after the sealed qualification', () => {
     const activeSlice = JSON.parse(readFileSync(resolve(root, 'active-slice.json'), 'utf-8'));
-    assert.strictEqual(activeSlice.status, 'active');
-    assert.strictEqual(activeSlice.activeSliceId, 'FATES-SLICE-003');
-    assert.strictEqual(activeSlice.baselineCompatibilitySet, 'fates-slice-003a-2026-08-10');
+    assert.strictEqual(activeSlice.status, 'idle');
+    assert.strictEqual(activeSlice.activeSliceId, null);
+    assert.strictEqual(activeSlice.baselineCompatibilitySet, 'fates-slice-003a-r1-2026-08-11');
     assert.strictEqual(activeSlice.nextRecommendedSlice, 'FATES-SLICE-004');
     assert.match(activeSlice.activationRequirements.acceptedScope, /FATES-SLICE-003A-R1/);
+    assert.strictEqual(activeSlice.status, 'idle', 'NO ACTIVE SLICE AFTER R1 SEAL');
   });
 
   it('template is not active', () => {
@@ -79,6 +80,8 @@ describe('slice verification', () => {
       'active-slice.json',
       'compatibility-sets/fates-stage-a-2026-07.json',
       'compatibility-sets/fates-slice-002-2026-08-09.json',
+      'compatibility-sets/fates-slice-003a-2026-08-10.json',
+      'compatibility-sets/fates-slice-003a-r1-2026-08-11.json',
     ];
     for (const file of files) {
       const data = JSON.parse(readFileSync(resolve(root, file), 'utf-8'));
