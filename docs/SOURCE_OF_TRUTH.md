@@ -24,6 +24,12 @@ When sources disagree, this audit prefers accepted non-superseded ADRs, current 
 - Proposed Slice 004 is a design-only umbrella. The recommended first
   implementation is 004A, a narrow durable Ananke-authoritative effect
   lifecycle. Host-mediated effects are deferred to 004B after 003B.
+- Canonical slices remain numeric compatibility/control units. Letter-qualified
+  sub-slices are bounded implementation or acceptance units owned by their
+  numeric parent. The proposed inactive 004A child is represented beneath
+  `FATES-SLICE-004`; it is not a compatibility-matrix peer, and the active
+  control remains `status: idle`, `activeSliceId: null`,
+  `activeSubsliceId: null`.
 - The exact lock and compatibility snapshot remain authoritative. No current
   narrative text expands the sealed R1 claim into OS containment, generic
   governed execution, durable recovery, or host-wide bypass closure.

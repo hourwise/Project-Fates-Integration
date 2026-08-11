@@ -19,6 +19,11 @@ reconciliation block is authoritative for present control state.
   governed-effect lifecycle -> 003B host containment -> 004B host-mediated
   effects. No implementation, live acceptance, or generic governed-execution
   claim follows from this document checkpoint.
+- Canonical slices are numbered compatibility/control units. Letter-qualified
+  sub-slices are bounded implementation or acceptance units owned by a
+  canonical slice. The proposed 004A child is stored beneath the numeric
+  `FATES-SLICE-004` owner and is not a separate compatibility-matrix row. The
+  control state remains idle with both active identifiers null.
 - The Runtime Contracts HEAD/tag lineage discrepancy is recorded in
   `docs/decisions/FATES-SLICE-004-runtime-contracts-discrepancy.json`; neither
   the lock nor the existing adoption tag is changed here.

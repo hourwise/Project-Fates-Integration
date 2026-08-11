@@ -75,6 +75,7 @@ describe('slice verification', () => {
       'slices/002-governed-action-handoff/handoffs/horae-handoff.json',
       'slices/_template/slice.json',
       'slices/_template/handoffs/handoff.example.json',
+      'slices/004-governed-execution/subslices/004A-durable-governed-effect-lifecycle/subslice.json',
       'fates-lock.json',
       'compatibility-matrix.json',
       'active-slice.json',

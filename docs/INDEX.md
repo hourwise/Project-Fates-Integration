@@ -16,6 +16,7 @@
 - Slice 02 design/evidence: [boundary design](design/FATES-SLICE-002-runtime-boundary-resolution.md), [consistency review](reviews/FATES-SLICE-002-cross-owner-consistency-review.md), [acceptance matrix](reviews/FATES-SLICE-002-acceptance-evidence-matrix.md), [evidence freeze](decisions/FATES-SLICE-002-evidence-freeze.json), [implementation authorization](decisions/FATES-SLICE-002-implementation-authorization.json)
 - Slice 004 proposed design gate: [design](design/FATES-SLICE-004-design-gate.md), [proposed requirements](reviews/FATES-SLICE-004-proposed-requirements.md), [planned record](../slices/004-governed-execution/slice.json), [Runtime Contracts discrepancy](decisions/FATES-SLICE-004-runtime-contracts-discrepancy.json)
 - Slice 004A activation preparation: [owner decision package](design/FATES-SLICE-004A-activation-package.md)
+- Slice 004A control-plane child record: [proposed sub-slice](../slices/004-governed-execution/subslices/004A-durable-governed-effect-lifecycle/subslice.json)
 
 ## Component authorities
 

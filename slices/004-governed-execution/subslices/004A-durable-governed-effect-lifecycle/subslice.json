@@ -1,0 +1,42 @@
+{
+  "$schema": "../../../../schemas/subslice.schema.json",
+  "subsliceId": "FATES-SLICE-004A",
+  "parentSliceId": "FATES-SLICE-004",
+  "title": "Durable governed-effect lifecycle",
+  "implementationStatus": "planned",
+  "sealStatus": "provisional",
+  "objective": "Prove one Ananke-authoritative, durable, bounded governed effect with explicit dispatch, outcome, duplicate, indeterminate, and reconciliation semantics.",
+  "owners": ["Ananke", "Fates Integration"],
+  "components": ["Ananke execution authority", "Integration control and evidence", "Independent disposable receipt sink fixture"],
+  "prerequisites": [
+    "fates-slice-003a-r1-2026-08-11",
+    "R1 sealed artifacts remain immutable",
+    "Owner authorization for separate 004A activation",
+    "No required Runtime Contracts change"
+  ],
+  "scope": [
+    "Independent provider-side receipt/status fixture with separate durable state",
+    "Ananke-owned durable execution intent and attempt state",
+    "Pre-dispatch durable intent and dispatch marker ordering",
+    "Scoped idempotency, bounded reconciliation, and secret-free audit projection",
+    "Deterministic owner-local tests and retained evidence"
+  ],
+  "nonScope": [
+    "FATES-SLICE-004A activation in active-slice.json",
+    "Horae route integration",
+    "FATES-SLICE-003B and FATES-SLICE-004B",
+    "Moirae, Mnemosyne, or Runtime Contracts source changes",
+    "Live external effects, production credentials, and compatibility sealing"
+  ],
+  "requirements": [
+    "POST004-01 through POST004-14",
+    "Independent provider receipt evidence remains separate from Ananke execution truth",
+    "Approval binding precedes durable intent, dispatch marker, provider call, and outcome/reconciliation"
+  ],
+  "designPackage": "docs/design/FATES-SLICE-004A-activation-package.md",
+  "activation": {
+    "state": "ready_for_activation",
+    "ownerDecision": "Control-plane representation is prepared; a separate owner decision is still required before 004A activation or implementation.",
+    "baselineCompatibilitySet": "fates-slice-003a-r1-2026-08-11"
+  }
+}

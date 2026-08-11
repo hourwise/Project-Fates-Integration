@@ -1,6 +1,6 @@
 # FATES-SLICE-004A — Owner Decision and Activation-Package Preparation
 
-**Status:** DESIGN / INSPECTION ONLY
+**Status:** DESIGN / CONTROL-PLANE REPRESENTATION PREPARED
 **Date:** 2026-08-11
 **Activation:** NOT AUTHORIZED
 **Implementation:** NOT STARTED
@@ -8,9 +8,18 @@
 **003B:** paused
 
 This package closes the remaining design questions for a later explicit
-FATES-SLICE-004A activation decision. It does not activate or implement 004A,
-change a component repository, change the Integration matrix/lock/active slot,
-create a tag, generate a credential, start a process, or perform an effect.
+FATES-SLICE-004A activation decision. The Integration control-plane now has an
+additive, inactive sub-slice representation for the bounded child beneath
+numeric `FATES-SLICE-004`; it does not activate or implement 004A, change a
+component repository, change the Integration matrix/lock/baseline, create a
+tag, generate a credential, start a process, or perform an effect.
+
+Canonical slices are numbered compatibility/control units. Letter-qualified
+sub-slices are bounded implementation or acceptance units owned by a canonical
+slice. `FATES-SLICE-004A` is therefore represented by
+`activeSliceId: FATES-SLICE-004` plus an optional
+`activeSubsliceId: FATES-SLICE-004A` only during a later explicit activation;
+it is not a compatibility-matrix peer.
 
 ## 1. Starting state
 
@@ -397,18 +406,21 @@ reconciliation.
 
 ### Integration — control and evidence surfaces
 
-Only after a later activation authorization would the following be expected:
+This control-plane checkpoint adds only the backward-compatible optional
+`activeSubsliceId` field and the inactive proposed child record
+`slices/004-governed-execution/subslices/004A-durable-governed-effect-lifecycle/subslice.json`.
+The active state remains idle/null. Only after a later activation authorization
+would the following be expected:
 
 - `active-slice.json` activation state;
 - `compatibility-matrix.json` 004A row/status update;
-- `slices/004-governed-execution/slice.json` or a separately approved 004A
-  record;
+- activation metadata changing the optional sub-slice state;
 - a new compatibility snapshot and any lock update;
 - Ananke/Horae handoffs;
 - deterministic Integration tests;
 - a bounded acceptance driver and attempt evidence.
 
-None of these control changes is authorized now.
+None of the later activation changes listed above is authorized now.
 
 ### Explicit zero-change components
 
@@ -419,10 +431,11 @@ None of these control changes is authorized now.
 
 ## 12. Proposed formal 004A activation package
 
-- **Slice ID:** `FATES-SLICE-004A` as the owner-facing implementation
-  sub-slice, represented under the existing non-active numeric
-  `FATES-SLICE-004` matrix umbrella. Do not add or activate a matrix row in
-  this task.
+- **Sub-slice ID:** `FATES-SLICE-004A` as the owner-facing implementation
+  sub-slice, represented beneath canonical `FATES-SLICE-004` using the
+  inactive `activeSubsliceId` field when later activated. The numeric owner
+  remains the only compatibility-matrix row; do not add or activate a matrix
+  row in this task.
 - **Title:** `FATES-SLICE-004A - Durable governed-effect lifecycle`.
 - **Objective:** Prove one Ananke-authoritative, durable, bounded governed
   effect with explicit dispatch, outcome, duplicate, indeterminate, and
@@ -519,8 +532,9 @@ No live process, port, credential, or effect was created in this preparation.
 
 ## Final recommendation
 
-**NO-GO - PREREQUISITE WORK REQUIRED.** The design is now sufficiently precise
-for a subsequent activation decision, but 004A must not activate until the
-owner accepts the preferred sink contract, the SQLite execution-state design,
-the idempotency/reconciliation budgets, and the exact source-surface plan.
-This task does not authorize implementation.
+**NO-GO - ACTIVATION NOT AUTHORIZED.** The design is now sufficiently precise
+for a subsequent activation decision, and the Integration control-plane has a
+bounded child representation. 004A must not activate until a separate owner
+decision accepts the preferred sink contract, the SQLite execution-state
+design, the idempotency/reconciliation budgets, and the exact source-surface
+plan. This task does not authorize implementation.

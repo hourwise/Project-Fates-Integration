@@ -1767,3 +1767,31 @@ an explicit future checkpoint decision before any lock update.
 No component source was changed, no credentials or live effect were created,
 and no Slice 004 acceptance was run. The remaining task is owner review of
 the proposed design and decomposition.
+
+## FATES-SLICE-004A bounded sub-slice control-plane representation - 2026-08-11
+
+Status: **CONTROL-PLANE CHECKPOINT COMPLETE - NOT ACTIVATED; IMPLEMENTATION NOT
+AUTHORIZED.** The owner accepted the schema-gated NO-GO and authorized an
+Integration-only additive representation for bounded child units.
+
+Canonical slices remain numeric compatibility/control units. Letter-qualified
+sub-slices are bounded implementation or acceptance units owned by a canonical
+slice. The new model preserves numeric `activeSliceId` and adds optional
+`activeSubsliceId`; the intended future active representation is
+`activeSliceId: FATES-SLICE-004` plus `activeSubsliceId: FATES-SLICE-004A`.
+
+The proposed 004A record is stored at
+`slices/004-governed-execution/subslices/004A-durable-governed-effect-lifecycle/subslice.json`
+with `implementationStatus: planned`, `sealStatus: provisional`, and
+`activation.state: ready_for_activation`. It remains inactive and is not a
+compatibility-matrix peer. Parent/child grammar, exact parent matching,
+canonical-owner resolution, duplicate detection, missing-child failure, and
+activation eligibility are enforced by `scripts/verify-slices.mjs`.
+
+Validation covers historical records without the new optional field, idle and
+numeric states, valid 004/004A ownership, malformed identifiers, wrong-parent
+relationships, missing/duplicate child records, unresolved owners, and the
+dedicated sub-slice schema. No lock, compatibility snapshot, matrix, sealed
+R1 evidence, component repository, tag, credential, process, or live effect
+changed. A separate owner authorization is still required before activating
+004A or beginning Batch 1.
