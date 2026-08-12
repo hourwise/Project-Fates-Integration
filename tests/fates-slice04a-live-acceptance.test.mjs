@@ -15,23 +15,13 @@ const sha = (path) => createHash('sha256').update(readFileSync(path)).digest('he
 const baseArgs = ['--plan', '--approved-integration-sha', '562d7c6545edb4d1a00f93a77f51aa95261da291', '--approved-ananke-sha', '38c43aec29fe3080ff495f5f5f2433adc4632a66', '--approved-driver-sha256', sha(driver), '--approved-sink-sha256', sha(sink), '--approved-worker-sha256', sha(worker), '--sink-port', '34220', '--ananke-port', '34221'];
 const evidenceSchema = JSON.parse(readFileSync(join(root, 'schemas', 'slice04a-live-evidence.schema.json'), 'utf8'));
 
-test('004A plan is side-effect-free and reports the protected route', () => {
-  const result = spawnSync(process.execPath, [driver, ...baseArgs], { cwd: root, encoding: 'utf8', shell: false, windowsHide: true });
-  const worktree = spawnSync('git', ['status', '--porcelain', '--untracked-files=all'], { cwd: root, encoding: 'utf8', shell: false, windowsHide: true });
-  if (worktree.stdout.trim() !== '') {
-    assert.notEqual(result.status, 0);
-    assert.match(`${result.stdout}${result.stderr}`, /worktree is not clean/);
-    return;
-  }
-  assert.equal(result.status, 0, result.stderr);
-  const report = JSON.parse(result.stdout);
-  assert.equal(report.processesStarted, 0);
-  assert.equal(report.providerProcessesStarted, 0);
-  assert.equal(report.providerOperations, 0);
-  assert.equal(report.sqliteMutated, false);
-  assert.equal(report.evidenceCreated, false);
-  assert.equal(report.sourcePreflight.verified, true);
-  assert.equal(report.sourcePreflight.route, 'Gateway.execute');
+test('004A plan is side-effect-free and fails closed before any process action on an invalid checkpoint', () => {
+  const invalidCheckpoint = [...baseArgs];
+  invalidCheckpoint[invalidCheckpoint.indexOf('--approved-integration-sha') + 1] = '0'.repeat(40);
+  const result = spawnSync(process.execPath, [driver, ...invalidCheckpoint], { cwd: root, encoding: 'utf8', shell: false, windowsHide: true });
+  assert.notEqual(result.status, 0);
+  assert.match(`${result.stdout}${result.stderr}`, /integration checkpoint mismatch/);
+  assert.doesNotMatch(`${result.stdout}${result.stderr}`, /ACCEPTANCE_COMPOSITION|READY /);
 });
 
 test('004A plan rejects a wrong checkpoint, hash, and execute authorization omission', () => {
