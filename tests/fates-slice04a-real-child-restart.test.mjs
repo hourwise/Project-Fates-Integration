@@ -51,6 +51,9 @@ const compiledAuditPath = join(
   "index.js",
 );
 const activeChildren = new Set();
+const READINESS_BUDGET_MS = 5_000;
+const FUNCTIONAL_CHILD_CEILING_MS = 30_000;
+const EXISTING_DIAGNOSTIC_GRACE_MS = 15_000;
 // The default node:test runner executes top-level tests concurrently. These
 // diagnostics intentionally create many real child processes; serialize only
 // this module's heavy cohort so unrelated suite tests retain their scheduling.
@@ -173,7 +176,11 @@ async function startAnanke(
   port,
   providerUrl,
   role,
-  { genericNegative = false, diagnosticGraceMs = 15_000 } = {},
+  {
+    genericNegative = false,
+    diagnosticGraceMs = EXISTING_DIAGNOSTIC_GRACE_MS,
+    functionalCeilingMs = FUNCTIONAL_CHILD_CEILING_MS,
+  } = {},
 ) {
   const filesystemBefore = filesystemObservation(databasePath);
   const handle = startChild({
@@ -194,6 +201,7 @@ async function startAnanke(
   const readinessStartedAt = performance.now();
   try {
     const readiness = await waitForReady(`http://127.0.0.1:${port}`, {
+      timeoutMs: READINESS_BUDGET_MS,
       handle,
       identityCheck: (body) => body?.runtime === "ananke",
     });
@@ -201,6 +209,8 @@ async function startAnanke(
       handle,
       readiness,
       readinessClassification: "ready_within_deadline",
+      late_ready: false,
+      readinessMs: Math.round(performance.now() - readinessStartedAt),
       filesystemBefore,
       filesystemAtReadiness: filesystemObservation(databasePath),
       startupTimings: startupTimingSnapshot(handle),
@@ -216,36 +226,76 @@ async function startAnanke(
       filesystemAtDeadline: deadlineFilesystem,
       startupTimingsAtDeadline: startupTimingSnapshot(handle),
     };
+    const completeLateReadiness = (lateReadiness, phase) => {
+      const readinessMs = Math.round(performance.now() - readinessStartedAt);
+      return {
+        handle,
+        readiness: lateReadiness,
+        readinessClassification: "late_ready",
+        late_ready: true,
+        readinessMs,
+        exceededDiagnosticGrace: readinessMs > diagnosticGraceMs,
+        filesystemBefore,
+        filesystemAtReadiness: filesystemObservation(databasePath),
+        startupTimings: startupTimingSnapshot(handle),
+        startupDiagnostic: {
+          ...diagnostic,
+          classification: "late_ready",
+          [`${phase}Readiness`]: {
+            ...lateReadiness,
+            actualElapsedMs: readinessMs,
+          },
+        },
+      };
+    };
     try {
       const lateReadiness = await waitForReady(`http://127.0.0.1:${port}`, {
-        timeoutMs: diagnosticGraceMs,
+        timeoutMs: Math.min(
+          diagnosticGraceMs,
+          Math.max(1, functionalCeilingMs - Math.round(performance.now() - readinessStartedAt)),
+        ),
         handle,
         identityCheck: (body) => body?.runtime === "ananke",
       });
-      diagnostic.classification = "late_ready";
-      diagnostic.graceReadiness = {
-        ...lateReadiness,
-        actualElapsedMs: Math.round(performance.now() - readinessStartedAt),
-      };
+      return completeLateReadiness(lateReadiness, "grace");
     } catch (graceError) {
       diagnostic.graceReadiness = graceError.readinessDiagnostics ?? null;
-      diagnostic.finalStartupStage = finalStartupStage(handle);
       diagnostic.startupTimingsAtGraceEnd = startupTimingSnapshot(handle);
       diagnostic.filesystemAtGraceEnd = filesystemObservation(databasePath);
+      const remainingMs = functionalCeilingMs - Math.round(performance.now() - readinessStartedAt);
+      if (remainingMs > 0) {
+        try {
+          const finalReadiness = await waitForReady(`http://127.0.0.1:${port}`, {
+            timeoutMs: remainingMs,
+            handle,
+            identityCheck: (body) => body?.runtime === "ananke",
+          });
+          return completeLateReadiness(finalReadiness, "final");
+        } catch (finalError) {
+          diagnostic.finalReadiness = finalError.readinessDiagnostics ?? null;
+        }
+      }
+      diagnostic.finalStartupStage = finalStartupStage(handle);
+      diagnostic.startupTimingsAtCeiling = startupTimingSnapshot(handle);
+      diagnostic.filesystemAtCeiling = filesystemObservation(databasePath);
       diagnostic.classification = handle.exitObserved
         ? "child_exited"
         : diagnostic.finalStartupStage === "sqlite_store_construction_begun"
           ? "store_construction_stall"
           : "alive_without_readiness";
+      error.childHandle = handle;
+      error.startupDiagnostic = diagnostic;
+      error.message = `${error.message}; child=${JSON.stringify(diagnosticSnapshot(handle))}; startupDiagnostic=${JSON.stringify(diagnostic)}`;
+      throw error;
     }
-    error.childHandle = handle;
-    error.startupDiagnostic = diagnostic;
-    error.message = `${error.message}; child=${JSON.stringify(diagnosticSnapshot(handle))}; startupDiagnostic=${JSON.stringify(diagnostic)}`;
-    throw error;
   }
 }
 
-async function startStoreProbe(databasePath, role, timeoutMs = 5_000) {
+async function startStoreProbe(
+  databasePath,
+  role,
+  timeoutMs = FUNCTIONAL_CHILD_CEILING_MS,
+) {
   const filesystemBefore = filesystemObservation(databasePath);
   const handle = startChild({
     nodePath: process.execPath,

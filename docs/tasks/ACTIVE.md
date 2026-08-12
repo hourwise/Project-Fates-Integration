@@ -2283,3 +2283,90 @@ The sole remediation file was committed and published as Integration
 `codex/slice-003a-activation`; CI run `31609949465` completed successfully
 for that exact SHA. The immutable Attempt 004 evidence and journal remain
 byte-identical and are awaiting their separately staged evidence checkpoint.
+
+## FATES-SLICE-004A child timing / quiescence diagnostic - 2026-08-12
+
+Status: **LOCAL VALIDATION GREEN - CI PUBLICATION PENDING.** This bounded
+Integration-only investigation was authorized by FATES-SLICE-004A. It did not
+run live acceptance, `--plan`, `--execute`, Attempt 005, a provider effect, or
+any Ananke/source change. The prepared sibling-checkout workflow correction
+remains the only pre-existing workflow change.
+
+Protected evidence was verified before work and remains exact after work:
+
+- Attempt 001 incident: `D3A1A8FBE6C2107BDB270942B76A4C0FE1BBAEB9B6788F276A9AA080B4CD144A`;
+- Attempt 002 terminal evidence: `CFF90A021CD5F9B13158D2376CCF290F6664D7FBC3C5C7CDCC7DB0FA9CD37F5E`;
+- Attempt 002 journal: `0D57B1DC6AD66E45DACE4614F45B8A74FC58C10D262DAFC1DD0FF682CAB18468`;
+- Attempt 003 terminal evidence: `12E89E4947FBCD93B3699CACEF9E7C12F4E898E4D8DBD57215565EF242B081A3`;
+- Attempt 003 journal: `9B9CA836EF48EDE62E34649E33A1B2EDFFB65BC5CC578D23CAAAFE68B6A488AB`;
+- Attempt 004 terminal evidence: `79D4E3A7D80566018E4401F7FF946F9C42174B455506B6481D738C99624A192B`;
+- Attempt 004 journal: `D3C0CBCEF6E6906A9B05E30BEAC7C111A31F1454C4557705E1EE54B0C547282E`.
+
+The timing inventory is: generic child observation timeout 2 s; real-child
+helper polling timeout 5 s with 10 ms polling; readiness observation 5 s
+with 25 ms polling and 500 ms request aborts; existing diagnostic grace 15 s;
+functional child ceiling now 30 s; process exit and close bounds 5 s; port
+probe 500 ms; delayed generic fixture output 100 ms and fixture exit 2 s;
+disposable-directory release 15 s. The five-second readiness value remains a
+separate observation/SLA concept; it was not changed or removed. Functional
+readiness now records `late_ready` and `readinessMs`, and fails at 30 s. The
+generic process test waits for the actual delayed stderr event, not a sleep.
+
+Validation orchestration is serialized at the process-heavy boundary:
+`validate.mjs` runs each validator, then `run-validation-tests.mjs` starts the
+ordinary Node test runner with `spawnSync`; only after that process exits with
+status 0 does it start the heavy runner with `--test-concurrency=1`. The
+bounded relevant-process snapshot immediately before heavy tests was empty;
+no receipt-sink, Ananke, lifecycle fixture, or Node test worker from the
+ordinary cohort survived. The post-heavy and post-full-validation snapshots
+were also empty.
+
+The three isolated measurements were: generic process handling passed, with
+the deterministic 100 ms delayed stdout/stderr event observed and cleanup
+complete (focused run duration approximately 335 ms); fresh-directory Ananke
+became healthy after the five-second observation at approximately 8.66 s,
+with `spawn->worker_entered` approximately 8.25 s and internal store/gateway
+stages effectively immediate; same-database restart became healthy at
+approximately 6.57 s, with `spawn->worker_entered` approximately 6.40 s,
+SQLite construction approximately 48 ms, and gateway startup approximately
+7 ms. The existing diagnostic output did not emit separate monotonic
+timestamps for each generic stream event; its deterministic delayed event was
+100 ms and was observed before cleanup. The fresh and same-database failures
+were functional-correctness assertions after healthy eventual startup, not
+the five-second SLA itself.
+
+The serialized pre-correction heavy cohort reached 7/9: fresh transitions
+10/10 passed, while same-database restart and store probes hit observation
+windows; all diagnostic children eventually showed healthy startup/close
+signals and no residual processes. No replacement port was occupied, every
+replacement port probe was free, and each disposable SQLite path was unique
+and fresh. The exact classification is **test-host process scheduling /
+bounded observation timing**. Generic process handling was healthy in
+isolation, but generic store probes and Ananke children were delayed under
+suite load; Ananke is not implicated. No leak, port collision, or SQLite
+collision was found.
+
+The conditional test-only correction is limited to
+`tests/fates-slice04a-real-child-restart.test.mjs`: preserve the five-second
+readiness observation, continue through diagnostic grace and a hard 30-second
+functional ceiling, and record late readiness; store probes now wait for
+their actual construction/close events within that same ceiling. Live
+acceptance `scripts/fates-slice04a-live-acceptance.mjs`, its five-second
+Attempt readiness threshold, acceptance semantics, and Ananke remain
+unchanged.
+
+Focused proof after correction: resolver 3/3; process lifecycle 4/4; fresh
+directory transitions 10/10; same-database restarts 5/5; store probes 20/20
+(construction latency summary approximately 44/83/858 ms min/median/max in
+the focused run); unique-resource contention 5/5; serialized heavy cohort
+9/9. The single full `npm run validate` then passed all JSON, lock, matrix,
+slice, boundary, ordinary 102/102, and heavy 9/9 checks in approximately
+284.5 s. No relevant child remained.
+
+Files changed for this batch are this task record, the test-only timing
+correction above, and the already-prepared `.github/workflows/ci.yml` sibling
+checkout correction. No other repository changed. The final local commit and
+CI publication fields will be recorded after the two narrow commits and the
+single resulting CI run. Attempt 005 remains unplanned, unreserved, and
+unexecuted; no live acceptance is authorized. Separate Attempt 005 plan
+authorization is **NO-GO from this task** and requires a new owner decision.
