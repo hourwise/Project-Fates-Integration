@@ -47,6 +47,7 @@ test("004A process handles preserve identity and delayed live output", async () 
   assert.equal(handle.baseUrl, "http://127.0.0.1:0");
   assert.match(handle.stdout, /READY/);
   assert.match(handle.stdout, /EXECUTION_MARKER/);
+  await waitUntil(() => handle.stderr.includes("late stderr"));
   assert.match(handle.stderr, /late stderr/);
   assert.deepEqual(markerFromHandle(handle, "EXECUTION_MARKER"), { intentId: "late" });
   assert.equal(diagnosticTail(handle, "stdout").status, "observed");
