@@ -31,7 +31,7 @@ const reconcileIntentId = argument('--reconcile-intent', '');
 const genericNegative = args.includes('--generic-negative');
 const callbackMarker = argument('--callback-marker', '');
 const toolName = 'fates.slice04a.receipt.write';
-const scope = '004a:local-development:local-development';
+const scope = '004a:local-development:default';
 
 if (!Number.isInteger(port) || port < 0 || port > 65_535) throw new Error('invalid --port');
 if (!['', 'after_intent', 'after_dispatch_marker', 'after_provider_call'].includes(failpoint)) {
