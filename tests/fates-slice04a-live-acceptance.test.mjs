@@ -22,9 +22,9 @@ const sha = (path) =>
 const baseArgs = [
   "--plan",
   "--approved-integration-sha",
-  "2bf36aeb7118cf43987531c4d16dff79b3d3b231",
+  "c9cf54c14dc4a16defd258576e23fb2907559a8c",
   "--approved-ananke-sha",
-  "38c43aec29fe3080ff495f5f5f2433adc4632a66",
+  "d74bccb51208ecb3b897b269082158153fd4e72f",
   "--approved-driver-sha256",
   sha(driver),
   "--approved-sink-sha256",
@@ -42,6 +42,14 @@ const evidenceSchema = JSON.parse(
     "utf8",
   ),
 );
+
+test("004A plan contract explicitly reports no attempt reservation", () => {
+  const source = readFileSync(driver, "utf8");
+  assert.match(source, /attemptReserved/);
+  assert.match(source, /attemptReserved,\s*credentialsGenerated/);
+  assert.match(source, /attemptReserved\s*=\s*Boolean\(/);
+  assert.match(source, /plannedAttemptId\s*&&\s*attemptIsReserved\(/);
+});
 
 test("004A plan is side-effect-free and fails closed before any process action on an invalid checkpoint", () => {
   const invalidCheckpoint = [...baseArgs];

@@ -218,6 +218,11 @@ async function plan() {
     ),
     "Ananke build output is missing",
   );
+  const evidenceRoot = resolve(integrationRoot, "docs", "evidence");
+  const plannedAttemptId = arg("--attempt-id");
+  const attemptReserved = Boolean(
+    plannedAttemptId && attemptIsReserved(evidenceRoot, plannedAttemptId),
+  );
   const result = {
     mode: "plan",
     processesStarted: 0,
@@ -225,6 +230,7 @@ async function plan() {
     providerOperations: 0,
     sqliteMutated: false,
     evidenceCreated: false,
+    attemptReserved,
     credentialsGenerated: 0,
     fixtureEffects: 0,
     sourcePreflight: {
