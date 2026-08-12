@@ -2218,3 +2218,68 @@ destination/payload authorization in the visible transcript. No push
 workaround was attempted. Therefore the remote SHAs remain Ananke
 `d74bccb51208ecb3b897b269082158153fd4e72f` and Integration
 `a19e71ae54b94648d7e7db848ccf331536c78ec9`, with no new CI run yet.
+
+## FATES-SLICE-004A Attempt 004 live-acceptance disposition - 2026-08-12
+
+Status: **FAIL_BOUNDED - ATTEMPT CONSUMED; OWNER REVIEW REQUIRED.** The
+owner-authorized Attempt 004 execution ran exactly once against Integration
+`b842b9a25dec0228c877bd4991ada86ef4c8a8e4` and Ananke
+`e7b405f3a217db6df31fe9ba7bde376ab666930c`. Case A passed: fresh approval
+1 and duplicate approval 2 had different expiry values and distinct
+request/correlation identities, both duplicate decisions returned HTTP 200
+with `COMPLETED`, durable reuse was `reused_completed`, binding mismatch was
+not observed, and the provider count remained exactly 1 before/after the
+duplicate. Case B failed at start because the restarted Ananke process did
+not become ready at the approved endpoint. Cases C-E were not started.
+
+The terminal evidence is
+`docs/evidence/FATES-SLICE-004A-live-acceptance-attempt-004.json` with
+SHA-256
+`79D4E3A7D80566018E4401F7FF946F9C42174B455506B6481D738C99624A192B`;
+the append-only journal is
+`docs/evidence/FATES-SLICE-004A-live-acceptance-attempt-004.events.ndjson`
+with SHA-256
+`D3C0CBCEF6E6906A9B05E30BEAC7C111A31F1454C4557705E1EE54B0C547282E`.
+Evidence schema validation and journal parsing passed; the journal contains
+the complete reserved/started/progress/terminal lifecycle. Cleanup completed
+with zero tracked processes remaining and ports 34220/34221 were free after
+execution. No credentials, third-party provider, source remediation, Ananke
+change, retry, Attempt 005, tag, seal, 003B, 004B, or cross-Fate change was
+performed. Protected historical evidence hashes remain unchanged.
+
+The evidence-specific JSON/journal checks, `scripts/validate-json.mjs`, and
+`scripts/verify-boundaries.mjs` passed. The second bounded `npm run validate`
+completed in approximately 19 seconds but failed one deterministic test:
+`tests/fates-slice04a-process-lifecycle.test.mjs:38`, “004A process handles
+preserve identity and delayed live output”, expected `/late stderr/` and
+received an empty stderr value. The run left no additional worker process and
+ports 34220/34221 remained free. Because deterministic validation failed, the
+evidence checkpoint was not staged, committed, or pushed and no CI run or
+read-only Case B investigation was started.
+
+The smallest bounded owner-review investigation is to determine why the
+post-Case-A Ananke restart failed readiness at port 34221, using only the
+retained bounded diagnostics and without rerunning acceptance or changing
+source until separately authorized. Attempt 004 is consumed and no further
+acceptance or 004A seal is authorized by this disposition.
+
+## FATES-SLICE-004A deterministic process-lifecycle remediation - 2026-08-12
+
+Status: **BOUNDED REMEDIATION PUBLISHED - ATTEMPT 004 EVIDENCE CHECKPOINT
+PENDING.** The focused lifecycle failure was classified as a test
+synchronization race: the test waited for the stdout `EXECUTION_MARKER` but
+asserted stderr before independently observing the delayed stderr bytes.
+The test now waits for the expected stderr content through the live handle;
+no arbitrary sleep, helper change, acceptance-driver change, Ananke change,
+or evidence rewrite was made.
+
+Five pre-change focused runs passed, the corrected focused test passed, and a
+fixed 10-run stability check passed 10/10. The full deterministic validation
+passed all 105 tests, including `npm run validate`, JSON/lock/matrix/slice
+validation, boundary validation, syntax checks, and `git diff --check`.
+
+The sole remediation file was committed and published as Integration
+`281b20d5c135d9638463c1f7336a9d29de8f5343` on
+`codex/slice-003a-activation`; CI run `31609949465` completed successfully
+for that exact SHA. The immutable Attempt 004 evidence and journal remain
+byte-identical and are awaiting their separately staged evidence checkpoint.
