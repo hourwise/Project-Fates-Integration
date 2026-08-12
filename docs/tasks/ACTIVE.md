@@ -2075,3 +2075,62 @@ digest, or other file continues to fail boundary validation. Future live
 acceptance evidence should avoid unnecessary absolute host paths and use
 portable/logical invocation identity where possible while retaining sufficient
 provenance.
+
+## FATES-SLICE-004A Attempt 003 readiness / acceptance-driver remediation - 2026-08-12
+
+Status: **REMEDIATION IMPLEMENTED - DETERMINISTIC VALIDATION PASSED; NO LIVE
+ACCEPTANCE AUTHORIZED.** This bounded Integration-only batch prepares the
+harness for a possible future Attempt 003. It did not run `--plan`, `--execute`,
+Attempt 003, a provider effect, or any owner-gated acceptance composition.
+
+Starting checkpoints were verified clean and exact: Integration
+`712b95bc12aec61e1424a59088f2837db180e2ca`, Ananke
+`d74bccb51208ecb3b897b269082158153fd4e72f`, Horae
+`3f531d4f5558a10a36aeae20c3458080eb4468b9`, Moirae
+`bc7b984bd2eb0e0f07a1cd7259a8eab21556f097`, Mnemosyne
+`f4ab76a9760f856d78908d35facceb068d78c8e5`, and Runtime Contracts
+`bbf240b1fdcb9be1dbd30b13d2fe2708a22ec7b8`.
+
+Pre- and post-remediation immutable hashes are unchanged:
+
+- Attempt 001 incident: `D3A1A8FBE6C2107BDB270942B76A4C0FE1BBAEB9B6788F276A9AA080B4CD144A`;
+- Attempt 002 terminal evidence: `CFF90A021CD5F9B13158D2376CCF290F6664D7FBC3C5C7CDCC7DB0FA9CD37F5E`;
+- Attempt 002 journal: `0D57B1DC6AD66E45DACE4614F45B8A74FC58C10D262DAFC1DD0FF682CAB18468`.
+
+The accepted root cause was reproduced and corrected: object spread in
+`startSink()`/`startAnanke()` cloned the `startChild()` handle, snapshotting
+stdout/stderr getters and disconnecting cleanup from `activeChildren`. The
+driver now mutates and returns the original handle. The new lifecycle helper
+records one exit promise, removes the same identity during cleanup, handles
+already-exited children without an unnecessary timeout, and retains bounded
+live output. Deterministic tests prove delayed stdout/stderr, delayed
+`EXECUTION_MARKER`, stable identity, active-child membership, normal exit,
+early failure, and bounded sanitized stderr diagnostics.
+
+Future evidence now uses logical Node/relative-entrypoint provenance and
+bounded per-stream diagnostics with `not_observed`, `observed_empty`,
+`observed`, and `unavailable` states, plus readiness, exit code, signal,
+spawn-error, and marker observations. The bound is 8 KiB per stream and
+diagnostics redact credential-shaped values and common host paths. Portability
+fixtures prove Windows and Unix developer paths are rejected normally while
+driver/worker/provider hashes and the Integration checkpoint remain present.
+Attempt 002 continues to pass only through its exact path-and-SHA exception;
+future attempts do not inherit it.
+
+Integration-only files changed: `scripts/fates-slice04a-live-acceptance.mjs`,
+`scripts/fates-slice04a-process-lifecycle.mjs`,
+`schemas/slice04a-live-evidence.schema.json`,
+`tests/fates-slice04a-process-lifecycle.test.mjs`,
+`tests/fates-slice04a-live-acceptance.test.mjs`,
+`tests/fates-slice04a-attempt-evidence.test.mjs`, and this design/task record.
+No Ananke source, other Fate repository, lock, matrix, compatibility snapshot,
+historical evidence, credential, tag, seal, 003B, or 004B changed.
+
+Validation before commit: focused 004A/process/boundary/receipt-sink tests
+passed (25 tests); full Integration deterministic suite passed (104 tests);
+`npm run validate` passed; syntax checks and `git diff --check` passed.
+The remediation checkpoint may be committed and pushed after final diff review.
+The next owner-gated command remains a proposed future `--plan` only, using
+the final Integration SHA and final driver/sink/worker hashes; it must not be
+run in this task. A fresh Attempt 003 plan authorization is **GO for owner
+review**, not authorization to execute or to seal 004A.

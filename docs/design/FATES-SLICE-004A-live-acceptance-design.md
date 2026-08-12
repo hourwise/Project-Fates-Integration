@@ -209,9 +209,28 @@ The later execution must be separately authorized. It must not start Horae,
 Moirae, Mnemosyne, Runtime Contracts, 003B, 004B, or any third-party provider.
 
 The proposed future command is intentionally not executed here. Attempt `001`
-is consumed; a future separately authorized preparation must use `002` and
+is consumed; a future separately authorized preparation must use `003` and
 the post-remediation checkpoints/hashes:
 
 ```text
-node scripts/fates-slice04a-live-acceptance.mjs --plan --approved-integration-sha <post-remediation-integration-sha> --approved-ananke-sha <post-remediation-ananke-sha> --approved-driver-sha256 <driver-sha256> --approved-sink-sha256 <sink-sha256> --approved-worker-sha256 <worker-sha256> --sink-port 34220 --ananke-port 34221
+node scripts/fates-slice04a-live-acceptance.mjs --plan --attempt-id 003 --approved-integration-sha <post-remediation-integration-sha> --approved-ananke-sha <post-remediation-ananke-sha> --approved-driver-sha256 <driver-sha256> --approved-sink-sha256 <sink-sha256> --approved-worker-sha256 <worker-sha256> --sink-port 34220 --ananke-port 34221
 ```
+
+## 9. Attempt 003 readiness remediation
+
+The acceptance process handle returned by `startChild()` is the single object
+tracked in `activeChildren`. `startSink()` and `startAnanke()` attach
+`baseUrl` to that object and return it; they do not spread or wrap the handle.
+The handle retains bounded live stdout/stderr tails and marker observations,
+so output emitted after startup remains visible to readiness, marker parsing,
+cleanup, and evidence code. Exit completion is recorded once and cleanup
+recognizes an already-exited child before entering the bounded wait.
+
+Future evidence records logical `runtime: "node"` and relative `entrypoint`
+fields rather than host executable/script paths. Each child retains at most
+8 KiB per output stream. Diagnostic values redact bearer/token-shaped values
+and common Windows/Unix host paths; output status distinguishes
+`not_observed`, `observed_empty`, `observed`, and `unavailable`. Relevant
+acceptance marker presence, readiness, exit code, signal, and bounded spawn
+errors are retained. Attempt 002 remains governed only by its exact
+digest-pinned boundary exception and is not rewritten.

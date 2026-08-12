@@ -7,6 +7,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import Ajv2020 from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
+import { checkForLocalPathsObj, immutableEvidenceAllowedPaths } from "../scripts/boundary-policy.mjs";
 
 const root = process.cwd();
 const driver = join(root, "scripts", "fates-slice04a-live-acceptance.mjs");
@@ -112,6 +113,49 @@ test("004A acceptance composition contains no low-level execution import", () =>
   assert.doesNotMatch(source, /executeTool|executorFor/);
   assert.match(source, /gateway\.start\(\)/);
   assert.match(source, /registerDurableReceiptSinkConsumer/);
+});
+
+test("004A future evidence uses portable logical process provenance", () => {
+  const futureEvidence = {
+    attemptId: "003",
+    driverSha256: "A".repeat(64),
+    integrationCheckpoint: "b".repeat(40),
+    fixtureSha256: "C".repeat(64),
+    workerSha256: "D".repeat(64),
+    execute: {
+      runtime: "node",
+      entrypoint: "scripts/fates-slice04a-live-acceptance.mjs",
+      command: ["node", "scripts/fates-slice04a-live-acceptance.mjs", "--execute"],
+    },
+    process: {
+      runtime: "node",
+      entrypoint: "fixtures/slice-004a-ananke-process/server.mjs",
+    },
+  };
+  const errors = [];
+  checkForLocalPathsObj(
+    futureEvidence,
+    "docs/evidence/FATES-SLICE-004A-live-acceptance-attempt-003.json",
+    errors,
+    immutableEvidenceAllowedPaths(
+      join(root, "docs", "evidence", "FATES-SLICE-004A-live-acceptance-attempt-003.json"),
+      root,
+    ),
+  );
+  assert.deepEqual(errors, []);
+  assert.equal(futureEvidence.execute.runtime, "node");
+  assert.equal(futureEvidence.execute.entrypoint, "scripts/fates-slice04a-live-acceptance.mjs");
+  assert.match(futureEvidence.driverSha256, /^[A-F0-9]{64}$/);
+  assert.match(futureEvidence.integrationCheckpoint, /^[a-f0-9]{40}$/);
+  assert.match(futureEvidence.fixtureSha256, /^[A-F0-9]{64}$/);
+  assert.match(futureEvidence.workerSha256, /^[A-F0-9]{64}$/);
+});
+
+test("004A process-handle correction has no object-spread snapshot path", () => {
+  const source = readFileSync(driver, "utf8");
+  assert.equal((source.match(/processHandle\.baseUrl = baseUrl/g) ?? []).length, 2);
+  assert.doesNotMatch(source, /return \{\.\.\.processHandle, baseUrl\}/);
+  assert.match(source, /activeChildren\.add\(handle\)/);
 });
 
 test("004A evidence schema accepts bounded evidence and rejects malformed evidence", () => {

@@ -158,6 +158,39 @@ test("004A version 2 failure evidence validates and malformed terminal evidence 
   );
 });
 
+test("004A future evidence accepts bounded child diagnostics and portable provenance", () => {
+  const ajv = new Ajv2020({ allErrors: true });
+  addFormats(ajv);
+  const validate = ajv.compile(schema);
+  const evidence = validEvidence("003");
+  evidence.execute = {
+    mode: "execute",
+    ownerAuthorized: true,
+    runtime: "node",
+    entrypoint: "scripts/fates-slice04a-live-acceptance.mjs",
+    command: ["node", "scripts/fates-slice04a-live-acceptance.mjs", "--execute"],
+  };
+  evidence.processFacts.starts = [
+    {
+      role: "ananke",
+      runtime: "node",
+      entrypoint: "fixtures/slice-004a-ananke-process/server.mjs",
+      startedAt: "2026-08-12T10:00:01.000Z",
+      readinessReached: false,
+      stdout: { status: "observed", tail: "READY", truncated: false },
+      stderr: { status: "observed_empty", tail: "", truncated: false },
+      exitCode: 7,
+      signal: null,
+      spawnError: null,
+      markers: {
+        READY: { status: "not_observed" },
+        EXECUTION_MARKER: { status: "not_observed" },
+      },
+    },
+  ];
+  assert.equal(validate(evidence), true);
+});
+
 test("004A failure stages retain bounded failure evidence without inventing provider facts", () => {
   for (const [index, stage] of [
     "before Case A provider call",

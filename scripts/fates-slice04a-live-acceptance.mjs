@@ -3,7 +3,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { createConnection } from "node:net";
 import { dirname, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
-import { spawn, spawnSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import {
   appendAttemptEvent,
@@ -12,6 +12,14 @@ import {
   finalizeAttempt,
   reserveAttempt,
 } from "./fates-slice04a-attempt-evidence.mjs";
+import {
+  diagnosticTail,
+  diagnosticMarkers,
+  markerFromHandle,
+  startChild as startProcessChild,
+  stopChild as stopProcessChild,
+  waitForExit as waitForProcessExit,
+} from "./fates-slice04a-process-lifecycle.mjs";
 
 const integrationRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const anankeRoot =
@@ -263,62 +271,24 @@ function childEnv() {
   return runtimeEnv();
 }
 function startChild(script, childArgs, role = "ananke") {
-  const child = spawn(nodePath, [script, ...childArgs], {
+  return startProcessChild({
+    nodePath,
+    script,
+    childArgs,
     cwd: integrationRoot,
     env: childEnv(),
-    shell: false,
-    windowsHide: true,
-    stdio: ["ignore", "pipe", "pipe"],
-  });
-  let stdout = "";
-  let stderr = "";
-  child.stdout.setEncoding("utf8");
-  child.stderr.setEncoding("utf8");
-  child.stdout.on("data", (chunk) => {
-    stdout += chunk;
-  });
-  child.stderr.on("data", (chunk) => {
-    stderr += chunk;
-  });
-  const handle = {
-    child,
     role,
-    startedAt: new Date().toISOString(),
-    get stdout() {
-      return stdout;
+    onStart: (handle) => {
+      processStarts.push(handle);
+      activeChildren.add(handle);
     },
-    get stderr() {
-      return stderr;
-    },
-  };
-  processStarts.push(handle);
-  activeChildren.add(handle);
-  child.once("exit", (code) => {
-    handle.exitCode = code ?? 1;
   });
-  return handle;
 }
 async function waitForExit(processHandle, timeoutMs = 5_000) {
-  if (processHandle.child.exitCode !== null)
-    return processHandle.child.exitCode;
-  return await new Promise((resolveExit, reject) => {
-    const timer = setTimeout(
-      () => reject(new Error("child process did not exit within bound")),
-      timeoutMs,
-    );
-    processHandle.child.once("exit", (code) => {
-      clearTimeout(timer);
-      resolveExit(code ?? 1);
-    });
-  });
+  return await waitForProcessExit(processHandle, timeoutMs);
 }
 async function stopChild(processHandle) {
-  if (!processHandle) return;
-  if (processHandle.child.exitCode === null) {
-    processHandle.child.kill("SIGTERM");
-    await waitForExit(processHandle);
-  }
-  activeChildren.delete(processHandle);
+  return stopProcessChild(processHandle, { activeChildren });
 }
 async function cleanupTrackedChildren() {
   let firstError;
@@ -366,7 +336,9 @@ async function startSink(statePath, port, mode = "success") {
   const baseUrl = `http://127.0.0.1:${sinkPort}`;
   const health = await fetch(`${baseUrl}/health`);
   assert(health.ok, "receipt sink health check failed");
-  return { ...processHandle, baseUrl };
+  processHandle.readinessReachedAt = new Date().toISOString();
+  processHandle.baseUrl = baseUrl;
+  return processHandle;
 }
 async function startAnanke(databasePath, port, providerUrl, options = {}) {
   const childArgs = [
@@ -388,7 +360,9 @@ async function startAnanke(databasePath, port, providerUrl, options = {}) {
   const processHandle = startChild(WORKER_PATH, childArgs);
   const baseUrl = `http://127.0.0.1:${port}`;
   await waitReady(baseUrl);
-  return { ...processHandle, baseUrl };
+  processHandle.readinessReachedAt = new Date().toISOString();
+  processHandle.baseUrl = baseUrl;
+  return processHandle;
 }
 async function recovery(databasePath, providerUrl, intentId) {
   const processHandle = startChild(
@@ -405,7 +379,7 @@ async function recovery(databasePath, providerUrl, intentId) {
   );
   const exitCode = await waitForExit(processHandle);
   assert(exitCode === 0, `recovery worker failed: ${processHandle.stderr}`);
-  return marker(processHandle.stdout, "RECOVERY_RESULT");
+  return marker(processHandle, "RECOVERY_RESULT");
 }
 function operationDigest(providerState) {
   return providerState.operations.map((operation) =>
@@ -487,6 +461,7 @@ async function providerState(baseUrl) {
   return (await fetch(`${baseUrl}/v1/state`)).json();
 }
 function marker(output, prefix) {
+  if (typeof output !== "string") return markerFromHandle(output, prefix);
   const line = output
     .split("\n")
     .find((candidate) => candidate.startsWith(`${prefix} `));
@@ -688,7 +663,7 @@ async function execute() {
           );
           observeDurable(
             "A",
-            marker(ananke.stdout, "EXECUTION_MARKER"),
+            marker(ananke, "EXECUTION_MARKER"),
             "case A first durable result",
           );
           setStage("case A changed-correlation duplicate");
@@ -752,7 +727,7 @@ async function execute() {
             /* the bounded crash may close the response */
           }
           await waitForExit(ananke);
-          const crash = marker(ananke.stdout, "CRASH_MARKER");
+          const crash = marker(ananke, "CRASH_MARKER");
           observeDurable("B", crash, "case B crash marker");
           const beforeRestart = await providerState(sink.baseUrl);
           observeProvider(
@@ -827,7 +802,7 @@ async function execute() {
             /* bounded crash */
           }
           await waitForExit(ananke);
-          const crash = marker(ananke.stdout, "CRASH_MARKER");
+          const crash = marker(ananke, "CRASH_MARKER");
           observeDurable("C", crash, "case C crash marker");
           await stopChild(sink);
           sink = await startSink(providerPath, sinkPort, "success");
@@ -881,14 +856,14 @@ async function execute() {
           );
           observeDurable(
             "D",
-            marker(ananke.stdout, "EXECUTION_MARKER"),
+            marker(ananke, "EXECUTION_MARKER"),
             "case D durable mismatch result",
           );
           assert(
             result.executed.outcome?.state === "FAILED",
             "Case D did not fail closed",
           );
-          const intentId = marker(ananke.stdout, "EXECUTION_MARKER").intentId;
+          const intentId = marker(ananke, "EXECUTION_MARKER").intentId;
           assert(
             typeof intentId === "string",
             "Case D did not expose the durable intent reference",
@@ -1011,7 +986,13 @@ async function execute() {
     driverSha256: arg("--approved-driver-sha256"),
     fixtureSha256: arg("--approved-sink-sha256"),
     workerSha256: arg("--approved-worker-sha256"),
-    execute: { mode: "execute", ownerAuthorized: true, command: process.argv },
+    execute: {
+      mode: "execute",
+      ownerAuthorized: true,
+      runtime: "node",
+      entrypoint: "scripts/fates-slice04a-live-acceptance.mjs",
+      command: ["node", "scripts/fates-slice04a-live-acceptance.mjs", "--execute"],
+    },
     activeState: {
       status: activeState.status,
       activeSliceId: activeState.activeSliceId,
@@ -1026,8 +1007,19 @@ async function execute() {
       ).length,
       starts: processStarts.map((entry) => ({
         role: entry.role,
+        runtime: "node",
+        entrypoint:
+          entry.script === SINK_PATH
+            ? "fixtures/slice-004a-receipt-sink/server.mjs"
+            : "fixtures/slice-004a-ananke-process/server.mjs",
         startedAt: entry.startedAt,
+        readinessReached: Boolean(entry.readinessReachedAt),
+        stdout: diagnosticTail(entry, "stdout"),
+        stderr: diagnosticTail(entry, "stderr"),
         exitCode: entry.exitCode ?? null,
+        signal: entry.signal,
+        spawnError: entry.spawnError,
+        markers: diagnosticMarkers(entry),
       })),
     },
     providerFacts,

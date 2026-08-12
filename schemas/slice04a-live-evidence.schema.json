@@ -75,6 +75,8 @@
       "properties": {
         "mode": { "const": "execute" },
         "ownerAuthorized": { "const": true },
+        "runtime": { "const": "node" },
+        "entrypoint": { "type": "string", "pattern": "^[^/\\\\][^:]*$" },
         "command": {
           "type": "array",
           "items": { "type": "string" },
@@ -136,8 +138,19 @@
             "required": ["role", "startedAt"],
             "properties": {
               "role": { "type": "string" },
+              "runtime": { "const": "node" },
+              "entrypoint": { "type": "string", "pattern": "^[^/\\\\][^:]*$" },
               "startedAt": { "type": "string", "format": "date-time" },
-              "exitCode": { "type": ["integer", "null"] }
+              "readinessReached": { "type": "boolean" },
+              "stdout": { "$ref": "#/$defs/diagnostic" },
+              "stderr": { "$ref": "#/$defs/diagnostic" },
+              "exitCode": { "type": ["integer", "null"] },
+              "signal": { "type": ["string", "null"] },
+              "spawnError": { "type": ["string", "null"], "maxLength": 512 },
+              "markers": {
+                "type": "object",
+                "additionalProperties": { "$ref": "#/$defs/marker" }
+              }
             }
           }
         }
@@ -197,6 +210,27 @@
       "type": "array",
       "items": { "type": "string" },
       "minItems": 1
+    }
+  },
+  "$defs": {
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "tail", "truncated"],
+      "properties": {
+        "status": { "enum": ["not_observed", "observed", "observed_empty", "unavailable"] },
+        "tail": { "type": ["string", "null"], "maxLength": 8192 },
+        "truncated": { "type": "boolean" }
+      }
+    },
+    "marker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": { "enum": ["not_observed", "observed", "unavailable"] },
+        "value": { "type": "string", "maxLength": 2048 }
+      }
     }
   }
 }
