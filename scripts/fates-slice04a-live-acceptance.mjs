@@ -1052,6 +1052,7 @@ async function execute() {
   process.stdout.write(
     `${JSON.stringify({ mode: "execute", attemptId, evidencePath: evidencePaths.finalPath, journalPath: evidencePaths.eventsPath, classification: evidence.classification, cases: caseRecords }, null, 2)}\n`,
   );
+  if (classification !== "PASS_BOUNDED") process.exitCode = 1;
 }
 
 if (mode === "plan") await plan();
