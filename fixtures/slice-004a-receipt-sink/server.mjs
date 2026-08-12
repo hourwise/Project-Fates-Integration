@@ -127,6 +127,20 @@ const server = createServer(async (request, response) => {
       });
       return;
     }
+    if (request.method === 'GET' && url.pathname === '/v1/operations/by-idempotency') {
+      const operation = state.operations.find(
+        (candidate) =>
+          candidate.idempotencyScope === url.searchParams.get('scope') &&
+          candidate.idempotencyKey === url.searchParams.get('key') &&
+          candidate.bindingDigest === url.searchParams.get('bindingDigest'),
+      );
+      if (!operation) {
+        json(response, 404, { error: 'operation_not_found' });
+        return;
+      }
+      json(response, 200, { receipt: receiptFor(operation) });
+      return;
+    }
     if (request.method === 'POST' && url.pathname === '/v1/operations') {
       const body = await readBody(request);
       validateRequest(body);

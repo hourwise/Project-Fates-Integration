@@ -93,6 +93,12 @@ test('receipt sink keeps independent state across duplicate, conflict, and proce
     const recovered = await (await fetch(`${sink.baseUrl}/v1/operations/${operationId}`)).json();
     assert.equal(recovered.receipt.providerOperationId, operationId);
     assert.equal(recovered.receipt.bindingDigest, DIGEST_A);
+    const recoveredByIdempotency = await (
+      await fetch(
+        `${sink.baseUrl}/v1/operations/by-idempotency?scope=${encodeURIComponent(requestBody().idempotencyScope)}&key=${encodeURIComponent(requestBody().idempotencyKey)}&bindingDigest=${DIGEST_A}`,
+      )
+    ).json();
+    assert.equal(recoveredByIdempotency.receipt.providerOperationId, operationId);
     assert.equal((await (await fetch(`${sink.baseUrl}/v1/state`)).json()).operationCount, 1);
   } finally {
     await stopSink(sink.child);

@@ -19,10 +19,11 @@
     "Ananke-owned durable execution intent and attempt state",
     "Pre-dispatch durable intent and dispatch marker ordering",
     "Scoped idempotency, bounded reconciliation, and secret-free audit projection",
+    "One normal Ananke governed consumer wired to the disposable receipt sink",
     "Deterministic owner-local tests and retained evidence"
   ],
   "nonScope": [
-    "All later runtime work beyond the bounded Ananke Batch 1 implementation",
+    "All later runtime work beyond the bounded Ananke Batch 1 implementation and one consumer-wiring batch",
     "Horae route integration",
     "FATES-SLICE-003B and FATES-SLICE-004B",
     "Moirae, Mnemosyne, or Runtime Contracts source changes",
@@ -36,7 +37,7 @@
   "designPackage": "docs/design/FATES-SLICE-004A-activation-package.md",
   "activation": {
     "state": "active",
-    "ownerDecision": "Owner authorization activated the bounded 004A control state; a separate owner approval now authorizes the bounded Ananke Batch 1 implementation while later work remains gated.",
+    "ownerDecision": "Owner authorization activated the bounded 004A control state; separate owner approvals authorize the bounded Ananke Batch 1 implementation and one receipt-sink consumer-wiring batch while later work remains gated.",
     "baselineCompatibilitySet": "fates-slice-003a-r1-2026-08-11"
   }
 }

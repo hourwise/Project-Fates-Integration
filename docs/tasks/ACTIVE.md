@@ -1868,3 +1868,55 @@ containment work, later provider credential/effect brokerage, cross-Fate
 integration, and owner-authorized live acceptance. The next bounded step is a
 separate owner review of this checkpoint followed by an explicit Batch 2
 authorization; no further implementation begins under this record.
+
+## FATES-SLICE-004A Ananke consumer wiring - 2026-08-12
+
+Status: **CONSUMER-WIRING BATCH IMPLEMENTED - ACTIVE AND PROVISIONAL; NOT
+SEALED.** Owner approval authorized one representative Ananke consumer only:
+`fates.slice04a.receipt.write`, backed by the existing disposable
+Integration receipt sink. The selected path is the normal `Gateway.execute`
+pipeline: request validation -> risk classification -> policy -> approval
+validation -> execution wrapper -> durable effect coordinator -> receipt-sink
+provider -> durable outcome -> existing outcome/audit projection.
+
+The consumer is bounded to the receipt-sink effect and accepts only an
+idempotency key, target, and payload digest. The provider adapter is loopback-
+only HTTP and sends no credentials or raw sensitive material. Approval binding
+metadata is passed into the existing execution invocation only after Gateway
+approval validation. The durable binding excludes only the approval record's
+ephemeral identifier; the approved action hash, operator binding hash,
+expiry, exact arguments, principals, resource scope, purpose, target, and
+provider remain bound. Approval consumption remains governed by the existing
+Gateway behavior.
+
+Deterministic failpoints prove that no provider invocation occurs before the
+durable intent or dispatch marker. A provider call whose local outcome commit
+is interrupted is recovered from SQLite and reconciled by read-only provider
+operation-ID or scoped idempotency lookup. Duplicate submissions reuse the
+durable result without a second provider operation. Provider failures,
+identity mismatches, and unresolved state remain fail-closed and explicit in
+durable evidence; uncertainty is never converted to success or blind retry.
+
+The local smoke driver
+[`scripts/fates-slice04a-ananke-consumer-smoke.mjs`](../../scripts/fates-slice04a-ananke-consumer-smoke.mjs)
+used the compiled Ananke `Gateway.execute` path and the independent receipt
+sink process. It created one disposable provider record, observed one
+completed governed outcome, and removed its temporary state. This is
+deterministic local wiring evidence, not live acceptance or external-provider
+evidence.
+
+Ananke consumer-wiring checkpoint: `b58ab4e` on
+`codex/slice-002-http-handoff-bridge`, pushed for CI verification. The
+Integration fixture/test and traceability checkpoint follows separately.
+
+Additional Ananke paths that can initiate effects remain behind generic
+`setExecutor` registrations and are not converted by this bounded batch.
+They require a later explicit architectural inventory and separate migration
+authorization; this checkpoint does not claim a global durable-effect
+chokepoint.
+
+The 004A record remains `implementationStatus: active` and
+`sealStatus: provisional`. No Horae, Mnemosyne, Moirae, Runtime Contracts, or
+Adrasteia change occurred; the R1 baseline, lock, matrix, evidence, and tags
+remain unchanged. No credentials, live external effects, or 003B/004B work
+occurred.
