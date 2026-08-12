@@ -455,7 +455,41 @@ async function approvedExecution(baseUrl, key, correlationId) {
       purpose: "004a-live-acceptance",
     }),
   });
-  return { action, requested: requested.body, executed: executed.body };
+  const outcomeDiagnostic = (response, approvalRequested, approvalId, expiry) => ({
+    httpStatus: response.status,
+    gatewayOutcome: response.body?.outcome?.state ?? null,
+    reasonCode: response.body?.outcome?.reasonCode ?? null,
+    errorCode: response.body?.outcome?.errorCode ?? null,
+    approvalRequested,
+    approvalIdPresent: Boolean(approvalId),
+    ...(approvalId ? { approvalIdDigest: sha256String(approvalId) } : {}),
+    ...(expiry ? { approvalExpiresAt: expiry } : {}),
+    durableState: response.body?.evidence?.dispatchState ?? null,
+    providerInvoked: response.body?.evidence?.providerInvoked ?? null,
+    bindingMismatch:
+      response.body?.outcome?.reasonCode === "CONFLICT" ||
+      String(response.body?.outcome?.error ?? "").includes("binding mismatch"),
+    correlationIdDigest: sha256String(correlationId),
+  });
+  return {
+    action,
+    requested: requested.body,
+    approval: {
+      requested: outcomeDiagnostic(
+        requested,
+        requested.body?.outcome?.state === "WAITING_FOR_APPROVAL",
+        requested.body?.approvalGrantId,
+      ),
+      approvalIdDigest: sha256String(approval.id),
+      expiresAt: approval.expiresAt,
+      decisionHttpStatus: decided.status,
+      decisionStatus: decided.body?.status ?? null,
+    },
+    executed: executed.body,
+    diagnostics: {
+      execution: outcomeDiagnostic(executed, true, approval.id, approval.expiresAt),
+    },
+  };
 }
 async function providerState(baseUrl) {
   return (await fetch(`${baseUrl}/v1/state`)).json();
@@ -529,7 +563,20 @@ async function execute() {
       subsliceId: "FATES-SLICE-004A",
       mode: "execute",
       ownerAuthorized: true,
-      command: process.argv,
+      runtime: "node",
+      entrypoint: "scripts/fates-slice04a-live-acceptance.mjs",
+      provenance: {
+        runtime: "node",
+        entrypoint: "scripts/fates-slice04a-live-acceptance.mjs",
+        mode: "execute",
+        attemptId,
+        approvedCheckpoints: preflight.checkpoints,
+        artifactHashes: {
+          driver: arg("--approved-driver-sha256"),
+          sink: arg("--approved-sink-sha256"),
+          worker: arg("--approved-worker-sha256"),
+        },
+      },
     },
   });
   let startedAt;
@@ -661,6 +708,7 @@ async function execute() {
             `004a-${attemptId}-a`,
             "004a-case-a",
           );
+          const firstProviderState = await providerState(sink.baseUrl);
           observeDurable(
             "A",
             marker(ananke, "EXECUTION_MARKER"),
@@ -692,6 +740,22 @@ async function execute() {
             providerOperationCountKnown: true,
             redispatchCount: 0,
             evidenceDigest: operationDigest(state)[0],
+            duplicateDiagnostics: {
+              firstExecution: first.diagnostics.execution,
+              duplicateExecution: duplicate.diagnostics.execution,
+              firstApproval: first.approval,
+              duplicateApproval: duplicate.approval,
+              providerCountBefore: firstProviderState.operationCount,
+              providerCountAfter: state.operationCount,
+              durableReuseResult:
+                duplicate.diagnostics.execution.gatewayOutcome === "COMPLETED" &&
+                duplicate.diagnostics.execution.providerInvoked === false
+                  ? "reused_completed"
+                  : "not_reused",
+              bindingMismatchResult: duplicate.diagnostics.execution.bindingMismatch
+                ? "observed"
+                : "not_observed",
+            },
           };
           return completeCase("A", result);
         } catch (error) {
@@ -991,7 +1055,18 @@ async function execute() {
       ownerAuthorized: true,
       runtime: "node",
       entrypoint: "scripts/fates-slice04a-live-acceptance.mjs",
-      command: ["node", "scripts/fates-slice04a-live-acceptance.mjs", "--execute"],
+      provenance: {
+        runtime: "node",
+        entrypoint: "scripts/fates-slice04a-live-acceptance.mjs",
+        mode: "execute",
+        attemptId,
+        approvedCheckpoints: preflight.checkpoints,
+        artifactHashes: {
+          driver: arg("--approved-driver-sha256"),
+          sink: arg("--approved-sink-sha256"),
+          worker: arg("--approved-worker-sha256"),
+        },
+      },
     },
     activeState: {
       status: activeState.status,

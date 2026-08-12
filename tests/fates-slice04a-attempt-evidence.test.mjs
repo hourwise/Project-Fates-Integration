@@ -169,6 +169,21 @@ test("004A future evidence accepts bounded child diagnostics and portable proven
     runtime: "node",
     entrypoint: "scripts/fates-slice04a-live-acceptance.mjs",
     command: ["node", "scripts/fates-slice04a-live-acceptance.mjs", "--execute"],
+    provenance: {
+      runtime: "node",
+      entrypoint: "scripts/fates-slice04a-live-acceptance.mjs",
+      mode: "execute",
+      attemptId: "003",
+      approvedCheckpoints: {
+        integration: "a".repeat(40),
+        ananke: "b".repeat(40),
+      },
+      artifactHashes: {
+        driver: "A".repeat(64),
+        sink: "B".repeat(64),
+        worker: "C".repeat(64),
+      },
+    },
   };
   evidence.processFacts.starts = [
     {
@@ -188,7 +203,90 @@ test("004A future evidence accepts bounded child diagnostics and portable proven
       },
     },
   ];
+  const httpDiagnostic = {
+    httpStatus: 200,
+    gatewayOutcome: "COMPLETED",
+    reasonCode: null,
+    errorCode: null,
+    approvalRequested: true,
+    approvalIdPresent: true,
+    approvalIdDigest: "D".repeat(64),
+    approvalExpiresAt: "2026-08-12T10:05:00.000Z",
+    durableState: "dispatched_confirmed_success",
+    providerInvoked: false,
+    bindingMismatch: false,
+    correlationIdDigest: "E".repeat(64),
+  };
+  evidence.cases[0].duplicateDiagnostics = {
+    firstExecution: { ...httpDiagnostic, providerInvoked: true },
+    duplicateExecution: httpDiagnostic,
+    firstApproval: {
+      requested: { ...httpDiagnostic, gatewayOutcome: "WAITING_FOR_APPROVAL" },
+      approvalIdDigest: "F".repeat(64),
+      expiresAt: "2026-08-12T10:05:00.000Z",
+      decisionHttpStatus: 200,
+      decisionStatus: "approved",
+    },
+    duplicateApproval: {
+      requested: { ...httpDiagnostic, gatewayOutcome: "WAITING_FOR_APPROVAL" },
+      approvalIdDigest: "A".repeat(64),
+      expiresAt: "2026-08-12T10:05:00.100Z",
+      decisionHttpStatus: 200,
+      decisionStatus: "approved",
+    },
+    providerCountBefore: 1,
+    providerCountAfter: 1,
+    durableReuseResult: "reused_completed",
+    bindingMismatchResult: "not_observed",
+  };
   assert.equal(validate(evidence), true);
+});
+
+test("004A future reservation provenance is logical and portable", () => {
+  const root = mkdtempSync(join(tmpdir(), "fates-slice04a-portable-reservation-"));
+  try {
+    const handle = reserveAttempt({
+      evidenceRoot: root,
+      attemptId: "004",
+      metadata: {
+        sliceId: "FATES-SLICE-004",
+        subsliceId: "FATES-SLICE-004A",
+        mode: "execute",
+        runtime: "node",
+        entrypoint: "scripts/fates-slice04a-live-acceptance.mjs",
+        provenance: {
+          runtime: "node",
+          entrypoint: "scripts/fates-slice04a-live-acceptance.mjs",
+          mode: "execute",
+          attemptId: "004",
+          approvedCheckpoints: { integration: "a".repeat(40), ananke: "b".repeat(40) },
+          artifactHashes: {
+            driver: "A".repeat(64),
+            sink: "B".repeat(64),
+            worker: "C".repeat(64),
+          },
+        },
+      },
+    });
+    const text = readFileSync(handle.eventsPath, "utf8");
+    const event = readAttemptEvents(handle.eventsPath)[0];
+    assert.equal(event.runtime, "node");
+    assert.equal(event.entrypoint, "scripts/fates-slice04a-live-acceptance.mjs");
+    assert.equal(event.provenance.attemptId, "004");
+    assert.deepEqual(event.provenance.approvedCheckpoints, {
+      integration: "a".repeat(40),
+      ananke: "b".repeat(40),
+    });
+    assert.match(text, /artifactHashes/);
+    assert.doesNotMatch(text, /process\.argv|[A-Z]:\\\\|[A-Z]:\/|\/Users\/|\/home\//);
+    const driver = readFileSync(
+      new URL("../scripts/fates-slice04a-live-acceptance.mjs", import.meta.url),
+      "utf8",
+    );
+    assert.doesNotMatch(driver, /command:\s*process\.argv/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
 });
 
 test("004A failure stages retain bounded failure evidence without inventing provider facts", () => {

@@ -71,7 +71,7 @@
     "execute": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["mode", "ownerAuthorized", "command"],
+      "required": ["mode", "ownerAuthorized"],
       "properties": {
         "mode": { "const": "execute" },
         "ownerAuthorized": { "const": true },
@@ -81,7 +81,8 @@
           "type": "array",
           "items": { "type": "string" },
           "minItems": 1
-        }
+        },
+        "provenance": { "$ref": "#/$defs/provenance" }
       }
     },
     "activeState": {
@@ -119,7 +120,8 @@
           "providerOperationCountKnown": { "type": "boolean" },
           "redispatchCount": { "type": ["integer", "null"], "minimum": 0 },
           "evidenceDigest": { "type": "string", "pattern": "^[A-F0-9]{64}$" },
-          "lastStage": { "type": "string" }
+          "lastStage": { "type": "string" },
+          "duplicateDiagnostics": { "$ref": "#/$defs/duplicateDiagnostics" }
         }
       }
     },
@@ -230,6 +232,71 @@
       "properties": {
         "status": { "enum": ["not_observed", "observed", "unavailable"] },
         "value": { "type": "string", "maxLength": 2048 }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runtime", "entrypoint", "mode", "attemptId", "approvedCheckpoints", "artifactHashes"],
+      "properties": {
+        "runtime": { "const": "node" },
+        "entrypoint": { "type": "string", "pattern": "^[^/\\\\][^:]*$" },
+        "mode": { "const": "execute" },
+        "attemptId": { "type": "string", "pattern": "^[0-9]{3}$" },
+        "approvedCheckpoints": {
+          "type": "object",
+          "additionalProperties": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+        },
+        "artifactHashes": {
+          "type": "object",
+          "additionalProperties": { "type": "string", "pattern": "^[A-F0-9]{64}$" }
+        }
+      }
+    },
+    "httpDiagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["httpStatus", "gatewayOutcome", "reasonCode", "errorCode", "approvalRequested", "approvalIdPresent", "durableState", "providerInvoked", "bindingMismatch", "correlationIdDigest"],
+      "properties": {
+        "httpStatus": { "type": "integer", "minimum": 100, "maximum": 599 },
+        "gatewayOutcome": { "type": ["string", "null"] },
+        "reasonCode": { "type": ["string", "null"] },
+        "errorCode": { "type": ["string", "null"] },
+        "approvalRequested": { "type": "boolean" },
+        "approvalIdPresent": { "type": "boolean" },
+        "approvalIdDigest": { "type": "string", "pattern": "^[A-F0-9]{64}$" },
+        "approvalExpiresAt": { "type": "string", "format": "date-time" },
+        "durableState": { "type": ["string", "null"] },
+        "providerInvoked": { "type": ["boolean", "null"] },
+        "bindingMismatch": { "type": "boolean" },
+        "correlationIdDigest": { "type": "string", "pattern": "^[A-F0-9]{64}$" }
+      }
+    },
+    "approvalDiagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requested", "approvalIdDigest", "expiresAt", "decisionHttpStatus", "decisionStatus"],
+      "properties": {
+        "requested": { "$ref": "#/$defs/httpDiagnostic" },
+        "approvalIdDigest": { "type": "string", "pattern": "^[A-F0-9]{64}$" },
+        "expiresAt": { "type": "string", "format": "date-time" },
+        "decisionHttpStatus": { "type": "integer", "minimum": 100, "maximum": 599 },
+        "decisionStatus": { "type": ["string", "null"] }
+      }
+    },
+    "duplicateDiagnostics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["firstExecution", "duplicateExecution", "firstApproval", "duplicateApproval", "providerCountBefore", "providerCountAfter", "durableReuseResult", "bindingMismatchResult"],
+      "properties": {
+        "firstExecution": { "$ref": "#/$defs/httpDiagnostic" },
+        "duplicateExecution": { "$ref": "#/$defs/httpDiagnostic" },
+        "firstApproval": { "$ref": "#/$defs/approvalDiagnostic" },
+        "duplicateApproval": { "$ref": "#/$defs/approvalDiagnostic" },
+        "providerCountBefore": { "type": "integer", "minimum": 0 },
+        "providerCountAfter": { "type": "integer", "minimum": 0 },
+        "durableReuseResult": { "enum": ["reused_completed", "not_reused", "unknown"] },
+        "bindingMismatchResult": { "enum": ["observed", "not_observed", "unknown"] }
       }
     }
   }

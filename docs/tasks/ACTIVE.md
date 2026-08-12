@@ -2160,3 +2160,36 @@ runtime/entrypoint identity.
 
 No source remediation, retry, Attempt 004, Ananke change, evidence rewrite,
 tag, seal, 003B, 004B, or cross-Fate change is authorized by this disposition.
+
+## FATES-SLICE-004A approval-expiry / durable-identity remediation - 2026-08-12
+
+Status: **REMEDIATION IMPLEMENTED - DETERMINISTIC VALIDATION IN PROGRESS;
+NO LIVE ACCEPTANCE AUTHORIZED.** Owner authorization permitted one bounded
+batch limited to Ananke approval/durable-binding composition and Integration
+diagnostics/journal portability. No `--plan`, `--execute`, Attempt 003 rerun,
+Attempt 004, provider effect, credential, sealing, or other Fate change was
+performed.
+
+The pre-change inventory is recorded in Ananke at
+`docs/approval-durable-identity-inventory.md`. Full approval action and
+operator binding hashes remain expiry-sensitive, integrity-protected, checked
+for expiry, and retained for audit. A separate stable authorized-effect
+binding now carries the semantic action and approving operator/session
+authority while excluding `approvalId`, request/correlation identifiers, and
+`expiresAt`; durable idempotency uses that stable identity without weakening
+the full approval validation path. Correlation remains observational.
+
+Ananke deterministic coverage now includes different-expiry fresh approvals,
+HTTP `/execute` plus approval API composition, expired approval denial,
+different approving authority mismatch, changed stable semantic binding,
+provider exactly-once behavior, and correlation exclusion. Integration future
+evidence now records bounded duplicate HTTP/Gateway/durable/provider
+diagnostics and uses logical reservation provenance with runtime, relative
+entrypoint, attempt ID, approved checkpoints, and artifact hashes. Historical
+Attempts 001-003 and the Attempt 002 boundary exception are unchanged.
+
+Changed repositories are limited to Ananke and Integration. Final commit and
+CI checkpoint details are to be recorded here after the required validation,
+commits, remote verification, and both CI results complete. The next permitted
+step remains a separately authorized future Attempt 004 plan review only; it
+must not be run under this task.
