@@ -1910,14 +1910,75 @@ on `codex/slice-002-http-handoff-bridge`, pushed for CI verification. The
 Integration fixture/test and traceability checkpoint is
 `98ce2f3b9d268199b0694cdce6fec93bf3c4fbc4` on `codex/slice-003a-activation`.
 
-Additional Ananke paths that can initiate effects remain behind generic
-`setExecutor` registrations and are not converted by this bounded batch.
-They require a later explicit architectural inventory and separate migration
-authorization; this checkpoint does not claim a global durable-effect
-chokepoint.
+Additional Ananke paths that can initiate effects remain registered through
+generic `setExecutor` in existing examples/tests, but the new Gateway
+chokepoint fails them closed until a durable consumer owns the tool. The
+low-level `executeTool` and MCP callback capabilities remain outside the
+Gateway boundary and are recorded as a separate deployment/API limitation in
+the follow-on chokepoint inventory.
 
 The 004A record remains `implementationStatus: active` and
 `sealStatus: provisional`. No Horae, Mnemosyne, Moirae, Runtime Contracts, or
 Adrasteia change occurred; the R1 baseline, lock, matrix, evidence, and tags
 remain unchanged. No credentials, live external effects, or 003B/004B work
 occurred.
+
+## FATES-SLICE-004A Ananke effect-path inventory and chokepoint - 2026-08-12
+
+Status: **CHOKEPOINT BATCH IMPLEMENTED - ACTIVE AND PROVISIONAL; NOT SEALED.**
+The owner-approved inventory covered HTTP `/api/execute`, embedded
+`Gateway.execute`, generic `setExecutor`, durable receipt-consumer
+registration, the tool-router `executeTool` primitive, MCP adapter callbacks,
+the bounded Slice 02 read-only fixture, runtime inspection routes, testbench,
+and examples.
+
+The central invariant is now enforced inside Ananke: only `READ_ONLY` tools may
+use the ordinary generic executor path. All other registered risk classes,
+including `UNKNOWN`, require a durable governed-effect consumer. A generic
+effect-capable registration remains available for compatibility, but runtime
+execution fails closed with `FAILED` / `PERMISSION_DENIED` before callback
+invocation, and runtime readiness is `not_ready` until a durable consumer owns
+the tool. A durable consumer cannot be attached to a `READ_ONLY` tool.
+
+The complete code-grounded inventory is retained in Ananke at
+`docs/effect-path-inventory.md`. The current durable owner is the bounded
+receipt-sink consumer. It preserves the existing policy and approval layers,
+then retains the Batch 1 durable intent, dispatch marker, provider, duplicate,
+reconciliation, identity, uncertainty, and audit invariants. Read-only
+execution remains outside SQLite durable-effect state.
+
+Deterministic chokepoint tests cover:
+
+- read-only generic execution remains allowed without durable-effect state;
+- `INTERNAL_WRITE`, `EXTERNAL_SEND`, `DELETE`, `PAYMENT`, `DEPLOYMENT`,
+  `PERMISSION_CHANGE`, `CREDENTIAL_ACCESS`, `NETWORK_EGRESS`, `SKILL_INSTALL`,
+  and `MODEL_PROVIDER_CHANGE` generic callbacks are not invoked;
+- `UNKNOWN` cannot bypass durability, including with an allow-style policy
+  override;
+- effect registration without a durable consumer makes readiness fail closed;
+- read-only durable-consumer registration is rejected;
+- the existing receipt-sink consumer and crash/restart/duplicate tests remain
+  green.
+
+The low-level `executeTool` helper and `McpAdapter.executorFor` callbacks remain
+capability primitives that a caller holding them could invoke directly outside
+`Gateway.execute`. They are not governed entry points and are documented as a
+deployment/composition boundary; eliminating that public low-level capability
+would require a separate API and architecture decision. No other Fate or
+Runtime Contracts change is required for the central Gateway invariant.
+
+Validation passed:
+
+- Ananke build, lint, formatting, and full suite: 20 files / 172 tests;
+- focused chokepoint and receipt-consumer tests: 23 tests;
+- testbench build and compiled deterministic benchmark: 100% pass rate across
+  3 runs / 21 scenario executions;
+- Integration validation: passed; deterministic suite: 80 tests passed.
+
+Ananke chokepoint checkpoint: `a053cb191aed04bd0538b152eed72f011b6e2c5b` on
+`codex/slice-002-http-handoff-bridge`, pushed for CI verification. The final
+Integration traceability checkpoint follows in the bounded control-plane
+commit.
+
+The 004A record remains active and provisional. No live acceptance, credential,
+external effect, tag, seal, 003B, 004B, or cross-Fate change occurred.
