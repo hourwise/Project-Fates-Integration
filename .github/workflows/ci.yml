@@ -15,15 +15,39 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Checkout approved Ananke
+        uses: actions/checkout@v4
+        with:
+          repository: hourwise/Project-Ananke
+          ref: e7b405f3a217db6df31fe9ba7bde376ab666930c
+          path: ananke
+          fetch-depth: 1
+          persist-credentials: false
+
       - name: Use Node.js 22
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: Install dependencies
+      - name: Install Integration dependencies
         run: npm ci
 
+      - name: Install approved Ananke dependencies
+        working-directory: ananke
+        run: npm ci
+
+      - name: Build approved Ananke
+        working-directory: ananke
+        run: npm run build
+
+      - name: Verify approved Ananke provenance and artifacts
+        env:
+          FATES_ANANKE_ROOT: ${{ github.workspace }}/ananke
+        run: node scripts/fates-slice04a-ananke-runtime.mjs --root "$FATES_ANANKE_ROOT" --require-approved-sha
+
       - name: Validate
+        env:
+          FATES_ANANKE_ROOT: ${{ github.workspace }}/ananke
         run: npm run validate
 
       - name: Check whitespace

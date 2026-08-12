@@ -15,7 +15,7 @@ const steps = [
   { name: 'verify:matrix', script: 'scripts/verify-compatibility-matrix.mjs' },
   { name: 'verify:slices', script: 'scripts/verify-slices.mjs' },
   { name: 'verify:boundaries', script: 'scripts/verify-boundaries.mjs' },
-  { name: 'test', args: ['--test'], isTest: true },
+  { name: 'test', script: 'scripts/run-validation-tests.mjs' },
 ];
 
 let failed = false;
@@ -23,17 +23,10 @@ let failed = false;
 for (const step of steps) {
   console.log(`\n--- ${step.name} ---`);
   let result;
-  if (step.isTest) {
-    result = spawnSync(process.execPath, step.args, {
-      cwd: root,
-      stdio: 'inherit',
-    });
-  } else {
-    result = spawnSync(process.execPath, [resolve(root, step.script)], {
-      cwd: root,
-      stdio: 'inherit',
-    });
-  }
+  result = spawnSync(process.execPath, [resolve(root, step.script)], {
+    cwd: root,
+    stdio: 'inherit',
+  });
   if (result.status !== 0) {
     failed = true;
     break;

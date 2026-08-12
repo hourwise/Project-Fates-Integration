@@ -7,6 +7,10 @@ import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import { performance } from "node:perf_hooks";
 import {
+  assertAnankeRuntimeRoot,
+  resolveAnankeRoot,
+} from "../scripts/fates-slice04a-ananke-runtime.mjs";
+import {
   diagnosticSnapshot,
   probePort,
   startChild,
@@ -18,7 +22,8 @@ import {
 } from "../scripts/fates-slice04a-process-lifecycle.mjs";
 
 const integrationRoot = process.cwd();
-const anankeRoot = process.env.FATES_ANANKE_ROOT ?? "D:/Users/fleur/Project Ananke";
+const { root: anankeRoot } = resolveAnankeRoot({ cwd: integrationRoot });
+assertAnankeRuntimeRoot(anankeRoot);
 const workerPath = join(
   integrationRoot,
   "fixtures",

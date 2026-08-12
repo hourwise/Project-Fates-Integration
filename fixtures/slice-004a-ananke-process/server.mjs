@@ -1,9 +1,14 @@
 import { statSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import {
+  assertAnankeRuntimeRoot,
+  resolveAnankeRoot,
+} from '../../scripts/fates-slice04a-ananke-runtime.mjs';
 
 const integrationRoot = process.cwd();
-const anankeRoot = process.env.FATES_ANANKE_ROOT ?? 'D:/Users/fleur/Project Ananke';
+const { root: anankeRoot } = resolveAnankeRoot({ cwd: integrationRoot });
+assertAnankeRuntimeRoot(anankeRoot);
 const runtime = await import(
   pathToFileURL(join(anankeRoot, 'packages', 'runtime-core', 'dist', 'index.js')).href,
 );
