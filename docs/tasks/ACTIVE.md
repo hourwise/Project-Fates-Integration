@@ -1976,9 +1976,9 @@ Validation passed:
 - Integration validation: passed; deterministic suite: 80 tests passed.
 
 Ananke chokepoint checkpoint: `a053cb191aed04bd0538b152eed72f011b6e2c5b` on
-`codex/slice-002-http-handoff-bridge`, pushed for CI verification. The final
-Integration traceability checkpoint follows in the bounded control-plane
-commit.
+`codex/slice-002-http-handoff-bridge`, pushed for CI verification. Integration
+traceability checkpoint: `7c9bee0cb92ec18d9db30cc2ca14208fc1dc15a6` on
+`codex/slice-003a-activation`.
 
 The 004A record remains active and provisional. No live acceptance, credential,
 external effect, tag, seal, 003B, 004B, or cross-Fate change occurred.
