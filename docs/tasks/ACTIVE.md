@@ -1905,9 +1905,10 @@ completed governed outcome, and removed its temporary state. This is
 deterministic local wiring evidence, not live acceptance or external-provider
 evidence.
 
-Ananke consumer-wiring checkpoint: `b58ab4e` on
-`codex/slice-002-http-handoff-bridge`, pushed for CI verification. The
-Integration fixture/test and traceability checkpoint follows separately.
+Ananke consumer-wiring checkpoint: `b58ab4ed9959bcf332034135ef090074d36bd86b`
+on `codex/slice-002-http-handoff-bridge`, pushed for CI verification. The
+Integration fixture/test and traceability checkpoint is
+`98ce2f3b9d268199b0694cdce6fec93bf3c4fbc4` on `codex/slice-003a-activation`.
 
 Additional Ananke paths that can initiate effects remain behind generic
 `setExecutor` registrations and are not converted by this bounded batch.
