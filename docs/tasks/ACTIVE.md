@@ -2193,3 +2193,28 @@ CI checkpoint details are to be recorded here after the required validation,
 commits, remote verification, and both CI results complete. The next permitted
 step remains a separately authorized future Attempt 004 plan review only; it
 must not be run under this task.
+
+Local remediation checkpoints:
+
+- Ananke: `e7b405f` (`fix(runtime): separate approval validity from durable identity`).
+- Integration: `a9358df` (`fix(integration): record portable duplicate diagnostics`).
+
+Validation completed locally after implementation: Ananke focused 48/48 and
+full 20-file/176-test suite passed; Ananke build, lint, targeted formatting,
+and `git diff --check` passed. Integration focused 14/14, serial full suite
+105/105, `npm run validate`, syntax checks, and `git diff --check` passed.
+The parallel Integration test mode has a pre-existing timing-sensitive child
+output race; the serial full suite and normal validator both passed.
+
+Protected hashes after implementation remain exactly the five values recorded
+above. Final artifact hashes are driver
+`4CE12B4431DFF1BA38FCA661BADE0EE89CE5163DB2125FC6A297FDFD9B38214A`, sink
+`8C9BF1B6160A9BAE679FE5BF80B2352987FAD4B4A57B64E230FA7753CEDC9D67`, and
+worker `8AF0138F5D1F77ABEACF980B48CCB142FDEBCAA1B31A50F018E145097FC8DC8D`.
+
+Remote publication and CI verification remain pending because the safety
+review rejected the push as sensitive source egress without an explicit
+destination/payload authorization in the visible transcript. No push
+workaround was attempted. Therefore the remote SHAs remain Ananke
+`d74bccb51208ecb3b897b269082158153fd4e72f` and Integration
+`a19e71ae54b94648d7e7db848ccf331536c78ec9`, with no new CI run yet.
