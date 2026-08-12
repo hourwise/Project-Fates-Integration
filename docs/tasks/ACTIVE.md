@@ -2134,3 +2134,29 @@ The next owner-gated command remains a proposed future `--plan` only, using
 the final Integration SHA and final driver/sink/worker hashes; it must not be
 run in this task. A fresh Attempt 003 plan authorization is **GO for owner
 review**, not authorization to execute or to seal 004A.
+
+## FATES-SLICE-004A Attempt 003 live-acceptance disposition - 2026-08-12
+
+Status: **FAIL_BOUNDED - ATTEMPT CONSUMED; OWNER REVIEW REQUIRED.** The
+owner-authorized Attempt 003 execution ran exactly once at Integration
+checkpoint `dc0e26bae6bef5c8fc7cc9c1de5141838ff49e17` against the approved
+Ananke checkpoint. Case A first execution reached
+`dispatched_confirmed_success`, emitted and retained `EXECUTION_MARKER`, and
+created exactly one provider operation. The changed-correlation duplicate did
+not reuse the completed result, so Cases B-E were not run. Cleanup completed
+with zero remaining tracked processes. Attempt 004 is not authorized.
+
+The immutable terminal evidence is
+`docs/evidence/FATES-SLICE-004A-live-acceptance-attempt-003.json` with
+SHA-256 `12E89E4947FBCD93B3699CACEF9E7C12F4E898E4D8DBD57215565EF242B081A3`;
+the append-only journal is
+`docs/evidence/FATES-SLICE-004A-live-acceptance-attempt-003.events.ndjson`
+with SHA-256
+`9B9CA836EF48EDE62E34649E33A1B2EDFFB65BC5CC578D23CAAAFE68B6A488AB`.
+Both artifacts validate/parse and must remain byte-identical. The journal
+retains historical absolute command paths; it is preserved without a new
+boundary exception. Future reservation provenance must use portable logical
+runtime/entrypoint identity.
+
+No source remediation, retry, Attempt 004, Ananke change, evidence rewrite,
+tag, seal, 003B, 004B, or cross-Fate change is authorized by this disposition.

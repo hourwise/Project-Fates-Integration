@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 2,
+  "sliceId": "FATES-SLICE-004",
+  "subsliceId": "FATES-SLICE-004A",
+  "attemptId": "003",
+  "classification": "FAIL_BOUNDED",
+  "lifecycle": {
+    "state": "failed",
+    "reservedAt": "2026-08-12T11:50:21.987Z",
+    "startedAt": "2026-08-12T11:50:22.003Z",
+    "finishedAt": "2026-08-12T11:50:24.089Z"
+  },
+  "startingCheckpoints": {
+    "integration": "dc0e26bae6bef5c8fc7cc9c1de5141838ff49e17",
+    "ananke": "d74bccb51208ecb3b897b269082158153fd4e72f",
+    "horae": "3f531d4f5558a10a36aeae20c3458080eb4468b9",
+    "moirae": "bc7b984bd2eb0e0f07a1cd7259a8eab21556f097",
+    "mnemosyne": "f4ab76a9760f856d78908d35facceb068d78c8e5",
+    "runtimeContracts": "bbf240b1fdcb9be1dbd30b13d2fe2708a22ec7b8"
+  },
+  "driverSha256": "490E274A4CCBD1B82FBEED3242B34218BE2E94798809FB8A7006D0E30971ED01",
+  "fixtureSha256": "8C9BF1B6160A9BAE679FE5BF80B2352987FAD4B4A57B64E230FA7753CEDC9D67",
+  "workerSha256": "8AF0138F5D1F77ABEACF980B48CCB142FDEBCAA1B31A50F018E145097FC8DC8D",
+  "execute": {
+    "mode": "execute",
+    "ownerAuthorized": true,
+    "runtime": "node",
+    "entrypoint": "scripts/fates-slice04a-live-acceptance.mjs",
+    "command": [
+      "node",
+      "scripts/fates-slice04a-live-acceptance.mjs",
+      "--execute"
+    ]
+  },
+  "activeState": {
+    "status": "active",
+    "activeSliceId": "FATES-SLICE-004",
+    "activeSubsliceId": "FATES-SLICE-004A"
+  },
+  "currentStage": "case A changed-correlation duplicate",
+  "cases": [
+    {
+      "id": "A",
+      "status": "FAIL",
+      "providerOperationCount": 1,
+      "providerOperationCountKnown": true,
+      "redispatchCount": null,
+      "lastStage": "case A changed-correlation duplicate"
+    }
+  ],
+  "processFacts": {
+    "processesStarted": 2,
+    "providerProcessesStarted": 1,
+    "starts": [
+      {
+        "role": "receipt-sink",
+        "runtime": "node",
+        "entrypoint": "fixtures/slice-004a-receipt-sink/server.mjs",
+        "startedAt": "2026-08-12T11:50:22.017Z",
+        "readinessReached": true,
+        "stdout": {
+          "status": "observed",
+          "tail": "READY {\"port\":34220,\"fixture\":\"fates-slice-004a-receipt-sink\"}\n",
+          "truncated": false
+        },
+        "stderr": {
+          "status": "not_observed",
+          "tail": "",
+          "truncated": false
+        },
+        "exitCode": null,
+        "signal": "SIGTERM",
+        "spawnError": null,
+        "markers": {
+          "READY": {
+            "status": "observed",
+            "value": "{\"port\":34220,\"fixture\":\"fates-slice-004a-receipt-sink\"}"
+          },
+          "EXECUTION_MARKER": {
+            "status": "not_observed"
+          },
+          "CRASH_MARKER": {
+            "status": "not_observed"
+          },
+          "RECOVERY_RESULT": {
+            "status": "not_observed"
+          }
+        }
+      },
+      {
+        "role": "ananke",
+        "runtime": "node",
+        "entrypoint": "fixtures/slice-004a-ananke-process/server.mjs",
+        "startedAt": "2026-08-12T11:50:22.255Z",
+        "readinessReached": true,
+        "stdout": {
+          "status": "observed",
+          "tail": "ACCEPTANCE_COMPOSITION {\"route\":\"Gateway.execute\",\"toolName\":\"fates.slice04a.receipt.write\",\"durableConsumer\":true,\"lowLevelCallbacks\":false,\"databasePath\":\"<windows-path>\",\"providerUrl\":\"htt<windows-path>\"}\n🔮 Ananke Outcome Gateway running on htt<windows-path>\n[ananke] fates.slice04a.receipt.write → COMPLETED (35ms)\nEXECUTION_MARKER {\"intentId\":\"intent-3e928d16-8940-4c08-8c82-9409961f22b0\",\"state\":\"dispatched_confirmed_success\",\"version\":4,\"providerOperationId\":\"receipt-op-1-25328ba2-66b8-495d-8cbf-3967090c0687\",\"key\":\"004a-003-a\"}\nEXECUTION_MARKER {\"intentId\":\"intent-3e928d16-8940-4c08-8c82-9409961f22b0\",\"state\":\"dispatched_confirmed_success\",\"version\":4,\"providerOperationId\":\"receipt-op-1-25328ba2-66b8-495d-8cbf-3967090c0687\",\"key\":\"004a-003-a\"}\n[ananke] fates.slice04a.receipt.write → FAILED (2ms)\nEXECUTION_MARKER {\"intentId\":\"intent-3e928d16-8940-4c08-8c82-9409961f22b0\",\"state\":\"dispatched_confirmed_success\",\"version\":4,\"providerOperationId\":\"receipt-op-1-25328ba2-66b8-495d-8cbf-3967090c0687\",\"key\":\"004a-003-a\"}\n",
+          "truncated": false
+        },
+        "stderr": {
+          "status": "not_observed",
+          "tail": "",
+          "truncated": false
+        },
+        "exitCode": null,
+        "signal": "SIGTERM",
+        "spawnError": null,
+        "markers": {
+          "READY": {
+            "status": "not_observed"
+          },
+          "EXECUTION_MARKER": {
+            "status": "observed",
+            "value": "{\"intentId\":\"intent-3e928d16-8940-4c08-8c82-9409961f22b0\",\"state\":\"dispatched_confirmed_success\",\"version\":4,\"providerOperationId\":\"receipt-op-1-25328ba2-66b8-495d-8cbf-3967090c0687\",\"key\":\"004a-003-a\"}"
+          },
+          "CRASH_MARKER": {
+            "status": "not_observed"
+          },
+          "RECOVERY_RESULT": {
+            "status": "not_observed"
+          }
+        }
+      }
+    ]
+  },
+  "providerFacts": {
+    "operationCountKnown": true,
+    "operationCount": 1,
+    "operationDigests": [
+      "0FE65613B8A1FDAF763BD5A338E0E8E3B855A563367286FEF188395FCAA77D1B"
+    ]
+  },
+  "durableFacts": {
+    "observed": true,
+    "lastState": "dispatched_confirmed_success",
+    "intentIdDigest": "CCF6F0299AA999FF578593FFF69A5EFCAEA278F9D7EE607AC59B7AC573358F6C"
+  },
+  "cleanup": {
+    "attempted": true,
+    "completed": true,
+    "processesRemaining": 0
+  },
+  "failure": {
+    "caseId": "A",
+    "errorClass": "Error",
+    "message": "Case A duplicate did not reuse completion",
+    "stage": "case A changed-correlation duplicate"
+  },
+  "unknowns": [
+    "Provider operation count and transient SQLite details may be unknown if failure occurred before observation."
+  ],
+  "limitations": [
+    "Bounded disposable receipt-sink contract only; no arbitrary-provider or exactly-once claim.",
+    "No OS-authenticated process origin, host containment, or complete low-level bypass-resistance claim.",
+    "No third-party provider or provider credential was used.",
+    "Correlation IDs are retained for tracing but excluded from the durable semantic effect binding."
+  ]
+}
