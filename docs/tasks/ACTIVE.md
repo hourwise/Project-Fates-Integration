@@ -2048,3 +2048,30 @@ This checkpoint does not run Attempt 002, create credentials, invoke a
 provider, alter sealed R1 evidence, change the compatibility lock/matrix,
 resume 003B, activate 004B, or seal 004A. A separate owner authorization is
 required before any future `--plan`/`--execute` activity.
+
+## FATES-SLICE-004A Attempt 002 live-acceptance disposition - 2026-08-12
+
+Status: **INCOMPLETE - ATTEMPT CONSUMED; OWNER REVIEW REQUIRED.** The single
+owner-authorized Attempt 002 execution ran exactly once and failed during Case
+A first execution before the acceptance worker emitted `EXECUTION_MARKER`.
+Cases B-E were not run. The provider operation count is unknown and no
+positive provider effect was established. Attempt 003 is not authorized.
+
+The immutable terminal evidence is
+`docs/evidence/FATES-SLICE-004A-live-acceptance-attempt-002.json` with SHA-256
+`CFF90A021CD5F9B13158D2376CCF290F6664D7FBC3C5C7CDCC7DB0FA9CD37F5E`; the
+append-only journal is
+`docs/evidence/FATES-SLICE-004A-live-acceptance-attempt-002.events.ndjson`
+with SHA-256
+`0D57B1DC6AD66E45DACE4614F45B8A74FC58C10D262DAFC1DD0FF682CAB18468`.
+Both validate against evidence schema version 2 and must remain unchanged.
+No source remediation, retry, Attempt 003, tag, seal, 003B, 004B, or
+cross-Fate change is authorized by this disposition.
+
+The boundary validator has a digest-pinned exception for this exact terminal
+evidence path and SHA only, allowing only the two absolute provenance strings
+actually retained by Attempt 002. A changed byte, different path, different
+digest, or other file continues to fail boundary validation. Future live
+acceptance evidence should avoid unnecessary absolute host paths and use
+portable/logical invocation identity where possible while retaining sufficient
+provenance.

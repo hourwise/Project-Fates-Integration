@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 2,
+  "sliceId": "FATES-SLICE-004",
+  "subsliceId": "FATES-SLICE-004A",
+  "attemptId": "002",
+  "classification": "INCOMPLETE",
+  "lifecycle": {
+    "state": "incomplete",
+    "reservedAt": "2026-08-12T10:04:28.231Z",
+    "startedAt": "2026-08-12T10:04:28.236Z",
+    "finishedAt": "2026-08-12T10:04:39.796Z"
+  },
+  "startingCheckpoints": {
+    "integration": "20b369890b7f68c943e375d4629a7b6e8279b3ac",
+    "ananke": "d74bccb51208ecb3b897b269082158153fd4e72f",
+    "horae": "3f531d4f5558a10a36aeae20c3458080eb4468b9",
+    "moirae": "bc7b984bd2eb0e0f07a1cd7259a8eab21556f097",
+    "mnemosyne": "f4ab76a9760f856d78908d35facceb068d78c8e5",
+    "runtimeContracts": "bbf240b1fdcb9be1dbd30b13d2fe2708a22ec7b8"
+  },
+  "driverSha256": "F9C6F3AAE87EAB6A8E41881071BB2FF206636A6AA109D3843A1C226290C99925",
+  "fixtureSha256": "8C9BF1B6160A9BAE679FE5BF80B2352987FAD4B4A57B64E230FA7753CEDC9D67",
+  "workerSha256": "8AF0138F5D1F77ABEACF980B48CCB142FDEBCAA1B31A50F018E145097FC8DC8D",
+  "execute": {
+    "mode": "execute",
+    "ownerAuthorized": true,
+    "command": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "D:\\Users\\fleur\\Project-Fates-Integration\\scripts\\fates-slice04a-live-acceptance.mjs",
+      "--execute",
+      "--attempt-id",
+      "002",
+      "--owner-authorized",
+      "--approved-integration-sha",
+      "20b369890b7f68c943e375d4629a7b6e8279b3ac",
+      "--approved-ananke-sha",
+      "d74bccb51208ecb3b897b269082158153fd4e72f",
+      "--approved-driver-sha256",
+      "F9C6F3AAE87EAB6A8E41881071BB2FF206636A6AA109D3843A1C226290C99925",
+      "--approved-sink-sha256",
+      "8C9BF1B6160A9BAE679FE5BF80B2352987FAD4B4A57B64E230FA7753CEDC9D67",
+      "--approved-worker-sha256",
+      "8AF0138F5D1F77ABEACF980B48CCB142FDEBCAA1B31A50F018E145097FC8DC8D",
+      "--sink-port",
+      "34220",
+      "--ananke-port",
+      "34221"
+    ]
+  },
+  "activeState": {
+    "status": "active",
+    "activeSliceId": "FATES-SLICE-004",
+    "activeSubsliceId": "FATES-SLICE-004A"
+  },
+  "currentStage": "case A first execution",
+  "cases": [
+    {
+      "id": "A",
+      "status": "FAIL",
+      "providerOperationCount": null,
+      "providerOperationCountKnown": false,
+      "redispatchCount": null,
+      "lastStage": "case A first execution"
+    }
+  ],
+  "processFacts": {
+    "processesStarted": 2,
+    "providerProcessesStarted": 1,
+    "starts": [
+      {
+        "role": "receipt-sink",
+        "startedAt": "2026-08-12T10:04:28.250Z",
+        "exitCode": 1
+      },
+      {
+        "role": "ananke",
+        "startedAt": "2026-08-12T10:04:28.539Z",
+        "exitCode": 1
+      }
+    ]
+  },
+  "providerFacts": {
+    "operationCountKnown": false,
+    "operationCount": null,
+    "operationDigests": []
+  },
+  "durableFacts": {
+    "observed": false,
+    "lastState": null
+  },
+  "cleanup": {
+    "attempted": true,
+    "completed": false,
+    "processesRemaining": 2
+  },
+  "failure": {
+    "caseId": "A",
+    "errorClass": "Error",
+    "message": "EXECUTION_MARKER was not emitted by acceptance worker",
+    "stage": "case A first execution"
+  },
+  "unknowns": [
+    "Provider operation count and transient SQLite details may be unknown if failure occurred before observation."
+  ],
+  "limitations": [
+    "Bounded disposable receipt-sink contract only; no arbitrary-provider or exactly-once claim.",
+    "No OS-authenticated process origin, host containment, or complete low-level bypass-resistance claim.",
+    "No third-party provider or provider credential was used.",
+    "Correlation IDs are retained for tracing but excluded from the durable semantic effect binding."
+  ]
+}

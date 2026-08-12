@@ -1,0 +1,9 @@
+{"schemaVersion":2,"event":"reserved","at":"2026-08-12T10:04:28.235Z","attemptId":"002","sliceId":"FATES-SLICE-004","subsliceId":"FATES-SLICE-004A","mode":"execute","ownerAuthorized":true,"command":["C:\\Program Files\\nodejs\\node.exe","D:\\Users\\fleur\\Project-Fates-Integration\\scripts\\fates-slice04a-live-acceptance.mjs","--execute","--attempt-id","002","--owner-authorized","--approved-integration-sha","20b369890b7f68c943e375d4629a7b6e8279b3ac","--approved-ananke-sha","d74bccb51208ecb3b897b269082158153fd4e72f","--approved-driver-sha256","F9C6F3AAE87EAB6A8E41881071BB2FF206636A6AA109D3843A1C226290C99925","--approved-sink-sha256","8C9BF1B6160A9BAE679FE5BF80B2352987FAD4B4A57B64E230FA7753CEDC9D67","--approved-worker-sha256","8AF0138F5D1F77ABEACF980B48CCB142FDEBCAA1B31A50F018E145097FC8DC8D","--sink-port","34220","--ananke-port","34221"]}
+{"schemaVersion":2,"event":"progress","at":"2026-08-12T10:04:28.236Z","lifecycle":"started","startedAt":"2026-08-12T10:04:28.236Z"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-12T10:04:28.238Z","caseId":"A","stage":"case_started"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-12T10:04:28.239Z","stage":"case A start","caseId":"A"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-12T10:04:29.546Z","stage":"case A first execution","caseId":"A"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-12T10:04:29.688Z","caseId":"A","stage":"failure_observed","failure":{"stage":"case A first execution","errorClass":"Error","message":"EXECUTION_MARKER was not emitted by acceptance worker"}}
+{"schemaVersion":2,"event":"progress","at":"2026-08-12T10:04:29.689Z","caseId":"A","stage":"cleanup_started"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-12T10:04:29.757Z","caseId":"A","stage":"cleanup_completed"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-12T10:04:39.797Z","lifecycle":"terminal","classification":"INCOMPLETE"}
