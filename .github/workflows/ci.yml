@@ -14,6 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: integration
 
       - name: Checkout approved Ananke
         uses: actions/checkout@v4
@@ -30,6 +32,7 @@ jobs:
           node-version: 22
 
       - name: Install Integration dependencies
+        working-directory: integration
         run: npm ci
 
       - name: Install approved Ananke dependencies
@@ -41,14 +44,21 @@ jobs:
         run: npm run build
 
       - name: Verify approved Ananke provenance and artifacts
+        working-directory: integration
         env:
           FATES_ANANKE_ROOT: ${{ github.workspace }}/ananke
         run: node scripts/fates-slice04a-ananke-runtime.mjs --root "$FATES_ANANKE_ROOT" --require-approved-sha
 
+      - name: Verify approved Ananke checkout
+        working-directory: ananke
+        run: test "$(git rev-parse HEAD)" = "e7b405f3a217db6df31fe9ba7bde376ab666930c"
+
       - name: Validate
+        working-directory: integration
         env:
           FATES_ANANKE_ROOT: ${{ github.workspace }}/ananke
         run: npm run validate
 
       - name: Check whitespace
+        working-directory: integration
         run: git diff --check
