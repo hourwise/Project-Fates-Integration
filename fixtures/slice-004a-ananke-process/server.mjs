@@ -1,5 +1,5 @@
-import { writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { statSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const integrationRoot = process.cwd();
@@ -10,6 +10,13 @@ const runtime = await import(
 const { AuditLog } = await import(
   pathToFileURL(join(anankeRoot, 'packages', 'audit-engine', 'dist', 'index.js')).href,
 );
+
+function startupStage(stage) {
+  process.stdout.write(`STARTUP_STAGE ${JSON.stringify({ stage })}\n`);
+}
+
+startupStage('worker_entered');
+startupStage('runtime_modules_loaded');
 
 const args = process.argv.slice(2);
 function argument(name, fallback) {
@@ -30,8 +37,11 @@ const crashMode = argument('--crash-mode', '');
 const reconcileIntentId = argument('--reconcile-intent', '');
 const genericNegative = args.includes('--generic-negative');
 const callbackMarker = argument('--callback-marker', '');
+const storeProbe = args.includes('--store-probe');
 const toolName = 'fates.slice04a.receipt.write';
 const scope = '004a:local-development:default';
+
+startupStage('arguments_parsed');
 
 if (!Number.isInteger(port) || port < 0 || port > 65_535) throw new Error('invalid --port');
 if (!['', 'after_intent', 'after_dispatch_marker', 'after_provider_call'].includes(failpoint)) {
@@ -40,9 +50,28 @@ if (!['', 'after_intent', 'after_dispatch_marker', 'after_provider_call'].includ
 if (!['', 'after_dispatch_marker', 'after_provider_call'].includes(crashMode)) {
   throw new Error('invalid --crash-mode');
 }
-if (!genericNegative && !providerUrl) throw new Error('--provider is required');
+if (!storeProbe && !genericNegative && !providerUrl) throw new Error('--provider is required');
 
+const databaseParent = dirname(databasePath);
+startupStage('sqlite_parent_preflight_begun');
+const parentStat = statSync(databaseParent);
+if (!parentStat.isDirectory()) throw new Error('database parent is not a directory');
+startupStage('sqlite_parent_preflight_completed');
+
+if (storeProbe) {
+  process.stdout.write(`STORE_PROBE_BEFORE_CONSTRUCTION ${JSON.stringify({ databasePath })}\n`);
+  startupStage('sqlite_store_construction_begun');
+  const probeStore = new runtime.DurableExecutionStateStore(databasePath);
+  startupStage('sqlite_store_construction_completed');
+  process.stdout.write(`STORE_PROBE_AFTER_CONSTRUCTION ${JSON.stringify({ databasePath })}\n`);
+  probeStore.close();
+  process.stdout.write('STORE_PROBE_CLOSED {}\n');
+  process.exit(0);
+}
+
+startupStage('sqlite_store_construction_begun');
 const store = new runtime.DurableExecutionStateStore(databasePath);
+startupStage('sqlite_store_construction_completed');
 const audit = new AuditLog();
 
 function registerGateway() {
@@ -87,7 +116,9 @@ function registerGateway() {
 }
 
 if (reconcileIntentId) {
+  startupStage('gateway_construction_begun');
   const { consumer } = registerGateway();
+  startupStage('gateway_construction_completed');
   if (!consumer) throw new Error('reconciliation requires durable consumer mode');
   const recovered = consumer.recoverAfterRestart();
   const result = await consumer.reconcile(reconcileIntentId);
@@ -108,7 +139,9 @@ if (reconcileIntentId) {
   process.exit(0);
 }
 
+startupStage('gateway_construction_begun');
 const { gateway, consumer } = registerGateway();
+startupStage('gateway_construction_completed');
 const originalExecute = gateway.execute.bind(gateway);
 gateway.execute = async (...executeArgs) => {
   const result = await originalExecute(...executeArgs);
@@ -135,7 +168,9 @@ gateway.execute = async (...executeArgs) => {
   return result;
 };
 
+startupStage('gateway_start_begun');
 gateway.start();
+startupStage('gateway_start_completed');
 if (consumer) {
   process.stdout.write(
     `ACCEPTANCE_COMPOSITION ${JSON.stringify({
