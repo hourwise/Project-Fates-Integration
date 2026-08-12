@@ -11,7 +11,11 @@ const DIGEST_A = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 const DIGEST_B = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
 
 async function startSink(statePath) {
-  const child = spawn(process.execPath, [fixture, '--port', '0', '--state', statePath], {
+  return startSinkWithMode(statePath, 'success');
+}
+
+async function startSinkWithMode(statePath, mode) {
+  const child = spawn(process.execPath, [fixture, '--port', '0', '--state', statePath, '--mode', mode], {
     cwd: process.cwd(),
     shell: false,
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -99,6 +103,23 @@ test('receipt sink keeps independent state across duplicate, conflict, and proce
       )
     ).json();
     assert.equal(recoveredByIdempotency.receipt.providerOperationId, operationId);
+    assert.equal((await (await fetch(`${sink.baseUrl}/v1/state`)).json()).operationCount, 1);
+  } finally {
+    await stopSink(sink.child);
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test('receipt sink can retain a deliberately foreign receipt for mismatch reconciliation', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'fates-slice04a-receipt-mismatch-'));
+  const statePath = join(directory, 'provider-state.json');
+  const sink = await startSinkWithMode(statePath, 'mismatch');
+  try {
+    const response = await post(sink.baseUrl, requestBody());
+    assert.equal(response.status, 201);
+    const body = await response.json();
+    assert.equal(body.receipt.intentId, 'intent-fixture-001-foreign');
+    assert.equal(body.receipt.bindingDigest, 'b'.repeat(64));
     assert.equal((await (await fetch(`${sink.baseUrl}/v1/state`)).json()).operationCount, 1);
   } finally {
     await stopSink(sink.child);

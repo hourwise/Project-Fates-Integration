@@ -1982,3 +1982,46 @@ traceability checkpoint: `7c9bee0cb92ec18d9db30cc2ca14208fc1dc15a6` on
 
 The 004A record remains active and provisional. No live acceptance, credential,
 external effect, tag, seal, 003B, 004B, or cross-Fate change occurred.
+
+## FATES-SLICE-004A bounded live-acceptance preparation - 2026-08-12
+
+Status: **PREPARATION CHECKPOINT - LIVE ACCEPTANCE NOT EXECUTED.** Owner
+approval authorized preparation of the bounded live-acceptance package and
+driver only. The design is retained at
+[`docs/design/FATES-SLICE-004A-live-acceptance-design.md`](../design/FATES-SLICE-004A-live-acceptance-design.md).
+
+The prepared architecture uses two independent processes: the Integration
+receipt-sink fixture with its own atomic JSON provider state, and a dedicated
+Ananke acceptance worker that composes the public `Gateway`, registers exactly
+one durable receipt-sink consumer, and starts the existing Gateway HTTP route.
+The driver uses `/api/execute` and the existing approval routes; it does not
+invoke `executeTool`, `McpAdapter.executorFor`, a provider callback, or the
+durable coordinator as a substitute for Gateway execution. Ananke SQLite
+execution state and provider JSON state remain separate.
+
+The future cases are A normal governed effect plus duplicate, B controlled
+process interruption after provider persistence and read-only restart
+reconciliation, C bounded unresolved reconciliation, D provider binding/
+identity mismatch, and E generic effect registration failing closed at the
+central chokepoint. Case B uses the existing `after_provider_call` failpoint
+plus a bounded acceptance-worker exit; no SQLite editing is used. Cases C and
+D require zero redispatch. The accepted final claim remains limited to the
+supported Gateway entry point and the disposable provider contract; low-level
+execution capabilities remain an explicit outside-the-boundary limitation.
+
+The driver is
+[`scripts/fates-slice04a-live-acceptance.mjs`](../../scripts/fates-slice04a-live-acceptance.mjs)
+with separate `--plan` and owner-gated `--execute` modes. Plan mode checks
+the exact six-repository checkpoints, active/provisional 004A state, sealed R1
+baseline, 003B pause, ports, compiled Ananke output, and driver/fixture/worker
+SHA-256 values. It starts zero processes, performs zero provider operations,
+mutates no SQLite/provider state, creates no evidence, and generates no
+credential. Attempt IDs are three digits; existing evidence targets cannot be
+overwritten. The evidence schema is
+[`schemas/slice04a-live-evidence.schema.json`](../../schemas/slice04a-live-evidence.schema.json).
+
+Preparation changes are Integration-only: the design, driver, acceptance
+worker, evidence schema, receipt-sink mismatch fixture mode/test, this task
+record, and the index link. No Ananke source, Horae, Moirae, Mnemosyne,
+Runtime Contracts, Adrasteia, R1 evidence, lock, matrix, compatibility set,
+tag, credential, or live effect changed. No `--execute` invocation occurred.

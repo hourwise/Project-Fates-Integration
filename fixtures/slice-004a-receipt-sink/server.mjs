@@ -15,7 +15,7 @@ const statePath = argument('--state', '');
 const mode = argument('--mode', 'success');
 if (!Number.isInteger(port) || port < 0 || port > 65_535) throw new Error('invalid --port');
 if (!statePath) throw new Error('--state is required');
-if (!['success', 'failure', 'drop'].includes(mode)) throw new Error('invalid --mode');
+if (!['success', 'failure', 'drop', 'mismatch'].includes(mode)) throw new Error('invalid --mode');
 
 function emptyState() {
   return { schemaVersion: 1, nextSequence: 1, operations: [] };
@@ -82,6 +82,17 @@ function validateRequest(body) {
 }
 
 function receiptFor(operation) {
+  if (mode === 'mismatch') {
+    return {
+      providerOperationId: operation.providerOperationId,
+      intentId: `${operation.intentId}-foreign`,
+      idempotencyScope: operation.idempotencyScope,
+      idempotencyKey: operation.idempotencyKey,
+      bindingDigest: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+      status: operation.status,
+      resultDigest: operation.resultDigest,
+    };
+  }
   return {
     providerOperationId: operation.providerOperationId,
     intentId: operation.intentId,

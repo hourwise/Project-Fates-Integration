@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:fates:slice04a:live-acceptance-evidence:v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "sliceId", "subsliceId", "attemptId", "classification", "startingCheckpoints", "driverSha256", "fixtureSha256", "cases", "limitations"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "sliceId": { "const": "FATES-SLICE-004" },
+    "subsliceId": { "const": "FATES-SLICE-004A" },
+    "attemptId": { "type": "string", "pattern": "^[0-9]{3}$" },
+    "classification": { "enum": ["PASS_BOUNDED", "FAIL_BOUNDED", "INCOMPLETE", "ABORTED"] },
+    "startingCheckpoints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["integration", "ananke", "horae", "moirae", "mnemosyne", "runtimeContracts"],
+      "properties": {
+        "integration": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "ananke": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "horae": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "moirae": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "mnemosyne": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "runtimeContracts": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+      }
+    },
+    "driverSha256": { "type": "string", "pattern": "^[A-F0-9]{64}$" },
+    "fixtureSha256": { "type": "string", "pattern": "^[A-F0-9]{64}$" },
+    "cases": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "status", "providerOperationCount", "redispatchCount"],
+        "properties": {
+          "id": { "enum": ["A", "B", "C", "D", "E"] },
+          "status": { "enum": ["PASS", "FAIL", "ABORTED"] },
+          "providerOperationCount": { "type": "integer", "minimum": 0 },
+          "redispatchCount": { "const": 0 },
+          "evidenceDigest": { "type": "string", "pattern": "^[A-F0-9]{64}$" }
+        }
+      }
+    },
+    "limitations": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+  }
+}
