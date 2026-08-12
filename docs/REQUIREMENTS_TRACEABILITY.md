@@ -1634,3 +1634,25 @@ sole authority, Horae remains discovery/freshness/relay authority, Moirae
 remains the host boundary, Runtime Contracts remains neutral structure, and
 Mnemosyne remains outside this route. No R1 requirement authorizes OS
 containment, credential brokerage, provider-network redesign, or 003B work.
+
+### FATES-SLICE-004A Attempt 001 remediation
+
+Attempt `001` is `FAILED / INCOMPLETE` and permanently consumed. The original
+execute invocation failed in Case A because the duplicate reused its scoped
+idempotency key while changing only `correlationId`; the then-current durable
+binding included that trace field and returned `binding_mismatch`. Cases B-E
+did not run. The driver produced no final JSON evidence artifact, cleaned its
+temporary provider/SQLite state, and left provider operation count unknown.
+That unknown value is not reconstructed in the retrospective record at
+`docs/incidents/FATES-SLICE-004A-attempt-001.md`.
+
+The accepted remediation decision at
+`docs/decisions/FATES-SLICE-004A-correlation-id-decision.md` selects Model B:
+correlation is observational metadata retained in intent/provider/audit
+records but excluded from durable semantic effect hashing. Provider, target,
+arguments, principals, resource scope, purpose, tenant/workspace, expiry,
+approval hashes, effect, and scoped idempotency identity remain binding
+material. The Integration harness now reserves an append-only attempt journal
+before meaningful execution and creates one exclusive terminal evidence record
+for PASS, FAIL, or INCOMPLETE outcomes. No live rerun is authorized by this
+entry.

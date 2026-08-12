@@ -2025,3 +2025,26 @@ worker, evidence schema, receipt-sink mismatch fixture mode/test, this task
 record, and the index link. No Ananke source, Horae, Moirae, Mnemosyne,
 Runtime Contracts, Adrasteia, R1 evidence, lock, matrix, compatibility set,
 tag, credential, or live effect changed. No `--execute` invocation occurred.
+
+## FATES-SLICE-004A Attempt 001 remediation and acceptance-harness hardening - 2026-08-12
+
+Status: **REMEDIATION CHECKPOINT - NO LIVE ACCEPTANCE AUTHORIZED.** Attempt
+001 remains permanently consumed and classified `FAILED / INCOMPLETE`. Its
+retrospective record is retained at
+`docs/incidents/FATES-SLICE-004A-attempt-001.md`; no original live JSON
+artifact existed and no provider operation count is knowable.
+
+The correlation-ID decision at
+`docs/decisions/FATES-SLICE-004A-correlation-id-decision.md` selects Model B:
+correlation is observational trace metadata, not durable effect identity.
+Ananke removes only `correlationId` from the durable semantic binding while
+retaining it in intent, provider, and audit records. Effect-relevant binding
+mutations remain fail-closed. Integration acceptance evidence now uses an
+exclusive append-only reservation journal and exclusive terminal JSON record
+for PASS, FAIL, and INCOMPLETE outcomes; cleanup cannot erase the journal or
+replace a prior attempt.
+
+This checkpoint does not run Attempt 002, create credentials, invoke a
+provider, alter sealed R1 evidence, change the compatibility lock/matrix,
+resume 003B, activate 004B, or seal 004A. A separate owner authorization is
+required before any future `--plan`/`--execute` activity.

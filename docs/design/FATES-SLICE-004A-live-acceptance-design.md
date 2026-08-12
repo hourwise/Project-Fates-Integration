@@ -143,21 +143,28 @@ The expected durable states are the existing Ananke states:
 `reconciled_success` / `reconciled_failure` / `terminal_unresolved`.
 
 The durable binding joins action, exact arguments, principals, resource scope,
-purpose, expiry, approval hashes, provider/target, correlation, and scoped
-idempotency key. Provider evidence is joined only when operation ID,
+purpose, expiry, approval hashes, provider/target, and scoped idempotency key.
+Correlation is retained in the durable intent, provider request, and audit
+projection as observational trace metadata, but is not semantic binding
+material. Provider evidence is joined only when operation ID,
 idempotency scope/key, and binding digest match. Reconciliation is read-only,
 bounded to three queries at 250 ms each and a one-second total budget in this
 acceptance composition. A mismatch or exhausted budget is retained as
 unresolved; it never authorizes a new submit.
 
 The evidence schema is
-`schemas/slice04a-live-evidence.schema.json`. A future immutable attempt file
-contains the attempt ID, exact starting checkpoints, driver/fixture/worker
-hashes, mode and commands, process correlation metadata, sanitized lifecycle
-transitions, provider operation count and identity digests, reconciliation
-result, validation results, cleanup disposition, limitations, and final
-classification. It contains no tokens, headers, raw provider payloads,
-environment secrets, or unnecessary host paths.
+`schemas/slice04a-live-evidence.schema.json` (version 2). Execute mode first
+reserves an exclusive append-only `.events.ndjson` journal, records `reserved`
+and `started` lifecycle events, and then records case progress and known
+facts. After failure or success, the driver creates the terminal JSON exactly
+once with exclusive creation. A failure event is persisted before tracked
+process cleanup; cleanup state is then included in the terminal record. The
+record contains the attempt ID, exact starting checkpoints, driver/fixture/
+worker hashes, mode and command, process-start facts, sanitized lifecycle
+transitions, provider/durable facts, cleanup disposition, limitations, and
+final classification. Unknown values remain explicit null/false/unknown
+facts. It contains no tokens, headers, raw provider payloads, environment
+secrets, or unnecessary host paths.
 
 Attempt IDs are exactly three digits. The driver refuses an existing attempt
 target before any process starts and writes evidence with exclusive creation;
@@ -185,9 +192,10 @@ ambiguity, unbounded reconciliation, missing transition, credential leakage,
 or cleanup failure. Stop and classify the attempt as incomplete/failed; never
 retry an uncertain submission from the driver.
 
-At completion, stop all tracked processes, verify no acceptance child remains,
-retain sanitized evidence and provider-operation digests, and remove only the
-disposable temporary state. The resulting claim, if all cases pass, is
+At completion or failure, retain the known failure/progress event before
+stopping tracked processes, then verify no acceptance child remains and create
+the exclusive terminal record. Remove only disposable temporary state. The
+resulting claim, if all cases pass, is
 `PASS_BOUNDED — Gateway-governed durable receipt-sink lifecycle verified with
 independent provider persistence and bounded read-only reconciliation`. It is
 not a 004A seal and does not update compatibility closure.
@@ -200,8 +208,10 @@ receipt-sink tests, schema validation, boundary tests, and `git diff --check`.
 The later execution must be separately authorized. It must not start Horae,
 Moirae, Mnemosyne, Runtime Contracts, 003B, 004B, or any third-party provider.
 
-The proposed future command is intentionally not executed here:
+The proposed future command is intentionally not executed here. Attempt `001`
+is consumed; a future separately authorized preparation must use `002` and
+the post-remediation checkpoints/hashes:
 
 ```text
-node scripts/fates-slice04a-live-acceptance.mjs --execute --owner-authorized --attempt-id 001 --approved-integration-sha <preparation-checkpoint> --approved-ananke-sha 38c43aec29fe3080ff495f5f5f2433adc4632a66 --approved-driver-sha256 <driver-sha256> --approved-sink-sha256 <sink-sha256> --approved-worker-sha256 <worker-sha256> --sink-port 34220 --ananke-port 34221
+node scripts/fates-slice04a-live-acceptance.mjs --plan --approved-integration-sha <post-remediation-integration-sha> --approved-ananke-sha <post-remediation-ananke-sha> --approved-driver-sha256 <driver-sha256> --approved-sink-sha256 <sink-sha256> --approved-worker-sha256 <worker-sha256> --sink-port 34220 --ananke-port 34221
 ```

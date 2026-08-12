@@ -1,19 +1,61 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:fates:slice04a:live-acceptance-evidence:v1",
+  "$id": "urn:fates:slice04a:live-acceptance-evidence:v2",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "sliceId", "subsliceId", "attemptId", "classification", "startingCheckpoints", "driverSha256", "fixtureSha256", "cases", "limitations"],
+  "required": [
+    "schemaVersion",
+    "sliceId",
+    "subsliceId",
+    "attemptId",
+    "classification",
+    "lifecycle",
+    "startingCheckpoints",
+    "driverSha256",
+    "fixtureSha256",
+    "workerSha256",
+    "execute",
+    "activeState",
+    "currentStage",
+    "cases",
+    "processFacts",
+    "providerFacts",
+    "durableFacts",
+    "cleanup",
+    "failure",
+    "unknowns",
+    "limitations"
+  ],
   "properties": {
-    "schemaVersion": { "const": 1 },
+    "schemaVersion": { "const": 2 },
     "sliceId": { "const": "FATES-SLICE-004" },
     "subsliceId": { "const": "FATES-SLICE-004A" },
     "attemptId": { "type": "string", "pattern": "^[0-9]{3}$" },
-    "classification": { "enum": ["PASS_BOUNDED", "FAIL_BOUNDED", "INCOMPLETE", "ABORTED"] },
+    "classification": {
+      "enum": ["PASS_BOUNDED", "FAIL_BOUNDED", "INCOMPLETE", "ABORTED"]
+    },
+    "lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "reservedAt", "startedAt"],
+      "properties": {
+        "state": { "enum": ["passed", "failed", "incomplete", "aborted"] },
+        "reservedAt": { "type": "string", "format": "date-time" },
+        "startedAt": { "type": "string", "format": "date-time" },
+        "finishedAt": { "type": "string", "format": "date-time" }
+      }
+    },
     "startingCheckpoints": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["integration", "ananke", "horae", "moirae", "mnemosyne", "runtimeContracts"],
+      "required": [
+        "integration",
+        "ananke",
+        "horae",
+        "moirae",
+        "mnemosyne",
+        "runtimeContracts"
+      ],
       "properties": {
         "integration": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
         "ananke": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
@@ -25,22 +67,136 @@
     },
     "driverSha256": { "type": "string", "pattern": "^[A-F0-9]{64}$" },
     "fixtureSha256": { "type": "string", "pattern": "^[A-F0-9]{64}$" },
-    "cases": {
-      "type": "array",
-      "minItems": 5,
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["id", "status", "providerOperationCount", "redispatchCount"],
-        "properties": {
-          "id": { "enum": ["A", "B", "C", "D", "E"] },
-          "status": { "enum": ["PASS", "FAIL", "ABORTED"] },
-          "providerOperationCount": { "type": "integer", "minimum": 0 },
-          "redispatchCount": { "const": 0 },
-          "evidenceDigest": { "type": "string", "pattern": "^[A-F0-9]{64}$" }
+    "workerSha256": { "type": "string", "pattern": "^[A-F0-9]{64}$" },
+    "execute": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "ownerAuthorized", "command"],
+      "properties": {
+        "mode": { "const": "execute" },
+        "ownerAuthorized": { "const": true },
+        "command": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
         }
       }
     },
-    "limitations": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+    "activeState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "activeSliceId", "activeSubsliceId"],
+      "properties": {
+        "status": { "const": "active" },
+        "activeSliceId": { "const": "FATES-SLICE-004" },
+        "activeSubsliceId": { "const": "FATES-SLICE-004A" }
+      }
+    },
+    "currentStage": { "type": "string", "minLength": 1 },
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "status",
+          "providerOperationCount",
+          "providerOperationCountKnown",
+          "redispatchCount"
+        ],
+        "properties": {
+          "id": { "enum": ["A", "B", "C", "D", "E"] },
+          "status": {
+            "enum": ["STARTED", "PASS", "FAIL", "INCOMPLETE", "ABORTED"]
+          },
+          "providerOperationCount": {
+            "type": ["integer", "null"],
+            "minimum": 0
+          },
+          "providerOperationCountKnown": { "type": "boolean" },
+          "redispatchCount": { "type": ["integer", "null"], "minimum": 0 },
+          "evidenceDigest": { "type": "string", "pattern": "^[A-F0-9]{64}$" },
+          "lastStage": { "type": "string" }
+        }
+      }
+    },
+    "processFacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["processesStarted", "providerProcessesStarted", "starts"],
+      "properties": {
+        "processesStarted": { "type": "integer", "minimum": 0 },
+        "providerProcessesStarted": { "type": "integer", "minimum": 0 },
+        "starts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["role", "startedAt"],
+            "properties": {
+              "role": { "type": "string" },
+              "startedAt": { "type": "string", "format": "date-time" },
+              "exitCode": { "type": ["integer", "null"] }
+            }
+          }
+        }
+      }
+    },
+    "providerFacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operationCountKnown", "operationCount"],
+      "properties": {
+        "operationCountKnown": { "type": "boolean" },
+        "operationCount": { "type": ["integer", "null"], "minimum": 0 },
+        "operationDigests": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[A-F0-9]{64}$" }
+        }
+      }
+    },
+    "durableFacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["observed", "lastState"],
+      "properties": {
+        "observed": { "type": "boolean" },
+        "lastState": { "type": ["string", "null"] },
+        "intentIdDigest": { "type": "string", "pattern": "^[A-F0-9]{64}$" }
+      }
+    },
+    "failure": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["errorClass", "message", "stage"],
+          "properties": {
+            "caseId": { "type": "string" },
+            "errorClass": { "type": "string" },
+            "message": { "type": "string", "maxLength": 512 },
+            "stage": { "type": "string" }
+          }
+        }
+      ]
+    },
+    "cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["attempted", "completed", "processesRemaining"],
+      "properties": {
+        "attempted": { "type": "boolean" },
+        "completed": { "type": "boolean" },
+        "processesRemaining": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "unknowns": { "type": "array", "items": { "type": "string" } },
+    "limitations": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    }
   }
 }
