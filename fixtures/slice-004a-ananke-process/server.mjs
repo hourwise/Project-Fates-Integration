@@ -141,76 +141,77 @@ if (reconcileIntentId) {
     })}\n`,
   );
   store.close();
-  process.exit(0);
-}
+  process.exitCode = 0;
+} else {
 
-startupStage('gateway_construction_begun');
-const { gateway, consumer } = registerGateway();
-startupStage('gateway_construction_completed');
-const originalExecute = gateway.execute.bind(gateway);
-gateway.execute = async (...executeArgs) => {
-  const result = await originalExecute(...executeArgs);
-  const actionArgs = executeArgs[1];
-  const key = actionArgs && typeof actionArgs.idempotencyKey === 'string' ? actionArgs.idempotencyKey : '';
-  const intent = key ? store.getByIdempotency(scope, key) : undefined;
-  if (intent) {
+  startupStage('gateway_construction_begun');
+  const { gateway, consumer } = registerGateway();
+  startupStage('gateway_construction_completed');
+  const originalExecute = gateway.execute.bind(gateway);
+  gateway.execute = async (...executeArgs) => {
+    const result = await originalExecute(...executeArgs);
+    const actionArgs = executeArgs[1];
+    const key = actionArgs && typeof actionArgs.idempotencyKey === 'string' ? actionArgs.idempotencyKey : '';
+    const intent = key ? store.getByIdempotency(scope, key) : undefined;
+    if (intent) {
+      process.stdout.write(
+        `EXECUTION_MARKER ${JSON.stringify({
+          intentId: intent.intentId,
+          state: intent.state,
+          version: intent.version,
+          providerOperationId: intent.providerOperationId,
+          key,
+        })}\n`,
+      );
+    }
+    if (crashMode && intent?.state === 'dispatch_marked') {
+      process.stdout.write(
+        `CRASH_MARKER ${JSON.stringify({ intentId: intent.intentId, state: intent.state, crashMode })}\n`,
+      );
+      setImmediate(() => process.exit(75));
+    }
+    return result;
+  };
+
+  startupStage('gateway_start_begun');
+  gateway.start();
+  startupStage('gateway_start_completed');
+  if (consumer) {
     process.stdout.write(
-      `EXECUTION_MARKER ${JSON.stringify({
-        intentId: intent.intentId,
-        state: intent.state,
-        version: intent.version,
-        providerOperationId: intent.providerOperationId,
-        key,
+      `ACCEPTANCE_COMPOSITION ${JSON.stringify({
+        route: 'Gateway.execute',
+        toolName,
+        durableConsumer: true,
+        lowLevelCallbacks: false,
+        databasePath,
+        providerUrl,
+      })}\n`,
+    );
+  } else {
+    process.stdout.write(
+      `ACCEPTANCE_COMPOSITION ${JSON.stringify({
+        route: 'Gateway.execute',
+        toolName,
+        durableConsumer: false,
+        genericEffectNegative: true,
+        lowLevelCallbacks: false,
       })}\n`,
     );
   }
-  if (crashMode && intent?.state === 'dispatch_marked') {
-    process.stdout.write(
-      `CRASH_MARKER ${JSON.stringify({ intentId: intent.intentId, state: intent.state, crashMode })}\n`,
-    );
-    setImmediate(() => process.exit(75));
-  }
-  return result;
-};
 
-startupStage('gateway_start_begun');
-gateway.start();
-startupStage('gateway_start_completed');
-if (consumer) {
-  process.stdout.write(
-    `ACCEPTANCE_COMPOSITION ${JSON.stringify({
-      route: 'Gateway.execute',
-      toolName,
-      durableConsumer: true,
-      lowLevelCallbacks: false,
-      databasePath,
-      providerUrl,
-    })}\n`,
-  );
-} else {
-  process.stdout.write(
-    `ACCEPTANCE_COMPOSITION ${JSON.stringify({
-      route: 'Gateway.execute',
-      toolName,
-      durableConsumer: false,
-      genericEffectNegative: true,
-      lowLevelCallbacks: false,
-    })}\n`,
-  );
-}
-
-function close() {
-  try {
-    store.close();
-  } catch {
-    // Process teardown is best effort; the driver records exit state.
+  function close() {
+    try {
+      store.close();
+    } catch {
+      // Process teardown is best effort; the driver records exit state.
+    }
   }
+  process.once('SIGTERM', () => {
+    close();
+    process.exit(0);
+  });
+  process.once('SIGINT', () => {
+    close();
+    process.exit(0);
+  });
 }
-process.once('SIGTERM', () => {
-  close();
-  process.exit(0);
-});
-process.once('SIGINT', () => {
-  close();
-  process.exit(0);
-});
