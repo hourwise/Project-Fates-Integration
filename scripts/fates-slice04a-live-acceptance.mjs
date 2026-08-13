@@ -68,6 +68,9 @@ const WORKER_PATH = join(
 );
 const DEV_EXECUTION_TOKEN = "dev-execution-token";
 const DEV_APPROVAL_TOKEN = "dev-approval-token";
+const RETAINED_EVIDENCE_PATH_PATTERN =
+  /^docs\/evidence\/FATES-SLICE-004A-live-acceptance-attempt-(\d{3})\.(json|events\.ndjson)$/;
+const SHA256_PATTERN = /^[A-Fa-f0-9]{64}$/;
 const activeChildren = new Set();
 const processStarts = [];
 
@@ -76,6 +79,19 @@ function arg(name, fallback = undefined) {
   return index >= 0 && process.argv[index + 1]
     ? process.argv[index + 1]
     : fallback;
+}
+function argsFor(name) {
+  const values = [];
+  for (let index = 0; index < process.argv.length; index += 1) {
+    if (process.argv[index] !== name) continue;
+    const value = process.argv[index + 1];
+    if (!value || value.startsWith("--")) {
+      throw new Error(`${name} requires a value`);
+    }
+    values.push(value);
+    index += 1;
+  }
+  return values;
 }
 const mode = process.argv.includes("--execute")
   ? "execute"
@@ -115,6 +131,129 @@ function git(repo, args) {
 function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
+function parseRetainedEvidenceApprovals(values, currentAttemptId) {
+  const current = Number(normalizeAttemptId(currentAttemptId));
+  const approvals = new Map();
+  for (const value of values) {
+    const separator = value.indexOf("=");
+    assert(separator > 0, "retained evidence approval must be path=sha256");
+    assert(
+      separator === value.lastIndexOf("="),
+      "retained evidence approval is malformed",
+    );
+    const relativePath = value.slice(0, separator);
+    const expectedHash = value.slice(separator + 1);
+    const match = relativePath.match(RETAINED_EVIDENCE_PATH_PATTERN);
+    assert(match, `retained evidence path is not canonical: ${relativePath}`);
+    assert(
+      SHA256_PATTERN.test(expectedHash),
+      `retained evidence hash is malformed: ${relativePath}`,
+    );
+    const retainedAttempt = Number(match[1]);
+    assert(
+      retainedAttempt < current,
+      `retained evidence must belong to a prior attempt: ${relativePath}`,
+    );
+    assert(
+      !approvals.has(relativePath),
+      `duplicate retained evidence approval: ${relativePath}`,
+    );
+    approvals.set(relativePath, expectedHash.toUpperCase());
+  }
+
+  const attempts = new Map();
+  for (const relativePath of approvals.keys()) {
+    const match = relativePath.match(RETAINED_EVIDENCE_PATH_PATTERN);
+    const suffixes = attempts.get(match[1]) ?? new Set();
+    suffixes.add(match[2]);
+    attempts.set(match[1], suffixes);
+  }
+  for (const [attempt, suffixes] of attempts) {
+    assert(
+      suffixes.size === 2 &&
+        suffixes.has("json") &&
+        suffixes.has("events.ndjson"),
+      `retained evidence requires the complete JSON/journal pair for attempt ${attempt}`,
+    );
+  }
+  return approvals;
+}
+
+export function verifyRetainedEvidenceWorktree({
+  repo,
+  currentAttemptId,
+  approvalValues = [],
+}) {
+  const approvals = parseRetainedEvidenceApprovals(
+    approvalValues,
+    currentAttemptId,
+  );
+  const status = git(repo, [
+    "status",
+    "--porcelain=v1",
+    "--untracked-files=all",
+  ]);
+  assert(
+    status.exitCode === 0,
+    `Integration worktree status failed: ${status.stderr.trim()}`,
+  );
+  const lines = status.stdout.split(/\r?\n/).filter(Boolean);
+  const untrackedPaths = [];
+  for (const line of lines) {
+    assert(line.length >= 3, "Integration worktree status output is malformed");
+    const state = line.slice(0, 2);
+    if (state === "??") {
+      const relativePath = line.slice(3);
+      assert(
+        relativePath && !relativePath.includes('"'),
+        "Integration untracked path is malformed",
+      );
+      untrackedPaths.push(relativePath.replaceAll("\\", "/"));
+      continue;
+    }
+    throw new Error(`Integration worktree has tracked or staged changes: ${line}`);
+  }
+
+  if (untrackedPaths.length === 0 && approvals.size === 0) {
+    return {
+      worktreeVerified: true,
+      retainedEvidenceVerified: false,
+      retainedEvidenceCount: 0,
+      retainedEvidence: [],
+    };
+  }
+  assert(
+    approvals.size > 0,
+    "Integration worktree has unapproved untracked files",
+  );
+  const actualSet = new Set(untrackedPaths);
+  assert(
+    actualSet.size === approvals.size &&
+      untrackedPaths.every((relativePath) => approvals.has(relativePath)),
+    "Integration worktree contains unapproved untracked files",
+  );
+
+  const retainedEvidence = [];
+  for (const [relativePath, expectedHash] of approvals) {
+    const absolutePath = join(repo, ...relativePath.split("/"));
+    assert(
+      existsSync(absolutePath),
+      `approved retained evidence is missing: ${relativePath}`,
+    );
+    const actualHash = sha256(absolutePath);
+    assert(
+      actualHash === expectedHash,
+      `retained evidence hash mismatch: ${relativePath}`,
+    );
+    retainedEvidence.push({ path: relativePath, sha256: actualHash });
+  }
+  return {
+    worktreeVerified: true,
+    retainedEvidenceVerified: true,
+    retainedEvidenceCount: retainedEvidence.length,
+    retainedEvidence,
+  };
+}
 function safePort(port) {
   return new Promise((resolvePort) => {
     const socket = createConnection({ host: "127.0.0.1", port });
@@ -126,9 +265,15 @@ function safePort(port) {
     socket.once("error", () => finish(true));
   });
 }
-async function verifyPreflight(approvedIntegration, approvedAnanke) {
+async function verifyPreflight(
+  approvedIntegration,
+  approvedAnanke,
+  currentAttemptId,
+  retainedEvidenceApprovalValues = [],
+) {
   const checkpoints = {};
   const warnings = [];
+  let integrationWorktree;
   for (const [name, repo, expected] of REPOS) {
     const expectedSha =
       name === "integration"
@@ -146,10 +291,16 @@ async function verifyPreflight(approvedIntegration, approvedAnanke) {
       head.exitCode === 0 && head.stdout.trim() === expectedSha,
       `${name} checkpoint mismatch`,
     );
-    assert(
-      status.exitCode === 0 && status.stdout.trim() === "",
-      `${name} worktree is not clean`,
-    );
+    assert(status.exitCode === 0, `${name} worktree status failed`);
+    if (name === "integration") {
+      integrationWorktree = verifyRetainedEvidenceWorktree({
+        repo,
+        currentAttemptId,
+        approvalValues: retainedEvidenceApprovalValues,
+      });
+    } else {
+      assert(status.stdout.trim() === "", `${name} worktree is not clean`);
+    }
     if (head.stderr.trim())
       warnings.push(`${name} rev-parse: ${head.stderr.trim()}`);
     if (status.stderr.trim())
@@ -188,7 +339,7 @@ async function verifyPreflight(approvedIntegration, approvedAnanke) {
     ),
     "003B pause is not recorded",
   );
-  return { checkpoints, warnings };
+  return { checkpoints, warnings, integrationWorktree };
 }
 function validateHashArgument(name, path, expected) {
   const actual = sha256(path);
@@ -213,6 +364,12 @@ export function buildPlanResult({
   approvedWorker,
   checkpoints,
   warnings,
+  integrationWorktree = {
+    worktreeVerified: true,
+    retainedEvidenceVerified: false,
+    retainedEvidenceCount: 0,
+    retainedEvidence: [],
+  },
 }) {
   return {
     mode: "plan",
@@ -237,7 +394,11 @@ export function buildPlanResult({
       route: "Gateway.execute",
       lowLevelCallbacks: false,
     },
-    integration: { approvalMatch: true, approvedSha: approvedIntegration },
+    integration: {
+      approvalMatch: true,
+      approvedSha: approvedIntegration,
+      ...integrationWorktree,
+    },
     ananke: { approvedSha: approvedAnanke },
     ports: { sink: sinkPort, ananke: anankePort, requiredFree: true },
     hashes: {
@@ -273,11 +434,19 @@ async function plan() {
   );
   const evidenceRoot = resolve(integrationRoot, "docs", "evidence");
   const lineage = resolveAttemptLineage(evidenceRoot, arg("--attempt-id"));
+  const retainedEvidenceApprovalValues = argsFor(
+    "--approved-retained-evidence",
+  );
   const sinkPort = Number(arg("--sink-port", "34220"));
   const anankePort = Number(arg("--ananke-port", "34221"));
   assert(await safePort(sinkPort), `sink port ${sinkPort} is not free`);
   assert(await safePort(anankePort), `Ananke port ${anankePort} is not free`);
-  const preflight = await verifyPreflight(approvedIntegration, approvedAnanke);
+  const preflight = await verifyPreflight(
+    approvedIntegration,
+    approvedAnanke,
+    lineage.attemptId,
+    retainedEvidenceApprovalValues,
+  );
   validateHashArgument("driver", DRIVER_PATH, approvedDriver);
   validateHashArgument("sink fixture", SINK_PATH, approvedSink);
   validateHashArgument("Ananke acceptance worker", WORKER_PATH, approvedWorker);
@@ -300,6 +469,7 @@ async function plan() {
     approvedWorker,
     checkpoints: preflight.checkpoints,
     warnings: preflight.warnings,
+    integrationWorktree: preflight.integrationWorktree,
   });
   process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
 }
@@ -566,6 +736,9 @@ async function execute() {
   );
   const evidenceRoot = resolve(integrationRoot, "docs", "evidence");
   const lineage = resolveAttemptLineage(evidenceRoot, arg("--attempt-id"));
+  const retainedEvidenceApprovalValues = argsFor(
+    "--approved-retained-evidence",
+  );
   const attemptId = normalizeAttemptId(lineage.attemptId);
   const evidencePaths = {
     finalPath: lineage.evidencePath,
@@ -578,6 +751,8 @@ async function execute() {
   const preflight = await verifyPreflight(
     arg("--approved-integration-sha"),
     arg("--approved-ananke-sha"),
+    lineage.attemptId,
+    retainedEvidenceApprovalValues,
   );
   validateHashArgument("driver", DRIVER_PATH, arg("--approved-driver-sha256"));
   validateHashArgument(
