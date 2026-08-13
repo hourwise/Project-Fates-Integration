@@ -1,16 +1,17 @@
 import { createHash } from "node:crypto";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { createConnection } from "node:net";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, relative, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import {
   appendAttemptEvent,
-  attemptEvidencePaths,
   attemptIsReserved,
   finalizeAttempt,
+  normalizeAttemptId,
   reserveAttempt,
+  resolveAttemptLineage,
 } from "./fates-slice04a-attempt-evidence.mjs";
 import {
   diagnosticTail,
@@ -197,42 +198,32 @@ function validateHashArgument(name, path, expected) {
   );
   return actual;
 }
-async function plan() {
-  assert(mode === "plan", "use --plan or --execute");
-  const approvedIntegration = arg("--approved-integration-sha");
-  const approvedAnanke = arg("--approved-ananke-sha");
-  const approvedDriver = arg("--approved-driver-sha256");
-  const approvedSink = arg("--approved-sink-sha256");
-  const approvedWorker = arg("--approved-worker-sha256");
-  assert(
-    approvedIntegration &&
-      approvedAnanke &&
-      approvedDriver &&
-      approvedSink &&
-      approvedWorker,
-    "plan requires all approved checkpoints and hashes",
-  );
-  const sinkPort = Number(arg("--sink-port", "34220"));
-  const anankePort = Number(arg("--ananke-port", "34221"));
-  assert(await safePort(sinkPort), `sink port ${sinkPort} is not free`);
-  assert(await safePort(anankePort), `Ananke port ${anankePort} is not free`);
-  const preflight = await verifyPreflight(approvedIntegration, approvedAnanke);
-  validateHashArgument("driver", DRIVER_PATH, approvedDriver);
-  validateHashArgument("sink fixture", SINK_PATH, approvedSink);
-  validateHashArgument("Ananke acceptance worker", WORKER_PATH, approvedWorker);
-  assert(
-    existsSync(
-      join(anankeRoot, "packages", "runtime-core", "dist", "index.js"),
-    ),
-    "Ananke build output is missing",
-  );
-  const evidenceRoot = resolve(integrationRoot, "docs", "evidence");
-  const plannedAttemptId = arg("--attempt-id");
-  const attemptReserved = Boolean(
-    plannedAttemptId && attemptIsReserved(evidenceRoot, plannedAttemptId),
-  );
-  const result = {
+function logicalEvidencePath(path) {
+  return relative(integrationRoot, path).replaceAll("\\", "/");
+}
+export function buildPlanResult({
+  lineage,
+  attemptReserved,
+  sinkPort,
+  anankePort,
+  approvedIntegration,
+  approvedAnanke,
+  approvedDriver,
+  approvedSink,
+  approvedWorker,
+  checkpoints,
+  warnings,
+}) {
+  return {
     mode: "plan",
+    attemptId: lineage.attemptId,
+    predecessorAttemptId: lineage.predecessorAttemptId,
+    predecessorEvidencePath: lineage.predecessorEvidencePath
+      ? logicalEvidencePath(lineage.predecessorEvidencePath)
+      : null,
+    predecessorClassification: lineage.predecessorClassification,
+    evidencePath: logicalEvidencePath(lineage.evidencePath),
+    journalPath: logicalEvidencePath(lineage.journalPath),
     processesStarted: 0,
     providerProcessesStarted: 0,
     providerOperations: 0,
@@ -254,8 +245,8 @@ async function plan() {
       sinkSha256: approvedSink,
       workerSha256: approvedWorker,
     },
-    checkpoints: preflight.checkpoints,
-    warnings: preflight.warnings,
+    checkpoints,
+    warnings,
     actions: [
       "start independent disposable receipt sink",
       "start dedicated Ananke acceptance worker",
@@ -264,6 +255,52 @@ async function plan() {
       "retain sanitized immutable attempt evidence",
     ],
   };
+}
+async function plan() {
+  assert(mode === "plan", "use --plan or --execute");
+  const approvedIntegration = arg("--approved-integration-sha");
+  const approvedAnanke = arg("--approved-ananke-sha");
+  const approvedDriver = arg("--approved-driver-sha256");
+  const approvedSink = arg("--approved-sink-sha256");
+  const approvedWorker = arg("--approved-worker-sha256");
+  assert(
+    approvedIntegration &&
+      approvedAnanke &&
+      approvedDriver &&
+      approvedSink &&
+      approvedWorker,
+    "plan requires all approved checkpoints and hashes",
+  );
+  const evidenceRoot = resolve(integrationRoot, "docs", "evidence");
+  const lineage = resolveAttemptLineage(evidenceRoot, arg("--attempt-id"));
+  const sinkPort = Number(arg("--sink-port", "34220"));
+  const anankePort = Number(arg("--ananke-port", "34221"));
+  assert(await safePort(sinkPort), `sink port ${sinkPort} is not free`);
+  assert(await safePort(anankePort), `Ananke port ${anankePort} is not free`);
+  const preflight = await verifyPreflight(approvedIntegration, approvedAnanke);
+  validateHashArgument("driver", DRIVER_PATH, approvedDriver);
+  validateHashArgument("sink fixture", SINK_PATH, approvedSink);
+  validateHashArgument("Ananke acceptance worker", WORKER_PATH, approvedWorker);
+  assert(
+    existsSync(
+      join(anankeRoot, "packages", "runtime-core", "dist", "index.js"),
+    ),
+    "Ananke build output is missing",
+  );
+  const attemptReserved = attemptIsReserved(evidenceRoot, lineage.attemptId);
+  const result = buildPlanResult({
+    lineage,
+    attemptReserved,
+    sinkPort,
+    anankePort,
+    approvedIntegration,
+    approvedAnanke,
+    approvedDriver,
+    approvedSink,
+    approvedWorker,
+    checkpoints: preflight.checkpoints,
+    warnings: preflight.warnings,
+  });
   process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
 }
 
@@ -527,10 +564,13 @@ async function execute() {
     process.argv.includes("--owner-authorized"),
     "execute requires explicit --owner-authorized input",
   );
-  const attemptId = arg("--attempt-id");
-  assert(/^\d{3}$/.test(attemptId), "attempt ID must be exactly three digits");
   const evidenceRoot = resolve(integrationRoot, "docs", "evidence");
-  const evidencePaths = attemptEvidencePaths(evidenceRoot, attemptId);
+  const lineage = resolveAttemptLineage(evidenceRoot, arg("--attempt-id"));
+  const attemptId = normalizeAttemptId(lineage.attemptId);
+  const evidencePaths = {
+    finalPath: lineage.evidencePath,
+    eventsPath: lineage.journalPath,
+  };
   assert(
     !attemptIsReserved(evidenceRoot, attemptId),
     "attempt ID is already reserved or has evidence and cannot be reused",
@@ -1128,6 +1168,8 @@ async function execute() {
   if (classification !== "PASS_BOUNDED") process.exitCode = 1;
 }
 
-if (mode === "plan") await plan();
-else if (mode === "execute") await execute();
-else throw new Error("exactly one of --plan or --execute is required");
+if (resolve(process.argv[1] ?? "") === fileURLToPath(import.meta.url)) {
+  if (mode === "plan") await plan();
+  else if (mode === "execute") await execute();
+  else throw new Error("exactly one of --plan or --execute is required");
+}

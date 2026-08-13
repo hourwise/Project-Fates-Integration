@@ -8,6 +8,8 @@ import assert from "node:assert/strict";
 import Ajv2020 from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
 import { checkForLocalPathsObj, immutableEvidenceAllowedPaths } from "../scripts/boundary-policy.mjs";
+import { buildPlanResult } from "../scripts/fates-slice04a-live-acceptance.mjs";
+import { resolveAttemptLineage } from "../scripts/fates-slice04a-attempt-evidence.mjs";
 
 const root = process.cwd();
 const driver = join(root, "scripts", "fates-slice04a-live-acceptance.mjs");
@@ -22,10 +24,12 @@ const sha = (path) =>
   createHash("sha256").update(readFileSync(path)).digest("hex").toUpperCase();
 const baseArgs = [
   "--plan",
+  "--attempt-id",
+  "001",
   "--approved-integration-sha",
-  "c9cf54c14dc4a16defd258576e23fb2907559a8c",
+  "07481a11744acb0f77968a93b08f7ceb4a021233",
   "--approved-ananke-sha",
-  "d74bccb51208ecb3b897b269082158153fd4e72f",
+  "e7b405f3a217db6df31fe9ba7bde376ab666930c",
   "--approved-driver-sha256",
   sha(driver),
   "--approved-sink-sha256",
@@ -48,8 +52,55 @@ test("004A plan contract explicitly reports no attempt reservation", () => {
   const source = readFileSync(driver, "utf8");
   assert.match(source, /attemptReserved/);
   assert.match(source, /attemptReserved,\s*credentialsGenerated/);
-  assert.match(source, /attemptReserved\s*=\s*Boolean\(/);
-  assert.match(source, /plannedAttemptId\s*&&\s*attemptIsReserved\(/);
+  assert.match(source, /const attemptReserved = attemptIsReserved\(/);
+  assert.match(source, /resolveAttemptLineage\(/);
+});
+
+test("004A plan result exposes generic lineage and proposed paths without reserving", () => {
+  const plan = buildPlanResult({
+    lineage: resolveAttemptLineage(join(root, "docs", "evidence"), "005"),
+    attemptReserved: false,
+    sinkPort: 34220,
+    anankePort: 34221,
+    approvedIntegration: "07481a11744acb0f77968a93b08f7ceb4a021233",
+    approvedAnanke: "e7b405f3a217db6df31fe9ba7bde376ab666930c",
+    approvedDriver: sha(driver),
+    approvedSink: sha(sink),
+    approvedWorker: sha(worker),
+    checkpoints: {},
+    warnings: [],
+  });
+  assert.deepEqual(
+    {
+      mode: plan.mode,
+      attemptId: plan.attemptId,
+      predecessorAttemptId: plan.predecessorAttemptId,
+      predecessorEvidencePath: plan.predecessorEvidencePath,
+      predecessorClassification: plan.predecessorClassification,
+      evidencePath: plan.evidencePath,
+      journalPath: plan.journalPath,
+    },
+    {
+      mode: "plan",
+      attemptId: "005",
+      predecessorAttemptId: "004",
+      predecessorEvidencePath:
+        "docs/evidence/FATES-SLICE-004A-live-acceptance-attempt-004.json",
+      predecessorClassification: "FAIL_BOUNDED",
+      evidencePath:
+        "docs/evidence/FATES-SLICE-004A-live-acceptance-attempt-005.json",
+      journalPath:
+        "docs/evidence/FATES-SLICE-004A-live-acceptance-attempt-005.events.ndjson",
+    },
+  );
+  assert.equal(plan.processesStarted, 0);
+  assert.equal(plan.providerProcessesStarted, 0);
+  assert.equal(plan.providerOperations, 0);
+  assert.equal(plan.sqliteMutated, false);
+  assert.equal(plan.evidenceCreated, false);
+  assert.equal(plan.attemptReserved, false);
+  assert.equal(plan.credentialsGenerated, 0);
+  assert.equal(plan.fixtureEffects, 0);
 });
 
 test("004A plan is side-effect-free and fails closed before any process action on an invalid checkpoint", () => {

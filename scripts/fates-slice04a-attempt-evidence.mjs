@@ -8,6 +8,7 @@ import {
 import { join } from "node:path";
 
 export const ATTEMPT_EVIDENCE_SCHEMA_VERSION = 2;
+const ATTEMPT_ID_PATTERN = /^\d{3}$/;
 const TERMINAL_CLASSIFICATIONS = new Set([
   "PASS_BOUNDED",
   "FAIL_BOUNDED",
@@ -15,17 +16,88 @@ const TERMINAL_CLASSIFICATIONS = new Set([
   "ABORTED",
 ]);
 
-function validateAttemptId(attemptId) {
-  if (!/^\d{3}$/.test(attemptId))
-    throw new Error("attempt ID must be exactly three digits");
+export function normalizeAttemptId(attemptId) {
+  if (
+    typeof attemptId !== "string" ||
+    !ATTEMPT_ID_PATTERN.test(attemptId) ||
+    Number(attemptId) < 1
+  ) {
+    throw new Error(
+      "attempt ID must be a positive three-digit decimal identifier, for example 005",
+    );
+  }
+  return attemptId;
 }
 
 function pathsFor(evidenceRoot, attemptId) {
-  validateAttemptId(attemptId);
-  const stem = `FATES-SLICE-004A-live-acceptance-attempt-${attemptId}`;
+  const normalizedAttemptId = normalizeAttemptId(attemptId);
+  const stem = `FATES-SLICE-004A-live-acceptance-attempt-${normalizedAttemptId}`;
   return {
     eventsPath: join(evidenceRoot, `${stem}.events.ndjson`),
     finalPath: join(evidenceRoot, `${stem}.json`),
+  };
+}
+
+export function resolveAttemptLineage(evidenceRoot, attemptId) {
+  const normalizedAttemptId = normalizeAttemptId(attemptId);
+  const currentPaths = pathsFor(evidenceRoot, normalizedAttemptId);
+  const numericAttemptId = Number(normalizedAttemptId);
+  const predecessorAttemptId =
+    numericAttemptId === 1
+      ? null
+      : String(numericAttemptId - 1).padStart(3, "0");
+
+  if (predecessorAttemptId === null) {
+    return {
+      attemptId: normalizedAttemptId,
+      predecessorAttemptId: null,
+      predecessorEvidencePath: null,
+      predecessorClassification: null,
+      evidencePath: currentPaths.finalPath,
+      journalPath: currentPaths.eventsPath,
+    };
+  }
+
+  const predecessorPaths = pathsFor(evidenceRoot, predecessorAttemptId);
+  if (!existsSync(predecessorPaths.finalPath)) {
+    throw new Error(
+      `predecessor evidence is missing: ${predecessorPaths.finalPath}`,
+    );
+  }
+
+  let predecessorEvidence;
+  try {
+    predecessorEvidence = JSON.parse(
+      readFileSync(predecessorPaths.finalPath, "utf8"),
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "invalid JSON";
+    throw new Error(
+      `predecessor evidence is not valid JSON: ${predecessorPaths.finalPath} (${message})`,
+    );
+  }
+
+  if (
+    !predecessorEvidence ||
+    predecessorEvidence.attemptId !== predecessorAttemptId
+  ) {
+    throw new Error(
+      `predecessor evidence attempt ID mismatch: expected ${predecessorAttemptId}`,
+    );
+  }
+  if (!TERMINAL_CLASSIFICATIONS.has(predecessorEvidence.classification)) {
+    throw new Error(
+      `predecessor evidence classification is missing or invalid: ${predecessorPaths.finalPath}`,
+    );
+  }
+
+  return {
+    attemptId: normalizedAttemptId,
+    predecessorAttemptId,
+    predecessorEvidencePath: predecessorPaths.finalPath,
+    predecessorClassification: predecessorEvidence.classification,
+    evidencePath: currentPaths.finalPath,
+    journalPath: currentPaths.eventsPath,
   };
 }
 

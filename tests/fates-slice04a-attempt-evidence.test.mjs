@@ -1,4 +1,10 @@
-import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import test from "node:test";
@@ -10,8 +16,10 @@ import {
   attemptEvidencePaths,
   attemptIsReserved,
   finalizeAttempt,
+  normalizeAttemptId,
   readAttemptEvents,
   reserveAttempt,
+  resolveAttemptLineage,
 } from "../scripts/fates-slice04a-attempt-evidence.mjs";
 
 const schema = JSON.parse(
@@ -88,6 +96,114 @@ function validEvidence(attemptId) {
     limitations: ["bounded disposable fixture"],
   };
 }
+
+test("004A lineage normalizes only positive three-digit attempt IDs", () => {
+  for (const attemptId of ["001", "005", "042"]) {
+    assert.equal(normalizeAttemptId(attemptId), attemptId);
+  }
+  for (const attemptId of ["000", "5", "05", "abcd", "", undefined]) {
+    assert.throws(
+      () => normalizeAttemptId(attemptId),
+      /positive three-digit/,
+    );
+  }
+});
+
+test("004A lineage resolves immediate predecessor identity, classification, and canonical paths", () => {
+  const root = mkdtempSync(join(tmpdir(), "fates-slice04a-lineage-"));
+  try {
+    const predecessor = attemptEvidencePaths(root, "004").finalPath;
+    writeFileSync(
+      predecessor,
+      JSON.stringify({ attemptId: "004", classification: "FAIL_BOUNDED" }),
+    );
+    const lineage = resolveAttemptLineage(root, "005");
+    assert.equal(lineage.attemptId, "005");
+    assert.equal(lineage.predecessorAttemptId, "004");
+    assert.equal(lineage.predecessorEvidencePath, predecessor);
+    assert.equal(lineage.predecessorClassification, "FAIL_BOUNDED");
+    assert.equal(
+      lineage.evidencePath,
+      attemptEvidencePaths(root, "005").finalPath,
+    );
+    assert.equal(
+      lineage.journalPath,
+      attemptEvidencePaths(root, "005").eventsPath,
+    );
+    assert.equal(existsSync(lineage.evidencePath), false);
+    assert.equal(existsSync(lineage.journalPath), false);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("004A lineage derives future predecessors generically and fails closed on bad predecessor state", () => {
+  const root = mkdtempSync(join(tmpdir(), "fates-slice04a-lineage-generic-"));
+  try {
+    const nine = attemptEvidencePaths(root, "009").finalPath;
+    writeFileSync(
+      nine,
+      JSON.stringify({ attemptId: "009", classification: "INCOMPLETE" }),
+    );
+    const ten = resolveAttemptLineage(root, "010");
+    assert.equal(ten.predecessorAttemptId, "009");
+    assert.equal(ten.predecessorClassification, "INCOMPLETE");
+
+    rmSync(nine);
+    assert.throws(
+      () => resolveAttemptLineage(root, "010"),
+      /predecessor evidence is missing/,
+    );
+
+    writeFileSync(
+      nine,
+      JSON.stringify({ attemptId: "008", classification: "INCOMPLETE" }),
+    );
+    assert.throws(
+      () => resolveAttemptLineage(root, "010"),
+      /attempt ID mismatch/,
+    );
+
+    writeFileSync(
+      nine,
+      JSON.stringify({ attemptId: "009", classification: "UNKNOWN" }),
+    );
+    assert.throws(
+      () => resolveAttemptLineage(root, "010"),
+      /classification is missing or invalid/,
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("004A current canonical state resolves Attempt 005 lineage without touching proposed paths", () => {
+  const evidenceRoot = join(process.cwd(), "docs", "evidence");
+  const lineage = resolveAttemptLineage(evidenceRoot, "005");
+  assert.deepEqual(
+    {
+      attemptId: lineage.attemptId,
+      predecessorAttemptId: lineage.predecessorAttemptId,
+      predecessorEvidencePath: lineage.predecessorEvidencePath.replaceAll("\\", "/").replace(`${process.cwd().replaceAll("\\", "/")}/`, ""),
+      predecessorClassification: lineage.predecessorClassification,
+      evidencePath: lineage.evidencePath.replaceAll("\\", "/").replace(`${process.cwd().replaceAll("\\", "/")}/`, ""),
+      journalPath: lineage.journalPath.replaceAll("\\", "/").replace(`${process.cwd().replaceAll("\\", "/")}/`, ""),
+    },
+    {
+      attemptId: "005",
+      predecessorAttemptId: "004",
+      predecessorEvidencePath:
+        "docs/evidence/FATES-SLICE-004A-live-acceptance-attempt-004.json",
+      predecessorClassification: "FAIL_BOUNDED",
+      evidencePath:
+        "docs/evidence/FATES-SLICE-004A-live-acceptance-attempt-005.json",
+      journalPath:
+        "docs/evidence/FATES-SLICE-004A-live-acceptance-attempt-005.events.ndjson",
+    },
+  );
+  assert.equal(existsSync(lineage.evidencePath), false);
+  assert.equal(existsSync(lineage.journalPath), false);
+});
 
 test("004A evidence reservation is exclusive, append-only, and terminal records cannot be replaced", () => {
   const root = mkdtempSync(join(tmpdir(), "fates-slice04a-attempt-evidence-"));
