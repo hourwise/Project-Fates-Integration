@@ -177,32 +177,47 @@ test("004A lineage derives future predecessors generically and fails closed on b
   }
 });
 
-test("004A current canonical state resolves Attempt 005 lineage without touching proposed paths", () => {
-  const evidenceRoot = join(process.cwd(), "docs", "evidence");
-  const lineage = resolveAttemptLineage(evidenceRoot, "005");
+test("004A synthetic Attempt 005 lineage resolves paths without touching retained evidence", () => {
+  const retainedEvidenceRoot = join(process.cwd(), "docs", "evidence");
+  const retainedBefore = {
+    evidence: attemptIsReserved(retainedEvidenceRoot, "005"),
+  };
+  const evidenceRoot = mkdtempSync(join(tmpdir(), "fates-slice04a-current-lineage-"));
+  try {
+    const predecessor = attemptEvidencePaths(evidenceRoot, "004").finalPath;
+    writeFileSync(
+      predecessor,
+      JSON.stringify({ attemptId: "004", classification: "FAIL_BOUNDED" }),
+    );
+    const lineage = resolveAttemptLineage(evidenceRoot, "005");
+    assert.deepEqual(
+      {
+        attemptId: lineage.attemptId,
+        predecessorAttemptId: lineage.predecessorAttemptId,
+        predecessorEvidencePath: lineage.predecessorEvidencePath,
+        predecessorClassification: lineage.predecessorClassification,
+        evidencePath: lineage.evidencePath,
+        journalPath: lineage.journalPath,
+      },
+      {
+        attemptId: "005",
+        predecessorAttemptId: "004",
+        predecessorEvidencePath: predecessor,
+        predecessorClassification: "FAIL_BOUNDED",
+        evidencePath: attemptEvidencePaths(evidenceRoot, "005").finalPath,
+        journalPath: attemptEvidencePaths(evidenceRoot, "005").eventsPath,
+      },
+    );
+    assert.equal(attemptIsReserved(evidenceRoot, "005"), false);
+    assert.equal(existsSync(lineage.evidencePath), false);
+    assert.equal(existsSync(lineage.journalPath), false);
+  } finally {
+    rmSync(evidenceRoot, { recursive: true, force: true });
+  }
   assert.deepEqual(
-    {
-      attemptId: lineage.attemptId,
-      predecessorAttemptId: lineage.predecessorAttemptId,
-      predecessorEvidencePath: lineage.predecessorEvidencePath.replaceAll("\\", "/").replace(`${process.cwd().replaceAll("\\", "/")}/`, ""),
-      predecessorClassification: lineage.predecessorClassification,
-      evidencePath: lineage.evidencePath.replaceAll("\\", "/").replace(`${process.cwd().replaceAll("\\", "/")}/`, ""),
-      journalPath: lineage.journalPath.replaceAll("\\", "/").replace(`${process.cwd().replaceAll("\\", "/")}/`, ""),
-    },
-    {
-      attemptId: "005",
-      predecessorAttemptId: "004",
-      predecessorEvidencePath:
-        "docs/evidence/FATES-SLICE-004A-live-acceptance-attempt-004.json",
-      predecessorClassification: "FAIL_BOUNDED",
-      evidencePath:
-        "docs/evidence/FATES-SLICE-004A-live-acceptance-attempt-005.json",
-      journalPath:
-        "docs/evidence/FATES-SLICE-004A-live-acceptance-attempt-005.events.ndjson",
-    },
+    { evidence: attemptIsReserved(retainedEvidenceRoot, "005") },
+    retainedBefore,
   );
-  assert.equal(existsSync(lineage.evidencePath), false);
-  assert.equal(existsSync(lineage.journalPath), false);
 });
 
 test("004A evidence reservation is exclusive, append-only, and terminal records cannot be replaced", () => {
