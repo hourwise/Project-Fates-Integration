@@ -3,8 +3,8 @@
   "subsliceId": "FATES-SLICE-004A",
   "parentSliceId": "FATES-SLICE-004",
   "title": "Durable governed-effect lifecycle",
-  "implementationStatus": "active",
-  "sealStatus": "provisional",
+  "implementationStatus": "completed",
+  "sealStatus": "sealed",
   "objective": "Prove one Ananke-authoritative, durable, bounded governed effect with explicit dispatch, outcome, duplicate, indeterminate, and reconciliation semantics.",
   "owners": ["Ananke", "Fates Integration"],
   "components": ["Ananke execution authority", "Integration control and evidence", "Independent disposable receipt sink fixture"],
@@ -37,8 +37,9 @@
   ],
   "designPackage": "docs/design/FATES-SLICE-004A-activation-package.md",
   "activation": {
-    "state": "active",
+    "state": "closed",
     "ownerDecision": "Owner authorization activated the bounded 004A control state; separate owner approvals authorize the bounded Ananke Batch 1 implementation, one receipt-sink consumer-wiring batch, and this effect-path/chokepoint batch while later work remains gated.",
     "baselineCompatibilitySet": "fates-slice-003a-r1-2026-08-11"
-  }
+  },
+  "sealRecord": "docs/evidence/FATES-SLICE-004A-seal.json"
 }

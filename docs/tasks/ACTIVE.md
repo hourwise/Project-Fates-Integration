@@ -2370,3 +2370,73 @@ CI publication fields will be recorded after the two narrow commits and the
 single resulting CI run. Attempt 005 remains unplanned, unreserved, and
 unexecuted; no live acceptance is authorized. Separate Attempt 005 plan
 authorization is **NO-GO from this task** and requires a new owner decision.
+
+## FATES-SLICE-004A generic sub-slice seal-test correction - 2026-08-14
+
+Status: **STOPPED before commit/publication - clean published validation
+failed outside the authorized test correction.**
+
+The starting Integration local and remote HEAD were both
+`6ff2fb068612486064d43b99b2793c048fb37707` on
+`codex/slice-003a-activation`. The prepared 004A candidate remained untouched.
+All eleven protected retained-artifact hashes matched their required values,
+including Attempt 001's incident record at
+`docs/incidents/FATES-SLICE-004A-attempt-001.md`; the Attempt 005 reporting
+interpretation remains `FAIL_BOUNDED`, consumed, and historically executed.
+
+The only production correction was made in `tests/subslice-seal.test.mjs`.
+Generic disposable fixtures now prove both active/provisional and
+completed/sealed/closed letter-qualified sub-slice states, valid child closure
+with `activeSubsliceId: null`, independent open parent state, and an uncreated
+unauthorized successor. The tests no longer read or branch on the live 004A
+lifecycle. Existing negative coverage remains in place. The published sealing
+decision and schemas confirm both lifecycle states are intentionally valid.
+
+The authoritative sealed-candidate focused test passed 11/11 exactly once.
+A disposable checkout at
+`C:\Users\USER\AppData\Local\Temp\fates-subslice-seal-clean-c20f2e4ec57d40058ecab9e4e6542818`
+was based at the same 6ff2fb0 commit; its corrected test bytes matched the
+authoritative test exactly and its provisional focused test passed 11/11.
+The single clean `FATES_ANANKE_ROOT=... npm run validate` invocation passed
+JSON, lock, matrix, slices, and sub-slice checks, then stopped at boundary
+validation with exit 1 because the published checkout's retained Attempt 002
+artifact contains two absolute Windows paths that its boundary validator does
+not allow. Read-only comparison showed that the clean checkout's Attempt 002
+bytes and boundary-validator content differ from the authoritative retained
+artifacts/working-tree state. No retry was performed.
+
+Because clean full validation did not pass, this task created no commit, did
+not stage any file, did not push, and did not start CI. The seal candidate and
+Attempt 005/006 evidence remain local and unchanged. 004A has not been
+formally sealed, 004B remains unauthorized, and the separate resumed seal
+transaction is **NO-GO** pending resolution of the published-base boundary
+discrepancy and a fresh authorized run.
+
+## FATES-SLICE-004A resumed seal transaction - 2026-08-14
+
+Status: **LOCAL VALIDATION GREEN - PUBLICATION AUTHORIZED.** The prior stop
+was resolved without changing protected evidence or weakening boundary
+enforcement. Attempt 002 is tracked normally: its working-tree, index, HEAD,
+and origin Git blob all resolve to `8200f1ad99126de81b6951df9b878d057d082fab`.
+The raw SHA-256 discrepancy was caused by the repository having no
+`.gitattributes` rule for evidence while Windows `core.autocrlf=true`
+materialized a fresh checkout as CRLF. The protected retained file is LF-only
+and hashes to the required `CFF90A021CD5F9B13158D2376CCF290F6664D7FBC3C5C7CDCC7DB0FA9CD37F5E`.
+
+The narrow bookkeeping correction is `.gitattributes` with
+`docs/evidence/** -text`, preserving byte-level evidence materialization for
+all evidence without changing boundary policy, adding an exception, or
+altering any evidence bytes. The corrected generic seal test remains
+`tests/subslice-seal.test.mjs`; no schema, validator, live driver, worker,
+component repository, Attempt 005/006 artifact, or seal-candidate field
+required a change.
+
+Protected evidence reverified 11/11. The authoritative focused seal test
+passed 11/11. One clean provisional full validation passed JSON (18/18), lock,
+matrix, slices/sub-slices, boundaries, ordinary tests (132/132),
+process-heavy tests (9/9), and complete validation in 132.746 seconds. No
+transaction test listener remained afterward. Attempt 007 was not created,
+004B remains absent and unauthorized, and no live acceptance attempt was
+rerun. The prepared 004A candidate remains completed/sealed/closed with the
+active parent open and `activeSubsliceId: null`; it is ready for the bounded
+commit/push/CI/tag transaction authorized by the resumed seal approval.

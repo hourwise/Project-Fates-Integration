@@ -2,7 +2,7 @@
   "$schema": "./schemas/active-slice.schema.json",
   "status": "active",
   "activeSliceId": "FATES-SLICE-004",
-  "activeSubsliceId": "FATES-SLICE-004A",
+  "activeSubsliceId": null,
   "baselineCompatibilitySet": "fates-slice-003a-r1-2026-08-11",
   "nextRecommendedSlice": "FATES-SLICE-004",
   "activationRequirements": {

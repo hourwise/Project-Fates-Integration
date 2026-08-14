@@ -92,7 +92,7 @@ function syntheticSeal(root, overrides = {}) {
   };
 }
 
-function syntheticRoot({ sealOverrides = {}, childOverrides = {}, matrixRows = [] } = {}) {
+function syntheticRoot({ sealOverrides = {}, childOverrides = {}, matrixRows = [], lifecycle = 'sealed' } = {}) {
   const root = resolve(tmpdir(), `fates-subslice-seal-${Date.now()}-${Math.random().toString(16).slice(2)}`);
   mkdirSync(resolve(root, 'slices', '123-test', 'subslices', '0-child'), { recursive: true });
   mkdirSync(resolve(root, 'docs', 'evidence'), { recursive: true });
@@ -106,32 +106,33 @@ function syntheticRoot({ sealOverrides = {}, childOverrides = {}, matrixRows = [
     activeSliceId: parentId,
     activeSubsliceId: null,
   }));
-  const seal = syntheticSeal(root, sealOverrides);
+  const seal = lifecycle === 'sealed' ? syntheticSeal(root, sealOverrides) : undefined;
   const sealPath = expectedSubsliceSealPath(childId);
-  writeFileSync(resolve(root, sealPath), JSON.stringify(seal));
+  if (seal) writeFileSync(resolve(root, sealPath), JSON.stringify(seal));
+  const child = {
+    subsliceId: childId,
+    parentSliceId: parentId,
+    implementationStatus: lifecycle === 'sealed' ? 'completed' : 'active',
+    sealStatus: lifecycle === 'sealed' ? 'sealed' : 'provisional',
+    title: 'Synthetic child',
+    objective: 'Synthetic objective',
+    owners: ['Integration'],
+    components: ['Integration'],
+    prerequisites: ['baseline'],
+    scope: ['bounded'],
+    nonScope: ['next child'],
+    requirements: ['REQ-1'],
+    activation: {
+      state: lifecycle === 'sealed' ? 'closed' : 'active',
+      ownerDecision: 'separate authorization',
+      baselineCompatibilitySet: 'baseline',
+    },
+    ...childOverrides,
+  };
+  if (seal) child.sealRecord = sealPath;
   writeFileSync(
     resolve(root, 'slices', '123-test', 'subslices', '0-child', 'subslice.json'),
-    JSON.stringify({
-      subsliceId: childId,
-      parentSliceId: parentId,
-      implementationStatus: 'completed',
-      sealStatus: 'sealed',
-      title: 'Synthetic child',
-      objective: 'Synthetic objective',
-      owners: ['Integration'],
-      components: ['Integration'],
-      prerequisites: ['baseline'],
-      scope: ['bounded'],
-      nonScope: ['next child'],
-      requirements: ['REQ-1'],
-      activation: {
-        state: 'closed',
-        ownerDecision: 'separate authorization',
-        baselineCompatibilitySet: 'baseline',
-      },
-      sealRecord: sealPath,
-      ...childOverrides,
-    }),
+    JSON.stringify(child),
   );
   if (matrixRows.length > 0) {
     writeFileSync(resolve(root, 'compatibility-matrix.json'), JSON.stringify({ rows: matrixRows }));
@@ -148,12 +149,26 @@ function withSynthetic(options, callback) {
   }
 }
 
-test('existing provisional 004A remains valid without a seal record', () => {
-  const current = JSON.parse(readFileSync(resolve(repositoryRoot, 'slices/004-governed-execution/subslices/004A-durable-governed-effect-lifecycle/subslice.json'), 'utf8'));
-  const result = validateDocument(validators, 'subslice', current);
-  assert.equal(result.valid, true, JSON.stringify(result.errors));
-  assert.equal(current.sealStatus, 'provisional');
-  assert.equal(existsSync(resolve(repositoryRoot, 'docs/evidence/FATES-SLICE-004A-seal.json')), false);
+test('disposable provisional letter-qualified sub-slice remains valid without a seal record', () => {
+  withSynthetic({ lifecycle: 'provisional' }, ({ root }) => {
+    const childPath = resolve(root, 'slices/123-test/subslices/0-child/subslice.json');
+    const child = JSON.parse(readFileSync(childPath, 'utf8'));
+    const result = validateDocument(validators, 'subslice', child);
+    assert.equal(result.valid, true, JSON.stringify(result.errors));
+    assert.equal(child.implementationStatus, 'active');
+    assert.equal(child.sealStatus, 'provisional');
+    assert.equal(child.activation.state, 'active');
+    assert.equal('sealRecord' in child, false);
+    assert.deepEqual(verifySubsliceSealRecords(root), []);
+    assert.deepEqual(
+      validateActiveSubsliceState(
+        { status: 'active', activeSliceId: parentId, activeSubsliceId: childId },
+        [{ slice: { sliceId: parentId } }],
+        [{ subslice: child }],
+      ),
+      [],
+    );
+  });
 });
 
 test('valid sealed letter-qualified sub-slice passes and leaves parent open', () => {
@@ -231,21 +246,21 @@ test('sealed child is not active, while the open parent may remain active', () =
   );
 });
 
-test('a later sibling remains uncreated and unauthorized', () => {
-  const active = JSON.parse(readFileSync(resolve(repositoryRoot, 'active-slice.json'), 'utf8'));
-  assert.equal(active.activeSliceId, 'FATES-SLICE-004');
-  assert.equal(active.activeSubsliceId, 'FATES-SLICE-004A');
-  assert.equal(
-    existsSync(resolve(repositoryRoot, 'slices/004-governed-execution/subslices/004B-durable-governed-effect-lifecycle/subslice.json')),
-    false,
-  );
+test('a later sibling remains uncreated and unauthorized after child closure', () => {
+  withSynthetic({}, ({ root }) => {
+    const successorId = 'FATES-SLICE-123C';
+    const active = JSON.parse(readFileSync(resolve(root, 'active-slice.json'), 'utf8'));
+    assert.equal(active.activeSliceId, parentId);
+    assert.equal(active.activeSubsliceId, null);
+    assert.equal(
+      existsSync(resolve(root, 'slices/123-test/subslices/1-successor/subslice.json')),
+      false,
+    );
+    assert.equal(successorId.startsWith(`${parentId}C`), true);
+  });
 });
 
 test('tag derivation is generic and version/protocol-driven', () => {
-  assert.equal(
-    deriveSubsliceTag('FATES-SLICE-004A', '0.1.0', '1.4.0'),
-    'fates-slice-004a-v0.1.0-protocol-1.4.0',
-  );
   assert.equal(
     deriveSubsliceTag(childId, '2.3.4', '9.8.7'),
     'fates-slice-123b-v2.3.4-protocol-9.8.7',

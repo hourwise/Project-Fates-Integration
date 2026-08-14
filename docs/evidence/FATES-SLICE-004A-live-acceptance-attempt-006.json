@@ -1,0 +1,694 @@
+{
+  "schemaVersion": 2,
+  "sliceId": "FATES-SLICE-004",
+  "subsliceId": "FATES-SLICE-004A",
+  "attemptId": "006",
+  "classification": "PASS_BOUNDED",
+  "lifecycle": {
+    "state": "passed",
+    "reservedAt": "2026-08-13T21:51:25.097Z",
+    "startedAt": "2026-08-13T21:51:25.114Z",
+    "finishedAt": "2026-08-13T21:51:34.181Z"
+  },
+  "startingCheckpoints": {
+    "integration": "51154b4cd6a70ca63ff75a378838f22e4d715183",
+    "ananke": "e7b405f3a217db6df31fe9ba7bde376ab666930c",
+    "horae": "3f531d4f5558a10a36aeae20c3458080eb4468b9",
+    "moirae": "bc7b984bd2eb0e0f07a1cd7259a8eab21556f097",
+    "mnemosyne": "f4ab76a9760f856d78908d35facceb068d78c8e5",
+    "runtimeContracts": "bbf240b1fdcb9be1dbd30b13d2fe2708a22ec7b8"
+  },
+  "driverSha256": "5AD8BC50B3416DE0F8C07E181BCADF70396C512ABC5AF325CDCD2456B44B61EB",
+  "fixtureSha256": "8C9BF1B6160A9BAE679FE5BF80B2352987FAD4B4A57B64E230FA7753CEDC9D67",
+  "workerSha256": "0E211DA7B8EFB9A4F3A2CE60A9924BEDF1D35B840BB58973D2A214113B7ACFF5",
+  "execute": {
+    "mode": "execute",
+    "ownerAuthorized": true,
+    "runtime": "node",
+    "entrypoint": "scripts/fates-slice04a-live-acceptance.mjs",
+    "provenance": {
+      "runtime": "node",
+      "entrypoint": "scripts/fates-slice04a-live-acceptance.mjs",
+      "mode": "execute",
+      "attemptId": "006",
+      "approvedCheckpoints": {
+        "integration": "51154b4cd6a70ca63ff75a378838f22e4d715183",
+        "ananke": "e7b405f3a217db6df31fe9ba7bde376ab666930c",
+        "horae": "3f531d4f5558a10a36aeae20c3458080eb4468b9",
+        "moirae": "bc7b984bd2eb0e0f07a1cd7259a8eab21556f097",
+        "mnemosyne": "f4ab76a9760f856d78908d35facceb068d78c8e5",
+        "runtimeContracts": "bbf240b1fdcb9be1dbd30b13d2fe2708a22ec7b8"
+      },
+      "artifactHashes": {
+        "driver": "5AD8BC50B3416DE0F8C07E181BCADF70396C512ABC5AF325CDCD2456B44B61EB",
+        "sink": "8C9BF1B6160A9BAE679FE5BF80B2352987FAD4B4A57B64E230FA7753CEDC9D67",
+        "worker": "0E211DA7B8EFB9A4F3A2CE60A9924BEDF1D35B840BB58973D2A214113B7ACFF5"
+      }
+    }
+  },
+  "activeState": {
+    "status": "active",
+    "activeSliceId": "FATES-SLICE-004",
+    "activeSubsliceId": "FATES-SLICE-004A"
+  },
+  "currentStage": "case E chokepoint denial",
+  "cases": [
+    {
+      "id": "A",
+      "status": "PASS",
+      "providerOperationCount": 1,
+      "providerOperationCountKnown": true,
+      "redispatchCount": 0,
+      "lastStage": "case A provider observation",
+      "evidenceDigest": "75517C9796060303B0D1B32E2B2CAF8ED1A060394BDCAF9624C610FA3F9EB901",
+      "duplicateDiagnostics": {
+        "firstExecution": {
+          "httpStatus": 200,
+          "gatewayOutcome": "COMPLETED",
+          "reasonCode": null,
+          "errorCode": null,
+          "approvalRequested": true,
+          "approvalIdPresent": true,
+          "approvalIdDigest": "AB1251A4D47B3057692CFD1792445C65A80F97AD85FBBD69FB7159ED84E63B1A",
+          "approvalExpiresAt": "2026-08-13T21:56:25.957Z",
+          "durableState": "dispatched_confirmed_success",
+          "providerInvoked": true,
+          "bindingMismatch": false,
+          "correlationIdDigest": "6F33EE5830748B504C4D674AAD0B1ED713A4DAD80BACDD557C3B61A372E22979"
+        },
+        "duplicateExecution": {
+          "httpStatus": 200,
+          "gatewayOutcome": "COMPLETED",
+          "reasonCode": null,
+          "errorCode": null,
+          "approvalRequested": true,
+          "approvalIdPresent": true,
+          "approvalIdDigest": "7A2E8C5BCFDEC5EEBCC058257A144694116A556E87319C2A23248FC3734655ED",
+          "approvalExpiresAt": "2026-08-13T21:56:26.010Z",
+          "durableState": "dispatched_confirmed_success",
+          "providerInvoked": false,
+          "bindingMismatch": false,
+          "correlationIdDigest": "B6FE228F246120136D1310C5693C1821D65C311E1AFA3F8D1C2CF5C19E0BA385"
+        },
+        "firstApproval": {
+          "requested": {
+            "httpStatus": 200,
+            "gatewayOutcome": "WAITING_FOR_APPROVAL",
+            "reasonCode": "APPROVAL_REQUIRED",
+            "errorCode": null,
+            "approvalRequested": true,
+            "approvalIdPresent": true,
+            "approvalIdDigest": "AB1251A4D47B3057692CFD1792445C65A80F97AD85FBBD69FB7159ED84E63B1A",
+            "durableState": null,
+            "providerInvoked": null,
+            "bindingMismatch": false,
+            "correlationIdDigest": "6F33EE5830748B504C4D674AAD0B1ED713A4DAD80BACDD557C3B61A372E22979"
+          },
+          "approvalIdDigest": "AB1251A4D47B3057692CFD1792445C65A80F97AD85FBBD69FB7159ED84E63B1A",
+          "expiresAt": "2026-08-13T21:56:25.957Z",
+          "decisionHttpStatus": 200,
+          "decisionStatus": "approved"
+        },
+        "duplicateApproval": {
+          "requested": {
+            "httpStatus": 200,
+            "gatewayOutcome": "WAITING_FOR_APPROVAL",
+            "reasonCode": "APPROVAL_REQUIRED",
+            "errorCode": null,
+            "approvalRequested": true,
+            "approvalIdPresent": true,
+            "approvalIdDigest": "7A2E8C5BCFDEC5EEBCC058257A144694116A556E87319C2A23248FC3734655ED",
+            "durableState": null,
+            "providerInvoked": null,
+            "bindingMismatch": false,
+            "correlationIdDigest": "B6FE228F246120136D1310C5693C1821D65C311E1AFA3F8D1C2CF5C19E0BA385"
+          },
+          "approvalIdDigest": "7A2E8C5BCFDEC5EEBCC058257A144694116A556E87319C2A23248FC3734655ED",
+          "expiresAt": "2026-08-13T21:56:26.010Z",
+          "decisionHttpStatus": 200,
+          "decisionStatus": "approved"
+        },
+        "providerCountBefore": 1,
+        "providerCountAfter": 1,
+        "durableReuseResult": "reused_completed",
+        "bindingMismatchResult": "not_observed"
+      }
+    },
+    {
+      "id": "B",
+      "status": "PASS",
+      "providerOperationCount": 1,
+      "providerOperationCountKnown": true,
+      "redispatchCount": 0,
+      "lastStage": "case B post-restart provider observation",
+      "evidenceDigest": "46656AC0A012477DC0C12EB78EBB389CC84507924EEB0AA1BCFB09B4812EB295"
+    },
+    {
+      "id": "C",
+      "status": "PASS",
+      "providerOperationCount": 0,
+      "providerOperationCountKnown": true,
+      "redispatchCount": 0,
+      "lastStage": "case C provider observation"
+    },
+    {
+      "id": "D",
+      "status": "PASS",
+      "providerOperationCount": 1,
+      "providerOperationCountKnown": true,
+      "redispatchCount": 0,
+      "lastStage": "case D provider observation",
+      "evidenceDigest": "AB081247FA35FA0383FA70D27DD16A2B2A75AC8875CD54EE37E0C393D7DAECB9"
+    },
+    {
+      "id": "E",
+      "status": "PASS",
+      "providerOperationCount": 0,
+      "providerOperationCountKnown": true,
+      "redispatchCount": 0,
+      "lastStage": "started"
+    }
+  ],
+  "processFacts": {
+    "processesStarted": 14,
+    "providerProcessesStarted": 6,
+    "starts": [
+      {
+        "role": "receipt-sink",
+        "runtime": "node",
+        "entrypoint": "fixtures/slice-004a-receipt-sink/server.mjs",
+        "startedAt": "2026-08-13T21:51:25.126Z",
+        "readinessReached": true,
+        "stdout": {
+          "status": "observed",
+          "tail": "READY {\"port\":34220,\"fixture\":\"fates-slice-004a-receipt-sink\"}\n",
+          "truncated": false
+        },
+        "stderr": {
+          "status": "not_observed",
+          "tail": "",
+          "truncated": false
+        },
+        "exitCode": null,
+        "signal": "SIGTERM",
+        "spawnError": null,
+        "markers": {
+          "READY": {
+            "status": "observed",
+            "value": "{\"port\":34220,\"fixture\":\"fates-slice-004a-receipt-sink\"}"
+          },
+          "EXECUTION_MARKER": {
+            "status": "not_observed"
+          },
+          "CRASH_MARKER": {
+            "status": "not_observed"
+          },
+          "RECOVERY_RESULT": {
+            "status": "not_observed"
+          }
+        }
+      },
+      {
+        "role": "ananke",
+        "runtime": "node",
+        "entrypoint": "fixtures/slice-004a-ananke-process/server.mjs",
+        "startedAt": "2026-08-13T21:51:25.342Z",
+        "readinessReached": true,
+        "stdout": {
+          "status": "observed",
+          "tail": "STARTUP_STAGE {\"stage\":\"worker_entered\"}\nSTARTUP_STAGE {\"stage\":\"runtime_modules_loaded\"}\nSTARTUP_STAGE {\"stage\":\"arguments_parsed\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_parent_preflight_begun\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_parent_preflight_completed\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_store_construction_begun\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_store_construction_completed\"}\nSTARTUP_STAGE {\"stage\":\"gateway_construction_begun\"}\nSTARTUP_STAGE {\"stage\":\"gateway_construction_completed\"}\nSTARTUP_STAGE {\"stage\":\"gateway_start_begun\"}\nSTARTUP_STAGE {\"stage\":\"gateway_start_completed\"}\nACCEPTANCE_COMPOSITION {\"route\":\"Gateway.execute\",\"toolName\":\"fates.slice04a.receipt.write\",\"durableConsumer\":true,\"lowLevelCallbacks\":false,\"databasePath\":\"<windows-path>\",\"providerUrl\":\"htt<windows-path>\"}\n🔮 Ananke Outcome Gateway running on htt<windows-path>\n[ananke] fates.slice04a.receipt.write → COMPLETED (29ms)\nEXECUTION_MARKER {\"intentId\":\"intent-5543c2c5-bd4f-4545-9f98-2cf5ed382af8\",\"state\":\"dispatched_confirmed_success\",\"version\":4,\"providerOperationId\":\"receipt-op-1-c3b62ec5-949b-478b-808b-58c6835f2bcf\",\"key\":\"004a-006-a\"}\nEXECUTION_MARKER {\"intentId\":\"intent-5543c2c5-bd4f-4545-9f98-2cf5ed382af8\",\"state\":\"dispatched_confirmed_success\",\"version\":4,\"providerOperationId\":\"receipt-op-1-c3b62ec5-949b-478b-808b-58c6835f2bcf\",\"key\":\"004a-006-a\"}\n[ananke] fates.slice04a.receipt.write → COMPLETED (1ms)\nEXECUTION_MARKER {\"intentId\":\"intent-5543c2c5-bd4f-4545-9f98-2cf5ed382af8\",\"state\":\"dispatched_confirmed_success\",\"version\":4,\"providerOperationId\":\"receipt-op-1-c3b62ec5-949b-478b-808b-58c6835f2bcf\",\"key\":\"004a-006-a\"}\n",
+          "truncated": false
+        },
+        "stderr": {
+          "status": "not_observed",
+          "tail": "",
+          "truncated": false
+        },
+        "exitCode": null,
+        "signal": "SIGTERM",
+        "spawnError": null,
+        "markers": {
+          "READY": {
+            "status": "not_observed"
+          },
+          "EXECUTION_MARKER": {
+            "status": "observed",
+            "value": "{\"intentId\":\"intent-5543c2c5-bd4f-4545-9f98-2cf5ed382af8\",\"state\":\"dispatched_confirmed_success\",\"version\":4,\"providerOperationId\":\"receipt-op-1-c3b62ec5-949b-478b-808b-58c6835f2bcf\",\"key\":\"004a-006-a\"}"
+          },
+          "CRASH_MARKER": {
+            "status": "not_observed"
+          },
+          "RECOVERY_RESULT": {
+            "status": "not_observed"
+          }
+        }
+      },
+      {
+        "role": "receipt-sink",
+        "runtime": "node",
+        "entrypoint": "fixtures/slice-004a-receipt-sink/server.mjs",
+        "startedAt": "2026-08-13T21:51:26.045Z",
+        "readinessReached": true,
+        "stdout": {
+          "status": "observed",
+          "tail": "READY {\"port\":34220,\"fixture\":\"fates-slice-004a-receipt-sink\"}\n",
+          "truncated": false
+        },
+        "stderr": {
+          "status": "not_observed",
+          "tail": "",
+          "truncated": false
+        },
+        "exitCode": null,
+        "signal": "SIGTERM",
+        "spawnError": null,
+        "markers": {
+          "READY": {
+            "status": "observed",
+            "value": "{\"port\":34220,\"fixture\":\"fates-slice-004a-receipt-sink\"}"
+          },
+          "EXECUTION_MARKER": {
+            "status": "not_observed"
+          },
+          "CRASH_MARKER": {
+            "status": "not_observed"
+          },
+          "RECOVERY_RESULT": {
+            "status": "not_observed"
+          }
+        }
+      },
+      {
+        "role": "ananke",
+        "runtime": "node",
+        "entrypoint": "fixtures/slice-004a-ananke-process/server.mjs",
+        "startedAt": "2026-08-13T21:51:26.224Z",
+        "readinessReached": true,
+        "stdout": {
+          "status": "observed",
+          "tail": "STARTUP_STAGE {\"stage\":\"worker_entered\"}\nSTARTUP_STAGE {\"stage\":\"runtime_modules_loaded\"}\nSTARTUP_STAGE {\"stage\":\"arguments_parsed\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_parent_preflight_begun\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_parent_preflight_completed\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_store_construction_begun\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_store_construction_completed\"}\nSTARTUP_STAGE {\"stage\":\"gateway_construction_begun\"}\nSTARTUP_STAGE {\"stage\":\"gateway_construction_completed\"}\nSTARTUP_STAGE {\"stage\":\"gateway_start_begun\"}\nSTARTUP_STAGE {\"stage\":\"gateway_start_completed\"}\nACCEPTANCE_COMPOSITION {\"route\":\"Gateway.execute\",\"toolName\":\"fates.slice04a.receipt.write\",\"durableConsumer\":true,\"lowLevelCallbacks\":false,\"databasePath\":\"<windows-path>\",\"providerUrl\":\"htt<windows-path>\"}\n🔮 Ananke Outcome Gateway running on htt<windows-path>\n[ananke] fates.slice04a.receipt.write → FAILED (30ms)\nEXECUTION_MARKER {\"intentId\":\"intent-abc34bb9-64af-4d7d-a291-719e4c5f1e11\",\"state\":\"dispatch_marked\",\"version\":3,\"key\":\"004a-006-b\"}\nCRASH_MARKER {\"intentId\":\"intent-abc34bb9-64af-4d7d-a291-719e4c5f1e11\",\"state\":\"dispatch_marked\",\"crashMode\":\"after_provider_call\"}\n",
+          "truncated": false
+        },
+        "stderr": {
+          "status": "not_observed",
+          "tail": "",
+          "truncated": false
+        },
+        "exitCode": 75,
+        "signal": null,
+        "spawnError": null,
+        "markers": {
+          "READY": {
+            "status": "not_observed"
+          },
+          "EXECUTION_MARKER": {
+            "status": "observed",
+            "value": "{\"intentId\":\"intent-abc34bb9-64af-4d7d-a291-719e4c5f1e11\",\"state\":\"dispatch_marked\",\"version\":3,\"key\":\"004a-006-b\"}"
+          },
+          "CRASH_MARKER": {
+            "status": "observed",
+            "value": "{\"intentId\":\"intent-abc34bb9-64af-4d7d-a291-719e4c5f1e11\",\"state\":\"dispatch_marked\",\"crashMode\":\"after_provider_call\"}"
+          },
+          "RECOVERY_RESULT": {
+            "status": "not_observed"
+          }
+        }
+      },
+      {
+        "role": "receipt-sink",
+        "runtime": "node",
+        "entrypoint": "fixtures/slice-004a-receipt-sink/server.mjs",
+        "startedAt": "2026-08-13T21:51:27.427Z",
+        "readinessReached": true,
+        "stdout": {
+          "status": "observed",
+          "tail": "READY {\"port\":34220,\"fixture\":\"fates-slice-004a-receipt-sink\"}\n",
+          "truncated": false
+        },
+        "stderr": {
+          "status": "not_observed",
+          "tail": "",
+          "truncated": false
+        },
+        "exitCode": null,
+        "signal": "SIGTERM",
+        "spawnError": null,
+        "markers": {
+          "READY": {
+            "status": "observed",
+            "value": "{\"port\":34220,\"fixture\":\"fates-slice-004a-receipt-sink\"}"
+          },
+          "EXECUTION_MARKER": {
+            "status": "not_observed"
+          },
+          "CRASH_MARKER": {
+            "status": "not_observed"
+          },
+          "RECOVERY_RESULT": {
+            "status": "not_observed"
+          }
+        }
+      },
+      {
+        "role": "ananke-recovery",
+        "runtime": "node",
+        "entrypoint": "fixtures/slice-004a-ananke-process/server.mjs",
+        "startedAt": "2026-08-13T21:51:27.861Z",
+        "readinessReached": false,
+        "stdout": {
+          "status": "observed",
+          "tail": "STARTUP_STAGE {\"stage\":\"worker_entered\"}\nSTARTUP_STAGE {\"stage\":\"runtime_modules_loaded\"}\nSTARTUP_STAGE {\"stage\":\"arguments_parsed\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_parent_preflight_begun\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_parent_preflight_completed\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_store_construction_begun\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_store_construction_completed\"}\nSTARTUP_STAGE {\"stage\":\"gateway_construction_begun\"}\nSTARTUP_STAGE {\"stage\":\"gateway_construction_completed\"}\nRECOVERY_RESULT {\"intentId\":\"intent-abc34bb9-64af-4d7d-a291-719e4c5f1e11\",\"state\":\"reconciled_success\",\"version\":7,\"attemptId\":\"attempt-047f8520-9fe3-443f-88a9-fdbd35d11214\",\"dispatchMarkerId\":\"dispatch-4172d540-c6a2-43ac-9b66-005ca3b62056\",\"providerOperationId\":\"receipt-op-1-6de957a9-073c-40d7-8b83-c6dcbeecdfea\",\"providerResultDigest\":\"1412a260a941e82af92c11ac037ed400e252f3bf2ccc46b45e60c9719c662d82\",\"reconciliationAttempts\":1,\"recoveredIntentIds\":[\"intent-abc34bb9-64af-4d7d-a291-719e4c5f1e11\"]}\n",
+          "truncated": false
+        },
+        "stderr": {
+          "status": "not_observed",
+          "tail": "",
+          "truncated": false
+        },
+        "exitCode": 0,
+        "signal": null,
+        "spawnError": null,
+        "markers": {
+          "READY": {
+            "status": "not_observed"
+          },
+          "EXECUTION_MARKER": {
+            "status": "not_observed"
+          },
+          "CRASH_MARKER": {
+            "status": "not_observed"
+          },
+          "RECOVERY_RESULT": {
+            "status": "observed",
+            "value": "{\"intentId\":\"intent-abc34bb9-64af-4d7d-a291-719e4c5f1e11\",\"state\":\"reconciled_success\",\"version\":7,\"attemptId\":\"attempt-047f8520-9fe3-443f-88a9-fdbd35d11214\",\"dispatchMarkerId\":\"dispatch-4172d540-c6a2-43ac-9b66-005ca3b62056\",\"providerOperationId\":\"receipt-op-1-6de957a9-073c-40d7-8b83-c6dcbeecdfea\",\"providerResultDigest\":\"1412a260a941e82af92c11ac037ed400e252f3bf2ccc46b45e60c9719c662d82\",\"reconciliationAttempts\":1,\"recoveredIntentIds\":[\"intent-abc34bb9-64af-4d7d-a291-719e4c5f1e11\"]}"
+          }
+        }
+      },
+      {
+        "role": "receipt-sink",
+        "runtime": "node",
+        "entrypoint": "fixtures/slice-004a-receipt-sink/server.mjs",
+        "startedAt": "2026-08-13T21:51:29.095Z",
+        "readinessReached": true,
+        "stdout": {
+          "status": "observed",
+          "tail": "READY {\"port\":34220,\"fixture\":\"fates-slice-004a-receipt-sink\"}\n",
+          "truncated": false
+        },
+        "stderr": {
+          "status": "not_observed",
+          "tail": "",
+          "truncated": false
+        },
+        "exitCode": null,
+        "signal": "SIGTERM",
+        "spawnError": null,
+        "markers": {
+          "READY": {
+            "status": "observed",
+            "value": "{\"port\":34220,\"fixture\":\"fates-slice-004a-receipt-sink\"}"
+          },
+          "EXECUTION_MARKER": {
+            "status": "not_observed"
+          },
+          "CRASH_MARKER": {
+            "status": "not_observed"
+          },
+          "RECOVERY_RESULT": {
+            "status": "not_observed"
+          }
+        }
+      },
+      {
+        "role": "ananke",
+        "runtime": "node",
+        "entrypoint": "fixtures/slice-004a-ananke-process/server.mjs",
+        "startedAt": "2026-08-13T21:51:29.357Z",
+        "readinessReached": true,
+        "stdout": {
+          "status": "observed",
+          "tail": "STARTUP_STAGE {\"stage\":\"worker_entered\"}\nSTARTUP_STAGE {\"stage\":\"runtime_modules_loaded\"}\nSTARTUP_STAGE {\"stage\":\"arguments_parsed\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_parent_preflight_begun\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_parent_preflight_completed\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_store_construction_begun\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_store_construction_completed\"}\nSTARTUP_STAGE {\"stage\":\"gateway_construction_begun\"}\nSTARTUP_STAGE {\"stage\":\"gateway_construction_completed\"}\nSTARTUP_STAGE {\"stage\":\"gateway_start_begun\"}\nSTARTUP_STAGE {\"stage\":\"gateway_start_completed\"}\nACCEPTANCE_COMPOSITION {\"route\":\"Gateway.execute\",\"toolName\":\"fates.slice04a.receipt.write\",\"durableConsumer\":true,\"lowLevelCallbacks\":false,\"databasePath\":\"<windows-path>\",\"providerUrl\":\"htt<windows-path>\"}\n🔮 Ananke Outcome Gateway running on htt<windows-path>\n[ananke] fates.slice04a.receipt.write → FAILED (5ms)\nEXECUTION_MARKER {\"intentId\":\"intent-7c4c8b2c-48a6-4203-962e-82cd4d92a0c0\",\"state\":\"dispatch_marked\",\"version\":3,\"key\":\"004a-006-c\"}\nCRASH_MARKER {\"intentId\":\"intent-7c4c8b2c-48a6-4203-962e-82cd4d92a0c0\",\"state\":\"dispatch_marked\",\"crashMode\":\"after_dispatch_marker\"}\n",
+          "truncated": false
+        },
+        "stderr": {
+          "status": "not_observed",
+          "tail": "",
+          "truncated": false
+        },
+        "exitCode": 75,
+        "signal": null,
+        "spawnError": null,
+        "markers": {
+          "READY": {
+            "status": "not_observed"
+          },
+          "EXECUTION_MARKER": {
+            "status": "observed",
+            "value": "{\"intentId\":\"intent-7c4c8b2c-48a6-4203-962e-82cd4d92a0c0\",\"state\":\"dispatch_marked\",\"version\":3,\"key\":\"004a-006-c\"}"
+          },
+          "CRASH_MARKER": {
+            "status": "observed",
+            "value": "{\"intentId\":\"intent-7c4c8b2c-48a6-4203-962e-82cd4d92a0c0\",\"state\":\"dispatch_marked\",\"crashMode\":\"after_dispatch_marker\"}"
+          },
+          "RECOVERY_RESULT": {
+            "status": "not_observed"
+          }
+        }
+      },
+      {
+        "role": "receipt-sink",
+        "runtime": "node",
+        "entrypoint": "fixtures/slice-004a-receipt-sink/server.mjs",
+        "startedAt": "2026-08-13T21:51:30.115Z",
+        "readinessReached": true,
+        "stdout": {
+          "status": "observed",
+          "tail": "READY {\"port\":34220,\"fixture\":\"fates-slice-004a-receipt-sink\"}\n",
+          "truncated": false
+        },
+        "stderr": {
+          "status": "not_observed",
+          "tail": "",
+          "truncated": false
+        },
+        "exitCode": null,
+        "signal": "SIGTERM",
+        "spawnError": null,
+        "markers": {
+          "READY": {
+            "status": "observed",
+            "value": "{\"port\":34220,\"fixture\":\"fates-slice-004a-receipt-sink\"}"
+          },
+          "EXECUTION_MARKER": {
+            "status": "not_observed"
+          },
+          "CRASH_MARKER": {
+            "status": "not_observed"
+          },
+          "RECOVERY_RESULT": {
+            "status": "not_observed"
+          }
+        }
+      },
+      {
+        "role": "ananke-recovery",
+        "runtime": "node",
+        "entrypoint": "fixtures/slice-004a-ananke-process/server.mjs",
+        "startedAt": "2026-08-13T21:51:30.304Z",
+        "readinessReached": false,
+        "stdout": {
+          "status": "observed",
+          "tail": "STARTUP_STAGE {\"stage\":\"worker_entered\"}\nSTARTUP_STAGE {\"stage\":\"runtime_modules_loaded\"}\nSTARTUP_STAGE {\"stage\":\"arguments_parsed\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_parent_preflight_begun\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_parent_preflight_completed\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_store_construction_begun\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_store_construction_completed\"}\nSTARTUP_STAGE {\"stage\":\"gateway_construction_begun\"}\nSTARTUP_STAGE {\"stage\":\"gateway_construction_completed\"}\nRECOVERY_RESULT {\"intentId\":\"intent-7c4c8b2c-48a6-4203-962e-82cd4d92a0c0\",\"state\":\"terminal_unresolved\",\"version\":9,\"attemptId\":\"attempt-3b26d8c3-4c8b-4687-82d2-695c8031123e\",\"dispatchMarkerId\":\"dispatch-58206ae8-d834-4d2b-94b0-84a9a3d8382c\",\"reconciliationAttempts\":3,\"recoveredIntentIds\":[\"intent-7c4c8b2c-48a6-4203-962e-82cd4d92a0c0\"]}\n",
+          "truncated": false
+        },
+        "stderr": {
+          "status": "not_observed",
+          "tail": "",
+          "truncated": false
+        },
+        "exitCode": 0,
+        "signal": null,
+        "spawnError": null,
+        "markers": {
+          "READY": {
+            "status": "not_observed"
+          },
+          "EXECUTION_MARKER": {
+            "status": "not_observed"
+          },
+          "CRASH_MARKER": {
+            "status": "not_observed"
+          },
+          "RECOVERY_RESULT": {
+            "status": "observed",
+            "value": "{\"intentId\":\"intent-7c4c8b2c-48a6-4203-962e-82cd4d92a0c0\",\"state\":\"terminal_unresolved\",\"version\":9,\"attemptId\":\"attempt-3b26d8c3-4c8b-4687-82d2-695c8031123e\",\"dispatchMarkerId\":\"dispatch-58206ae8-d834-4d2b-94b0-84a9a3d8382c\",\"reconciliationAttempts\":3,\"recoveredIntentIds\":[\"intent-7c4c8b2c-48a6-4203-962e-82cd4d92a0c0\"]}"
+          }
+        }
+      },
+      {
+        "role": "receipt-sink",
+        "runtime": "node",
+        "entrypoint": "fixtures/slice-004a-receipt-sink/server.mjs",
+        "startedAt": "2026-08-13T21:51:31.285Z",
+        "readinessReached": true,
+        "stdout": {
+          "status": "observed",
+          "tail": "READY {\"port\":34220,\"fixture\":\"fates-slice-004a-receipt-sink\"}\n",
+          "truncated": false
+        },
+        "stderr": {
+          "status": "not_observed",
+          "tail": "",
+          "truncated": false
+        },
+        "exitCode": null,
+        "signal": "SIGTERM",
+        "spawnError": null,
+        "markers": {
+          "READY": {
+            "status": "observed",
+            "value": "{\"port\":34220,\"fixture\":\"fates-slice-004a-receipt-sink\"}"
+          },
+          "EXECUTION_MARKER": {
+            "status": "not_observed"
+          },
+          "CRASH_MARKER": {
+            "status": "not_observed"
+          },
+          "RECOVERY_RESULT": {
+            "status": "not_observed"
+          }
+        }
+      },
+      {
+        "role": "ananke",
+        "runtime": "node",
+        "entrypoint": "fixtures/slice-004a-ananke-process/server.mjs",
+        "startedAt": "2026-08-13T21:51:31.545Z",
+        "readinessReached": true,
+        "stdout": {
+          "status": "observed",
+          "tail": "STARTUP_STAGE {\"stage\":\"worker_entered\"}\nSTARTUP_STAGE {\"stage\":\"runtime_modules_loaded\"}\nSTARTUP_STAGE {\"stage\":\"arguments_parsed\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_parent_preflight_begun\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_parent_preflight_completed\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_store_construction_begun\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_store_construction_completed\"}\nSTARTUP_STAGE {\"stage\":\"gateway_construction_begun\"}\nSTARTUP_STAGE {\"stage\":\"gateway_construction_completed\"}\nSTARTUP_STAGE {\"stage\":\"gateway_start_begun\"}\nSTARTUP_STAGE {\"stage\":\"gateway_start_completed\"}\nACCEPTANCE_COMPOSITION {\"route\":\"Gateway.execute\",\"toolName\":\"fates.slice04a.receipt.write\",\"durableConsumer\":true,\"lowLevelCallbacks\":false,\"databasePath\":\"<windows-path>\",\"providerUrl\":\"htt<windows-path>\"}\n🔮 Ananke Outcome Gateway running on htt<windows-path>\n[ananke] fates.slice04a.receipt.write → FAILED (32ms)\nEXECUTION_MARKER {\"intentId\":\"intent-f0e461a4-23b7-490f-910c-70124cdaea06\",\"state\":\"dispatched_result_unknown\",\"version\":4,\"key\":\"004a-006-d\"}\n",
+          "truncated": false
+        },
+        "stderr": {
+          "status": "not_observed",
+          "tail": "",
+          "truncated": false
+        },
+        "exitCode": null,
+        "signal": "SIGTERM",
+        "spawnError": null,
+        "markers": {
+          "READY": {
+            "status": "not_observed"
+          },
+          "EXECUTION_MARKER": {
+            "status": "observed",
+            "value": "{\"intentId\":\"intent-f0e461a4-23b7-490f-910c-70124cdaea06\",\"state\":\"dispatched_result_unknown\",\"version\":4,\"key\":\"004a-006-d\"}"
+          },
+          "CRASH_MARKER": {
+            "status": "not_observed"
+          },
+          "RECOVERY_RESULT": {
+            "status": "not_observed"
+          }
+        }
+      },
+      {
+        "role": "ananke-recovery",
+        "runtime": "node",
+        "entrypoint": "fixtures/slice-004a-ananke-process/server.mjs",
+        "startedAt": "2026-08-13T21:51:32.470Z",
+        "readinessReached": false,
+        "stdout": {
+          "status": "observed",
+          "tail": "STARTUP_STAGE {\"stage\":\"worker_entered\"}\nSTARTUP_STAGE {\"stage\":\"runtime_modules_loaded\"}\nSTARTUP_STAGE {\"stage\":\"arguments_parsed\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_parent_preflight_begun\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_parent_preflight_completed\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_store_construction_begun\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_store_construction_completed\"}\nSTARTUP_STAGE {\"stage\":\"gateway_construction_begun\"}\nSTARTUP_STAGE {\"stage\":\"gateway_construction_completed\"}\nRECOVERY_RESULT {\"intentId\":\"intent-f0e461a4-23b7-490f-910c-70124cdaea06\",\"state\":\"terminal_unresolved\",\"version\":7,\"attemptId\":\"attempt-97b31163-38d8-4185-9d05-02f9c4e8e4fe\",\"dispatchMarkerId\":\"dispatch-a4628fb1-cf77-4e0b-9476-c0e51d10307c\",\"reconciliationAttempts\":1,\"recoveredIntentIds\":[]}\n",
+          "truncated": false
+        },
+        "stderr": {
+          "status": "not_observed",
+          "tail": "",
+          "truncated": false
+        },
+        "exitCode": 0,
+        "signal": null,
+        "spawnError": null,
+        "markers": {
+          "READY": {
+            "status": "not_observed"
+          },
+          "EXECUTION_MARKER": {
+            "status": "not_observed"
+          },
+          "CRASH_MARKER": {
+            "status": "not_observed"
+          },
+          "RECOVERY_RESULT": {
+            "status": "observed",
+            "value": "{\"intentId\":\"intent-f0e461a4-23b7-490f-910c-70124cdaea06\",\"state\":\"terminal_unresolved\",\"version\":7,\"attemptId\":\"attempt-97b31163-38d8-4185-9d05-02f9c4e8e4fe\",\"dispatchMarkerId\":\"dispatch-a4628fb1-cf77-4e0b-9476-c0e51d10307c\",\"reconciliationAttempts\":1,\"recoveredIntentIds\":[]}"
+          }
+        }
+      },
+      {
+        "role": "ananke",
+        "runtime": "node",
+        "entrypoint": "fixtures/slice-004a-ananke-process/server.mjs",
+        "startedAt": "2026-08-13T21:51:33.378Z",
+        "readinessReached": true,
+        "stdout": {
+          "status": "observed",
+          "tail": "STARTUP_STAGE {\"stage\":\"worker_entered\"}\nSTARTUP_STAGE {\"stage\":\"runtime_modules_loaded\"}\nSTARTUP_STAGE {\"stage\":\"arguments_parsed\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_parent_preflight_begun\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_parent_preflight_completed\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_store_construction_begun\"}\nSTARTUP_STAGE {\"stage\":\"sqlite_store_construction_completed\"}\nSTARTUP_STAGE {\"stage\":\"gateway_construction_begun\"}\nSTARTUP_STAGE {\"stage\":\"gateway_construction_completed\"}\nSTARTUP_STAGE {\"stage\":\"gateway_start_begun\"}\nSTARTUP_STAGE {\"stage\":\"gateway_start_completed\"}\nACCEPTANCE_COMPOSITION {\"route\":\"Gateway.execute\",\"toolName\":\"fates.slice04a.receipt.write\",\"durableConsumer\":false,\"genericEffectNegative\":true,\"lowLevelCallbacks\":false}\n🔮 Ananke Outcome Gateway running on htt<windows-path>\n",
+          "truncated": false
+        },
+        "stderr": {
+          "status": "not_observed",
+          "tail": "",
+          "truncated": false
+        },
+        "exitCode": null,
+        "signal": "SIGTERM",
+        "spawnError": null,
+        "markers": {
+          "READY": {
+            "status": "not_observed"
+          },
+          "EXECUTION_MARKER": {
+            "status": "not_observed"
+          },
+          "CRASH_MARKER": {
+            "status": "not_observed"
+          },
+          "RECOVERY_RESULT": {
+            "status": "not_observed"
+          }
+        }
+      }
+    ]
+  },
+  "providerFacts": {
+    "operationCountKnown": true,
+    "operationCount": 1,
+    "operationDigests": [
+      "AB081247FA35FA0383FA70D27DD16A2B2A75AC8875CD54EE37E0C393D7DAECB9"
+    ]
+  },
+  "durableFacts": {
+    "observed": true,
+    "lastState": "terminal_unresolved",
+    "intentIdDigest": "62F1DA1711DB31708961A8DB86A063D230DE667DABDCB2010A5F9950EA38333E"
+  },
+  "cleanup": {
+    "attempted": true,
+    "completed": true,
+    "processesRemaining": 0
+  },
+  "failure": null,
+  "unknowns": [],
+  "limitations": [
+    "Bounded disposable receipt-sink contract only; no arbitrary-provider or exactly-once claim.",
+    "No OS-authenticated process origin, host containment, or complete low-level bypass-resistance claim.",
+    "No third-party provider or provider credential was used.",
+    "Correlation IDs are retained for tracing but excluded from the durable semantic effect binding."
+  ]
+}

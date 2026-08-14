@@ -1,0 +1,72 @@
+{
+  "$schema": "../../schemas/subslice-seal.schema.json",
+  "schemaVersion": 1,
+  "subsliceId": "FATES-SLICE-004A",
+  "parentSliceId": "FATES-SLICE-004",
+  "sealedAt": "2026-08-14T11:33:58.417Z",
+  "classification": "PASS_BOUNDED",
+  "acceptance": {
+    "successfulAttempt": {
+      "attemptId": "006",
+      "classification": "PASS_BOUNDED",
+      "evidencePath": "docs/evidence/FATES-SLICE-004A-live-acceptance-attempt-006.json",
+      "evidenceSha256": "20CE22FA1B325C248875D1AE047B4666387A7312B0B61ACE575C762E5BD85E93",
+      "journalPath": "docs/evidence/FATES-SLICE-004A-live-acceptance-attempt-006.events.ndjson",
+      "journalSha256": "B43B987B04F09275D1BCFCFFC5128CB847667CD568F1EF2B31C4A4365EFABB65"
+    },
+    "historicalAttempts": [
+      {
+        "attemptId": "005",
+        "classification": "FAIL_BOUNDED",
+        "evidencePath": "docs/evidence/FATES-SLICE-004A-live-acceptance-attempt-005.json",
+        "evidenceSha256": "EEBB70DA6770E6DB56E80CFE4EBC463BE7D4588A31FEB481DA20623A3CB6C46B",
+        "journalPath": "docs/evidence/FATES-SLICE-004A-live-acceptance-attempt-005.events.ndjson",
+        "journalSha256": "A9D1E1AAA533064987ACFDD0E5B8A81DEE40CE2494F6EF594D6ED5DF7EA34781"
+      }
+    ]
+  },
+  "provenance": {
+    "integrationCommit": "6ff2fb068612486064d43b99b2793c048fb37707",
+    "components": {
+      "integration": {
+        "commit": "6ff2fb068612486064d43b99b2793c048fb37707"
+      },
+      "ananke": {
+        "commit": "e7b405f3a217db6df31fe9ba7bde376ab666930c",
+        "tag": "ananke-fates-slice-003a-r1-v0.1.0-protocol-1.4.0"
+      },
+      "horae": {
+        "commit": "3f531d4f5558a10a36aeae20c3458080eb4468b9",
+        "tag": "horae-fates-slice-003a-r1-v0.1.0-protocol-1.4.0"
+      },
+      "mnemosyne": {
+        "commit": "f4ab76a9760f856d78908d35facceb068d78c8e5"
+      },
+      "moirae-code": {
+        "commit": "bc7b984bd2eb0e0f07a1cd7259a8eab21556f097",
+        "tag": "moirae-fates-slice-003a-r1-v0.1.0-protocol-1.4.0"
+      },
+      "runtime-contracts": {
+        "commit": "bbf240b1fdcb9be1dbd30b13d2fe2708a22ec7b8",
+        "tag": "adrasteia-adoption-v0.4.0-protocol-1.4.0"
+      }
+    }
+  },
+  "validation": {
+    "fullValidation": {
+      "status": "passed",
+      "command": "npm run validate"
+    },
+    "ci": {
+      "runId": 31795772107,
+      "commit": "6ff2fb068612486064d43b99b2793c048fb37707",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  },
+  "tag": {
+    "name": "fates-slice-004a-v0.1.0-protocol-1.4.0",
+    "releaseVersion": "0.1.0",
+    "protocol": "1.4.0"
+  }
+}
