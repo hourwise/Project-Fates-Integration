@@ -93,3 +93,28 @@ in a slice's capability remains at its existing checkpoint.
 
 No peer `main` branch is authoritative at any point. Only the exact checkpoints
 in `fates-lock.json` are authoritative for integration.
+
+## Letter-qualified sub-slice closure
+
+Letter-qualified sub-slices such as `FATES-SLICE-004A` are owned by their
+numeric parent and are not compatibility-matrix peers. Their generic closure
+contract is defined in
+[`docs/decisions/FATES-SLICE-004-letter-qualified-subslice-sealing-decision.md`](decisions/FATES-SLICE-004-letter-qualified-subslice-sealing-decision.md).
+
+For a sub-slice-only closure:
+
+1. Confirm the child has a successful `PASS_BOUNDED` acceptance basis and
+   immutable JSON/journal hashes.
+2. Track the referenced acceptance artifacts and create the immutable
+   `docs/evidence/FATES-SLICE-NNNA-seal.json` record.
+3. Set the child to `implementationStatus: completed`, `sealStatus: sealed`,
+   and `activation.state: closed`.
+4. Keep the numeric parent open unless it independently satisfies its own
+   completion contract; do not add a sub-slice row to the compatibility matrix.
+5. Keep the numeric parent active with `activeSubsliceId: null` when closing
+   the currently active child. Do not activate a later child.
+6. Run the normal full validation and CI, then create the deterministic
+   annotated sub-slice tag only after CI succeeds.
+
+This is a separate closure transaction from sub-slice activation. It does not
+modify runtime behavior, the lock, or the compatibility snapshot.

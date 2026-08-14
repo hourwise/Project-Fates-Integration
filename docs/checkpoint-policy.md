@@ -99,6 +99,26 @@ Not every Fate needs a new checkpoint when not involved in the slice.
 
 No peer `main` branch becomes authoritative at any point.
 
+## Letter-Qualified Sub-slice Checkpoints
+
+Letter-qualified sub-slices use the generic closure contract in
+[`docs/decisions/FATES-SLICE-004-letter-qualified-subslice-sealing-decision.md`](decisions/FATES-SLICE-004-letter-qualified-subslice-sealing-decision.md).
+They remain owned by their numeric parent and do not become rows in
+`compatibility-matrix.json` or independent entries in `fates-lock.json`.
+
+A sealed sub-slice is `implementationStatus: completed`,
+`sealStatus: sealed`, and `activation.state: closed`, with a referenced
+immutable `docs/evidence/FATES-SLICE-NNNA-seal.json` record. The record binds
+the successful `PASS_BOUNDED` acceptance artifact pair, exact SHA-256 values,
+final checkpoint provenance, full validation, successful CI, and the
+deterministically derived annotated tag. Referenced acceptance files become
+tracked at the actual seal transaction. A failed historical attempt may be
+retained but cannot be the successful acceptance basis.
+
+Closing the active child clears `activeSubsliceId` while retaining the numeric
+parent as the active/open owner. It never activates the next child. A separate
+activation decision is required for every later letter-qualified sub-slice.
+
 ## Rollback
 
 To roll back to a prior compatibility set, copy the corresponding historical

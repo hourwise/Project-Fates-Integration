@@ -18,6 +18,7 @@
 - Slice 004A activation preparation: [owner decision package](design/FATES-SLICE-004A-activation-package.md)
 - Slice 004A live acceptance preparation: [bounded live-acceptance design](design/FATES-SLICE-004A-live-acceptance-design.md)
 - Slice 004A control-plane child record: [proposed sub-slice](../slices/004-governed-execution/subslices/004A-durable-governed-effect-lifecycle/subslice.json)
+- Letter-qualified sub-slice sealing contract: [decision record](decisions/FATES-SLICE-004-letter-qualified-subslice-sealing-decision.md)
 
 ## Component authorities
 
