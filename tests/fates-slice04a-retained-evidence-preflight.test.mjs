@@ -111,6 +111,23 @@ test("retained preflight accepts exactly the approved prior-attempt pair", () =>
   });
 });
 
+test("tracked retained evidence is accepted from a clean worktree without approvals", () => {
+  withRepo((repo) => {
+    createPair(repo);
+    git(repo, ["add", ...pair]);
+    git(repo, ["commit", "--quiet", "-m", "retain evidence"]);
+    assert.deepEqual(
+      verifyRetainedEvidenceWorktree({ repo, currentAttemptId: "006" }),
+      {
+        worktreeVerified: true,
+        retainedEvidenceVerified: false,
+        retainedEvidenceCount: 0,
+        retainedEvidence: [],
+      },
+    );
+  });
+});
+
 test("retained preflight rejects retained files without approvals", () => {
   withRepo((repo) => {
     createPair(repo);

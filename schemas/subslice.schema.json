@@ -52,7 +52,34 @@
         "baselineCompatibilitySet": { "type": "string", "minLength": 1 }
       },
       "additionalProperties": false
+    },
+    "sealRecord": {
+      "type": "string",
+      "pattern": "^docs/evidence/FATES-SLICE-\\d{3}[A-Z]-seal\\.json$"
     }
   },
-  "additionalProperties": false
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": { "properties": { "sealStatus": { "const": "sealed" } } },
+      "then": {
+        "required": ["sealRecord"],
+        "properties": {
+          "implementationStatus": { "const": "completed" },
+          "activation": {
+            "type": "object",
+            "properties": {
+              "state": { "const": "closed" }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "sealStatus": { "const": "provisional" } } },
+      "then": {
+        "not": { "required": ["sealRecord"] }
+      }
+    }
+  ]
 }

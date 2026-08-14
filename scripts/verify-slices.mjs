@@ -2,18 +2,38 @@
 // Verifies canonical slice and bounded sub-slice structure with the two-axis
 // status model. Never accesses the network.
 
+import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
+import { relative, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 export const repositoryRoot = resolve(__dirname, '..');
 export const CANONICAL_SLICE_ID_PATTERN = /^FATES-SLICE-\d{3}$/;
 export const SUBSLICE_ID_PATTERN = /^FATES-SLICE-(\d{3})([A-Z])$/;
+export const SUBSLICE_SEAL_PATH_PATTERN =
+  /^docs\/evidence\/FATES-SLICE-\d{3}[A-Z]-seal\.json$/;
 
 export function parentSliceIdForSubslice(subsliceId) {
   const match = SUBSLICE_ID_PATTERN.exec(subsliceId);
   return match ? `FATES-SLICE-${match[1]}` : null;
+}
+
+export function expectedSubsliceSealPath(subsliceId) {
+  return SUBSLICE_ID_PATTERN.test(subsliceId)
+    ? `docs/evidence/${subsliceId}-seal.json`
+    : null;
+}
+
+export function deriveSubsliceTag(
+  subsliceId,
+  releaseVersion = '0.1.0',
+  protocol = '1.4.0',
+) {
+  if (!SUBSLICE_ID_PATTERN.test(subsliceId)) return null;
+  return `fates-slice-${subsliceId
+    .replace('FATES-SLICE-', '')
+    .toLowerCase()}-v${releaseVersion}-protocol-${protocol}`;
 }
 
 export function isEligibleSubsliceForActivation(subslice) {
@@ -50,6 +70,183 @@ function findFiles(directory, filename) {
 function expectedCanonicalId(directoryName) {
   const match = /^(\d{3})-/.exec(directoryName);
   return match ? `FATES-SLICE-${match[1]}` : null;
+}
+
+function sha256File(path) {
+  return createHash('sha256')
+    .update(readFileSync(path))
+    .digest('hex')
+    .toUpperCase();
+}
+
+function resolveRepositoryPath(root, relativePath) {
+  if (typeof relativePath !== 'string' || relativePath.includes('\\')) return null;
+  const absolutePath = resolve(root, relativePath);
+  const normalized = relative(root, absolutePath).replaceAll('\\', '/');
+  if (normalized === '..' || normalized.startsWith('../') || normalized.includes('/../')) {
+    return null;
+  }
+  return absolutePath;
+}
+
+function findSubsliceSealFiles(root) {
+  const evidenceDir = resolve(root, 'docs', 'evidence');
+  if (!existsSync(evidenceDir)) return [];
+  return readdirSync(evidenceDir, { withFileTypes: true })
+    .filter((entry) => entry.isFile())
+    .map((entry) => `docs/evidence/${entry.name}`)
+    .filter((path) => SUBSLICE_SEAL_PATH_PATTERN.test(path));
+}
+
+function verifyAttemptReference(root, subslice, reference, errors, label) {
+  if (!reference || typeof reference !== 'object') {
+    errors.push(`${label}: evidence reference is missing`);
+    return;
+  }
+  const evidencePath = resolveRepositoryPath(root, reference.evidencePath);
+  const journalPath = resolveRepositoryPath(root, reference.journalPath);
+  if (!evidencePath || !/^docs\/evidence\/[^/]+\.json$/.test(reference.evidencePath ?? '')) {
+    errors.push(`${label}: evidencePath is not a repository-relative evidence path`);
+  }
+  if (!journalPath || !/^docs\/evidence\/[^/]+\.events\.ndjson$/.test(reference.journalPath ?? '')) {
+    errors.push(`${label}: journalPath is not a repository-relative journal path`);
+  }
+  if (!evidencePath || !journalPath || !existsSync(evidencePath) || !existsSync(journalPath)) {
+    errors.push(`${label}: referenced evidence or journal is missing`);
+    return;
+  }
+
+  const evidence = readJson(evidencePath);
+  if (!evidence) {
+    errors.push(`${label}: referenced evidence is not valid JSON`);
+    return;
+  }
+  if (evidence.attemptId !== reference.attemptId) {
+    errors.push(`${label}: evidence attemptId does not match the reference`);
+  }
+  if (evidence.subsliceId !== subslice.subsliceId) {
+    errors.push(`${label}: evidence subsliceId does not match the sealed sub-slice`);
+  }
+  if (evidence.classification !== reference.classification) {
+    errors.push(`${label}: evidence classification does not match the reference`);
+  }
+  if (sha256File(evidencePath) !== String(reference.evidenceSha256 ?? '').toUpperCase()) {
+    errors.push(`${label}: evidence SHA-256 mismatch`);
+  }
+  if (sha256File(journalPath) !== String(reference.journalSha256 ?? '').toUpperCase()) {
+    errors.push(`${label}: journal SHA-256 mismatch`);
+  }
+}
+
+export function verifySubsliceSealRecords(root = repositoryRoot) {
+  const errors = [];
+  const slicesDir = resolve(root, 'slices');
+  const canonicalRecords = [];
+  for (const entry of existsSync(slicesDir)
+    ? readdirSync(slicesDir, { withFileTypes: true })
+    : []) {
+    if (!entry.isDirectory()) continue;
+    const path = resolve(slicesDir, entry.name, 'slice.json');
+    const slice = readJson(path);
+    if (slice) canonicalRecords.push({ path, slice });
+  }
+  const canonicalIds = new Set(canonicalRecords.map(({ slice }) => slice.sliceId));
+  const subsliceRecords = findFiles(slicesDir, 'subslice.json')
+    .map((path) => ({ path, subslice: readJson(path) }))
+    .filter(({ subslice }) => subslice);
+  const sealFiles = findSubsliceSealFiles(root);
+  const referencedSealPaths = new Set();
+
+  for (const { subslice } of subsliceRecords) {
+    if (!SUBSLICE_ID_PATTERN.test(subslice.subsliceId ?? '')) continue;
+    if (!canonicalIds.has(subslice.parentSliceId)) continue;
+    const sealRecord = subslice.sealRecord;
+    if (subslice.sealStatus !== 'sealed') {
+      if (sealRecord !== undefined) {
+        errors.push(`${subslice.subsliceId}: provisional sub-slice must not reference a seal record`);
+      }
+      continue;
+    }
+
+    const expectedPath = expectedSubsliceSealPath(subslice.subsliceId);
+    if (subslice.implementationStatus !== 'completed') {
+      errors.push(`${subslice.subsliceId}: sealed sub-slice must be completed`);
+    }
+    if (subslice.activation?.state !== 'closed') {
+      errors.push(`${subslice.subsliceId}: sealed sub-slice must have closed activation state`);
+    }
+    if (sealRecord !== expectedPath) {
+      errors.push(`${subslice.subsliceId}: sealRecord must be ${expectedPath}`);
+      continue;
+    }
+    referencedSealPaths.add(sealRecord);
+    const sealPath = resolveRepositoryPath(root, sealRecord);
+    if (!sealPath || !existsSync(sealPath)) {
+      errors.push(`${subslice.subsliceId}: seal record is missing`);
+      continue;
+    }
+    const seal = readJson(sealPath);
+    if (!seal) {
+      errors.push(`${subslice.subsliceId}: seal record is not valid JSON`);
+      continue;
+    }
+    if (seal.subsliceId !== subslice.subsliceId) {
+      errors.push(`${subslice.subsliceId}: seal record subsliceId mismatch`);
+    }
+    if (seal.parentSliceId !== subslice.parentSliceId) {
+      errors.push(`${subslice.subsliceId}: seal record parentSliceId mismatch`);
+    }
+    if (seal.classification !== 'PASS_BOUNDED') {
+      errors.push(`${subslice.subsliceId}: seal classification must be PASS_BOUNDED`);
+    }
+    const successfulAttempt = seal.acceptance?.successfulAttempt;
+    if (successfulAttempt?.classification !== 'PASS_BOUNDED') {
+      errors.push(`${subslice.subsliceId}: successful acceptance basis must be PASS_BOUNDED`);
+    }
+    verifyAttemptReference(
+      root,
+      subslice,
+      successfulAttempt,
+      errors,
+      `${subslice.subsliceId}: successful acceptance`,
+    );
+    const historicalAttempts = seal.acceptance?.historicalAttempts;
+    if (Array.isArray(historicalAttempts)) {
+      const attemptIds = new Set();
+      for (const [index, reference] of historicalAttempts.entries()) {
+        if (attemptIds.has(reference?.attemptId)) {
+          errors.push(`${subslice.subsliceId}: duplicate historical attemptId`);
+        }
+        attemptIds.add(reference?.attemptId);
+        verifyAttemptReference(
+          root,
+          subslice,
+          reference,
+          errors,
+          `${subslice.subsliceId}: historical attempt ${index + 1}`,
+        );
+      }
+    }
+    const tag = seal.tag;
+    if (tag && deriveSubsliceTag(subslice.subsliceId, tag.releaseVersion, tag.protocol) !== tag.name) {
+      errors.push(`${subslice.subsliceId}: tag name is not the deterministic sub-slice tag`);
+    }
+  }
+
+  for (const sealPath of sealFiles) {
+    if (!referencedSealPaths.has(sealPath)) {
+      errors.push(`${sealPath}: seal record is not referenced by a sealed sub-slice`);
+    }
+  }
+
+  const matrix = readJson(resolve(root, 'compatibility-matrix.json'));
+  for (const row of matrix?.rows ?? []) {
+    if (SUBSLICE_ID_PATTERN.test(row.sliceId ?? '')) {
+      errors.push(`compatibility-matrix.json: sub-slice ${row.sliceId} must not be a matrix peer`);
+    }
+  }
+
+  return errors;
 }
 
 export function validateActiveSubsliceState(activeSlice, canonicalRecords, subsliceRecords) {
@@ -255,6 +452,8 @@ export function verifySlices(root = repositoryRoot) {
       }
     }
   }
+
+  errors.push(...verifySubsliceSealRecords(root));
 
   return { errors, canonicalRecords, subsliceRecords };
 }

@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "./subslice-seal.schema.json",
+  "title": "Letter-Qualified Sub-slice Seal Record",
+  "description": "Immutable closure evidence for a letter-qualified Fates sub-slice. The numeric parent remains the compatibility owner.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "subsliceId",
+    "parentSliceId",
+    "sealedAt",
+    "classification",
+    "acceptance",
+    "provenance",
+    "validation",
+    "tag"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "subsliceId": { "type": "string", "pattern": "^FATES-SLICE-\\d{3}[A-Z]$" },
+    "parentSliceId": { "type": "string", "pattern": "^FATES-SLICE-\\d{3}$" },
+    "sealedAt": { "type": "string", "format": "date-time" },
+    "classification": { "const": "PASS_BOUNDED" },
+    "acceptance": {
+      "type": "object",
+      "required": ["successfulAttempt", "historicalAttempts"],
+      "properties": {
+        "successfulAttempt": { "$ref": "#/$defs/attemptEvidence" },
+        "historicalAttempts": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/attemptEvidence" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["integrationCommit", "components"],
+      "properties": {
+        "integrationCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "components": {
+          "type": "object",
+          "minProperties": 1,
+          "patternProperties": {
+            "^[A-Za-z][A-Za-z0-9-]*$": {
+              "type": "object",
+              "required": ["commit"],
+              "properties": {
+                "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+                "tag": { "type": "string", "minLength": 1 }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "validation": {
+      "type": "object",
+      "required": ["fullValidation", "ci"],
+      "properties": {
+        "fullValidation": {
+          "type": "object",
+          "required": ["status", "command"],
+          "properties": {
+            "status": { "const": "passed" },
+            "command": { "const": "npm run validate" }
+          },
+          "additionalProperties": false
+        },
+        "ci": {
+          "type": "object",
+          "required": ["runId", "commit", "status", "conclusion"],
+          "properties": {
+            "runId": { "type": "integer", "minimum": 1 },
+            "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+            "status": { "const": "completed" },
+            "conclusion": { "const": "success" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "tag": {
+      "type": "object",
+      "required": ["name", "releaseVersion", "protocol"],
+      "properties": {
+        "name": { "type": "string", "pattern": "^fates-slice-\\d{3}[a-z]-v\\d+\\.\\d+\\.\\d+-protocol-\\d+\\.\\d+\\.\\d+$" },
+        "releaseVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+        "protocol": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "attemptEvidence": {
+      "type": "object",
+      "required": [
+        "attemptId",
+        "classification",
+        "evidencePath",
+        "evidenceSha256",
+        "journalPath",
+        "journalSha256"
+      ],
+      "properties": {
+        "attemptId": { "type": "string", "pattern": "^\\d{3}$" },
+        "classification": {
+          "enum": ["PASS_BOUNDED", "FAIL_BOUNDED", "INCOMPLETE", "ABORTED"]
+        },
+        "evidencePath": { "type": "string", "pattern": "^docs/evidence/[^/]+\\.json$" },
+        "evidenceSha256": { "type": "string", "pattern": "^[A-Fa-f0-9]{64}$" },
+        "journalPath": { "type": "string", "pattern": "^docs/evidence/[^/]+\\.events\\.ndjson$" },
+        "journalSha256": { "type": "string", "pattern": "^[A-Fa-f0-9]{64}$" }
+      },
+      "additionalProperties": false
+    }
+  }
+}
