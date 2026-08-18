@@ -114,7 +114,12 @@ For a sub-slice-only closure:
 5. Keep the numeric parent active with `activeSubsliceId: null` when closing
    the currently active child. Do not activate a later child.
 6. Run the normal full validation and CI, then create the deterministic
-   annotated sub-slice tag only after CI succeeds.
+   annotated sub-slice tag only after CI succeeds. The tag targets the final
+   pushed Integration source commit whose own CI passed and which contains the
+   unchanged terminal state and seal artifacts. A later corrective descendant
+   supersedes the state-introduction commit as the tag target when it is the
+   final validated source state; synthetic pull-request merge refs are not
+   eligible tag targets. Existing historical tags retain their targets.
 
 This is a separate closure transaction from sub-slice activation. It does not
 modify runtime behavior, the lock, or the compatibility snapshot.

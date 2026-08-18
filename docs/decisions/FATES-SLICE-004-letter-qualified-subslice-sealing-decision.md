@@ -79,11 +79,24 @@ fates-slice-<lowercase numeric-plus-letter>-v<releaseVersion>-protocol-<protocol
 
 For example, a first 004A seal using release version `0.1.0` and protocol
 `1.4.0` would use
-`fates-slice-004a-v0.1.0-protocol-1.4.0`. The tag is created only after the
-seal commit has passed normal CI. Defining this convention does not create the
-tag. No npm/package version is changed; the release version is metadata for
-the Integration seal tag, with `0.1.0` as the initial bounded-slice value
-unless a later decision records another version.
+`fates-slice-004a-v0.1.0-protocol-1.4.0`. The tag targets the final pushed
+Integration source commit that contains the unchanged terminal sub-slice state
+and all required seal artifacts, and whose own normal CI has passed. If a later
+corrective descendant is required after the commit that first records the
+terminal state, the corrective descendant is the tag target when it is the
+final validated source state; the earlier state-introduction commit remains
+historical provenance and is not retagged. The tag must point to a stable
+source commit on the Integration branch, not to a synthetic pull-request merge
+ref. A successful CI result for a synthetic merge ref does not by itself
+qualify that merge ref or a different source commit as the tag target. Existing
+historical tags retain their recorded targets; this rule governs new sub-slice
+seal tags only.
+
+The tag is created only after the selected source commit has passed normal CI.
+Defining this convention does not create the tag. No npm/package version is
+changed; the release version is metadata for the Integration seal tag, with
+`0.1.0` as the initial bounded-slice value unless a later decision records
+another version.
 
 ## Backward compatibility and safety
 
