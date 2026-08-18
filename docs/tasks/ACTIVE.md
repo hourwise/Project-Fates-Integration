@@ -2638,3 +2638,48 @@ does not create or activate 004B. The next bounded executable task is a
 separate owner-authorized 003B activation-decision package; 004B
 implementation is **NO-GO** until that prerequisite is accepted/closed and a
 separate 004B definition/activation transaction is authorized.
+
+## FATES-SLICE-003B activation-decision package preparation - 2026-08-18
+
+Status: **COMPLETE — decision-ready preparation; 003B remains paused and inactive.**
+
+This bounded governance transaction began from Integration
+`16b0f10516ae0194d61eb00e916c179fa9183fc7` on
+`codex/slice-003a-activation`, with the remote branch at the same SHA and
+`origin/main` at `26b19e97468c0c660ef3ea4ed32f75cec84a4dee`. The worktree and
+index were clean. The 004A tag object remained
+`215befaab486ba1094533bacc4668602e0694257`, peeling to
+`c57676234ad1eb29af5aecba49e2a1449dd31aab`; 004A remains
+completed/sealed/closed, parent 004 remains open/provisional, and
+`activeSubsliceId` remains `null`. 004B remains absent/inactive and Attempt
+007 remains absent.
+
+All eleven protected 004A evidence hashes matched their established values.
+No Attempt 006 rerun or live acceptance occurred. No component source,
+Runtime Contracts, lock, matrix, snapshot, active control state, tag, or
+sealed 004A artifact changed.
+
+The authoritative 003B documents establish the objective and a proposed
+strict Linux x86_64/KVM/Firecracker/no-guest-NIC/constrained-vsock profile,
+but explicitly retain that profile as proposed and require owner approval
+before activation. Existing Moirae supervisor, sandbox, network-broker,
+secret-broker, and local-IPC paths are scaffolded rather than containment
+enforcement. Horae ownership documents keep it out of the first containment
+proof; Mnemosyne remains outside execution authority; Ananke remains the sole
+policy/approval/effect authority; Runtime Contracts remains neutral structure.
+
+The complete decision-ready objective, guarantees/nonclaims, profile
+alternatives, credential rule, supervisor/channel contract, threat/failure
+model, responsibility matrix, proposed subslice contract, deterministic
+acceptance matrix, harmless process-heavy acceptance plan, performance budget,
+activation prerequisites, stop conditions, and later implementation order are
+recorded in
+`docs/decisions/FATES-SLICE-003B-activation-decision-package.md`.
+
+Because Firecracker, gVisor, rootless-container, and future Windows profiles
+remain materially different architectures, the final classification is
+**`003B_BLOCKED_ARCHITECTURE_DECISION`**. The Firecracker profile is a
+decision-ready recommendation, not an accepted selection. No 003B subslice
+artifact was created, no activation was performed, and no containment code was
+written. The next bounded task is owner review and explicit selection of one
+profile before a separate 003B activation transaction.
