@@ -2728,3 +2728,44 @@ decision-ready recommendation, not an accepted selection. No 003B subslice
 artifact was created, no activation was performed, and no containment code was
 written. The next bounded task is owner review and explicit selection of one
 profile before a separate 003B activation transaction.
+
+## FATES-SLICE-003B formal activation transaction - 2026-08-18
+
+Status: **STOPPED - `003B_ACTIVATION_NO_GO_PREREQUISITE`.**
+
+Phase 0 preflight passed at Integration `4e84d57d493e463660c60c3236b4263ae3d80b78`:
+the local and remote feature branch matched, `origin/main` remained
+`26b19e97468c0c660ef3ea4ed32f75cec84a4dee`, the worktree and index were clean,
+the 004A tag object and peeled target were unchanged, all eleven protected
+004A evidence hashes matched, the 003B package remained
+`003B_ACTIVATION_READY`, and decision-package CI `32187335059` was green.
+
+The transaction stopped during recovery of the canonical activation contract,
+before creating a manifest, child record, or control-state change. The
+repository schema and `parentSliceIdForSubslice()` deterministically require
+`FATES-SLICE-003B` to have parent `FATES-SLICE-003`. The current control owner
+is the open/provisional numeric `FATES-SLICE-004` with no active child; its
+004A child is completed/sealed/closed. The canonical Slice 003 record is
+already completed/sealed. The active-state validator also requires the active
+child's numeric parent to equal `activeSliceId`. Therefore activating 003B
+would require either reactivating the sealed Slice 003 parent or assigning a
+003B child to numeric parent 004, and both choices violate the established
+schema/history and the accepted no-reopening boundaries. No lifecycle value
+was invented to force activation.
+
+The accepted 003B package also requires RED/process-heavy acceptance fixtures
+before active state, while this transaction explicitly forbids creating or
+running process-heavy Firecracker/KVM tests. No canonical 003B manifest
+declaration or subslice artifact was created because the parent/lifecycle
+prerequisite failed first. Runtime artifact slots remain deferred as specified
+by the package; no fake digests were introduced.
+
+No `active-slice.json`, `fates-lock.json`, compatibility matrix or snapshot,
+component repository, Runtime Contracts source, 004A artifact/tag/evidence,
+004B artifact, or Attempt 007 state changed. No implementation, KVM or
+Firecracker execution, live acceptance, credential generation, or Attempt 006
+rerun occurred. The recommended next task is an explicit owner/governance
+decision that establishes a canonical open numeric parent/lifecycle mapping
+for 003B and satisfies the remaining activation prerequisites; a new
+activation transaction must then be authorized. Implementation remains
+**NO-GO**.
