@@ -15,6 +15,7 @@ const processHeavyTests = new Set([
   'fates-slice04a-process-lifecycle.test.mjs',
   'fates-slice04a-real-child-restart.test.mjs',
   'fates-slice04a-receipt-sink.test.mjs',
+  'fates-slice04a-recovery-shutdown.test.mjs',
 ]);
 
 function collectTestFiles(directory) {

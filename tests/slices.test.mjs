@@ -3,23 +3,56 @@
 
 import { describe, it } from 'node:test';
 import { strict as assert } from 'node:assert';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
+
+function findSubsliceRecords(directory) {
+  const records = [];
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const entryPath = resolve(directory, entry.name);
+    if (entry.isDirectory()) {
+      records.push(...findSubsliceRecords(entryPath));
+    } else if (entry.name === 'subslice.json') {
+      records.push(JSON.parse(readFileSync(entryPath, 'utf-8')));
+    }
+  }
+  return records;
+}
+
 describe('slice verification', () => {
-  it('records the active 004A control state after the sealed R1 baseline', () => {
+  it('records the active parent and current child lifecycle state after the sealed R1 baseline', () => {
     const activeSlice = JSON.parse(readFileSync(resolve(root, 'active-slice.json'), 'utf-8'));
     assert.strictEqual(activeSlice.status, 'active');
     assert.strictEqual(activeSlice.activeSliceId, 'FATES-SLICE-004');
-    assert.strictEqual(activeSlice.activeSubsliceId, 'FATES-SLICE-004A');
     assert.strictEqual(activeSlice.baselineCompatibilitySet, 'fates-slice-003a-r1-2026-08-11');
     assert.strictEqual(activeSlice.nextRecommendedSlice, 'FATES-SLICE-004');
     assert.match(activeSlice.activationRequirements.acceptedScope, /FATES-SLICE-004A/);
     assert.match(activeSlice.activationRequirements.userAuthorisation, /only the bounded FATES-SLICE-004A activation/);
+
+    const childRecords = findSubsliceRecords(resolve(root, 'slices'))
+      .filter((subslice) => subslice.parentSliceId === activeSlice.activeSliceId);
+    assert.strictEqual(childRecords.length, 1, 'the active parent must resolve to one registered child record');
+
+    const child = childRecords[0];
+    const terminal = child.implementationStatus === 'completed' &&
+      child.sealStatus === 'sealed' &&
+      child.activation?.state === 'closed';
+
+    if (terminal) {
+      assert.strictEqual(activeSlice.activeSubsliceId, null);
+    } else {
+      assert.ok(
+        (child.implementationStatus === 'planned' || child.implementationStatus === 'active') &&
+          child.sealStatus === 'provisional',
+        'a non-terminal child must remain planned/active and provisional',
+      );
+      assert.strictEqual(activeSlice.activeSubsliceId, child.subsliceId);
+    }
   });
 
   it('template is not active', () => {

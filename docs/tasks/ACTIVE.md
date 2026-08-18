@@ -2440,3 +2440,161 @@ transaction test listener remained afterward. Attempt 007 was not created,
 rerun. The prepared 004A candidate remains completed/sealed/closed with the
 active parent open and `activeSubsliceId: null`; it is ready for the bounded
 commit/push/CI/tag transaction authorized by the resumed seal approval.
+
+## FATES-SLICE-004A resumed seal transaction CI disposition - 2026-08-14
+
+Status: **STOPPED after publication - CI failed; no rerun or tag.** The
+bounded transaction commit is `491421cfe74bbc5cbf1a9b4b5f720caeb955dff5` and
+was pushed fast-forward. CI run `31798911021` started for that commit but the
+pull-request merge checkout `707c559882ec0cd40580d93bdf62d233d70cc918`
+failed in the ordinary test cohort. The failing test was
+`records the active 004A control state after the sealed R1 baseline`: expected
+`activeSubsliceId` `FATES-SLICE-004A`, but the merge checkout provided no value.
+The ordinary cohort result was 131/132; process-heavy CI did not run.
+
+Per the resumed authorization, no CI rerun, tag, force-push, merge, or further
+source/evidence change was performed. The local commit and remote branch
+remain at `491421cfe74bbc5cbf1a9b4b5f720caeb955dff5`; the 004A candidate and
+protected evidence in that commit remain unchanged. 004A is not formally
+sealed/tagged under the failed CI gate, 004B remains unauthorized/inactive,
+and no Attempt 007 or Attempt 006 rerun occurred. The final transaction state
+is **NO-GO** pending a separately authorized resolution of the CI merge-base
+state mismatch.
+
+## FATES-SLICE-004A CI merge-base resolution disposition - 2026-08-14
+
+Status: **STOPPED - prospective merged-state full validation timed out; NO-GO.**
+The exact PR merge ref `707c559882ec0cd40580d93bdf62d233d70cc918` was
+reconstructed from PR #6, with base parent
+`26b19e97468c0c660ef3ea4ed32f75cec84a4dee` and feature parent
+`491421cfe74bbc5cbf1a9b4b5f720caeb955dff5`. Its tree was identical to the
+feature commit; no current-base source change needed incorporation.
+
+The failed assertion was traced to `tests/slices.test.mjs`, introduced by
+activation commit `6121b1712ffbaba7d0a1b9860086e1ae5117bb8c`, where the child
+was active/provisional. A disposable-merge-only generic lifecycle correction
+accepted both provisional-active and terminal sealed/closed states and passed
+the formerly failing slice test plus the seal and related subslice suites,
+33/33. The prospective merged-state full validation then passed JSON 19/19,
+lock, matrix, slice/sub-slice, and boundaries, but timed out at 310 seconds
+during the ordinary cohort after starting its 14 test files; no ordinary,
+process-heavy, or complete-validation totals were produced.
+
+Per the separate resolution authorization, this timeout is a hard stop. The
+generic correction was not retained in the authoritative worktree, no
+commit, push, CI rerun, tag, merge, force-push, live acceptance, Attempt 006
+rerun, or Attempt 007 was performed. The authoritative branch and remote
+remain at `491421cfe74bbc5cbf1a9b4b5f720caeb955dff5`; protected evidence and
+candidate hashes remain unchanged. A read-only residual check found no
+listeners on the bounded Fates test ports, but Node processes were present,
+including one `C:\Program Files\nodejs\node.exe` instance started during the
+validation window. Its command line could not be inspected under the sandbox,
+so residual process state is unresolved. 004A remains completed/sealed/closed
+in the candidate representation but is not formally sealed/tagged under the
+failed CI gate; parent 004 remains open with `activeSubsliceId: null`; 004B
+remains absent and unauthorized. Final state: **NO-GO pending a separately
+authorized investigation of the ordinary-test timeout and residual process
+state.**
+
+## FATES-SLICE-004A ordinary-test timeout investigation disposition - 2026-08-17
+
+Status: **STOPPED - ordinary-only cohort reproduced the timeout; NO-GO.**
+Phase 0 reconciled the authoritative state: branch
+`codex/slice-003a-activation`, local and remote HEAD
+`491421cfe74bbc5cbf1a9b4b5f720caeb955dff5`, current `main`
+`26b19e97468c0c660ef3ea4ed32f75cec84a4dee`, merge-base
+`203e7036687db775fb199934748f9beed8e2df17`, and only this ACTIVE record plus
+the separately authorized generic lifecycle correction were dirty and
+unstaged. No staged files existed. The correction is present only in the
+authoritative working tree at `tests/slices.test.mjs`; it is not committed or
+in the index. The earlier disposable merge checkout is not authoritative.
+
+The historical 132/132 ordinary result was reconciled to an earlier
+pre-seal run: its retained log was created at 10:12 on 2026-08-14, while
+`491421...` was committed at 13:05 and still contains the activation-era
+provisional-pointer assertion. The current harness has 14 ordinary files and
+three separately serialized process-heavy files; it has no 310-second test
+ceiling. The prior 310/240-second ceilings were command-wrapper bounds.
+
+Diagnostics: the isolated live-acceptance file passed 8/8 in 1.643 seconds;
+the recovery-shutdown file passed 2/2 in 7.652 seconds; and the targeted
+four-file child/process subset passed 33/33 in 18.671 seconds. Each left no
+Fates listener or test-created Node descendant. The required authoritative
+focused lifecycle/seal/subslice proof passed 33/33 in 1.907 seconds.
+
+The one authorized ordinary-only cohort used the exact 14-file sorted
+`node --test` command with the approved Ananke root. It timed out at 242
+seconds. The last emitted tests were
+`004A Case-C recovery drains naturally without redispatch` (6.243 seconds)
+and `004A Case-B recovery remains reconciled with exactly one provider
+operation` (10.167 seconds), both marked failed before the parent cohort
+failed to exit. During the run, the isolated recovery test worker and its
+Ananke fixture child were observed, including dynamic fixture port 49459 and
+the `after_dispatch_marker` crash scenario. After the wrapper timeout, no
+Fates test descendant or Fates-range listener remained.
+
+The timeout is classified as a **full-cohort test-order/resource-sensitivity
+interaction** centered on `fates-slice04a-recovery-shutdown.test.mjs`, not as
+an individual-file hang: isolated and targeted-subset executions passed. The
+recovery test has a static cleanup hazard when `startSink` or `startWorker`
+spawns a child and readiness fails before the handle is assigned to the outer
+`finally` variables, but this transaction did not prove that hazard was the
+observed trigger. No cleanup correction was therefore invented or published.
+
+Read-only elevated process inspection classified the previously suspected
+August 14 PID 12844 as an unrelated Codex MCP child (`./mcp/server.mjs`), not
+a Fates residual. Other Node processes were likewise Codex MCP or unrelated
+tooling. No process was terminated.
+
+The generic lifecycle correction remains uncommitted in
+`tests/slices.test.mjs`; no cleanup correction, full validation, prospective
+merge validation, commit, push, CI rerun, tag, live acceptance, Attempt 006
+rerun, or Attempt 007 was performed. Protected evidence remains 11/11 exact;
+candidate hashes remain unchanged. 004A remains completed/sealed/closed in
+the candidate representation but is not formally sealed/tagged under the CI
+gate; parent 004 remains open with `activeSubsliceId: null`; 004B remains
+absent and unauthorized. Final state: **NO-GO pending a separately
+authorized decision on the full-cohort recovery-test interaction and any
+proven cleanup correction.**
+
+## FATES-SLICE-004A recovery concurrency resolution - 2026-08-18
+
+Status: **PROVEN and ready for bounded publication.** The pre-return ownership
+defect was independently reproduced in a disposable probe using the real
+Ananke fixture and lifecycle helper: forced readiness failure after spawn
+returned no caller handle, left probe child PID 16612 alive, and left one
+active-child entry. The probe then cleaned only that child; external
+verification confirmed PID 16612 exited. `startWorker()` and `startSink()` now
+retain ownership until readiness/health succeeds, clean any pre-return error,
+and rethrow the original error. The recovery suite includes a regression test
+for both startup paths.
+
+The Case B/C concurrency failure was reproduced as Case B worker readiness
+failure when recovery ran concurrently with
+`fates-slice03a-r1-live-acceptance.test.mjs`: readiness timed out after 5.020
+seconds at `http://127.0.0.1:62393`, with 62 connection-refused attempts and
+`childAliveAtDeadline: true`; Case C passed. The same pair serialized with
+`--test-concurrency=1` passed 17/17 in 9.806 seconds. Recovery owns multiple
+child processes and dynamic listeners, so adding
+`fates-slice04a-recovery-shutdown.test.mjs` to the existing serialized
+process-heavy set was a proven classification correction, not a performance
+workaround.
+
+After correction, authoritative focused proof passed 36/36. The corrected
+cohort harness passed ordinary 130/130 across 13 files and process-heavy 12/12
+across 4 files in one run, with clean process/port teardown. The exact
+prospective merge ref `707c559882ec0cd40580d93bdf62d233d70cc918` contained the
+lifecycle correction, cleanup fix, regression, and classification. Its
+focused proof passed 36/36. One complete `npm run validate` invocation passed
+JSON 19/19, lock, matrix, slice/sub-slice, boundaries, ordinary 130/130,
+process-heavy 12/12, and complete validation; the test stage took 82.603
+seconds and teardown was clean.
+
+No protected evidence or candidate artifact changed. No live acceptance,
+Attempt 006 rerun, Attempt 007, 004B action, tag, CI rerun, force-push, or
+merge was performed. The authorized publication correction consists only of
+the generic lifecycle test correction, generic pre-return cleanup fix and
+regression, this process-heavy classification, and this ACTIVE record. 004A
+remains completed/sealed/closed in the candidate representation; parent 004
+remains open with `activeSubsliceId: null`; 004B remains absent and
+unauthorized. Publication is eligible for one normal push and one new CI run.

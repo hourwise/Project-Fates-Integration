@@ -56,8 +56,8 @@ async function freePort() {
   return port;
 }
 
-async function waitForSinkReady(handle) {
-  const deadline = Date.now() + 5_000;
+async function waitForSinkReady(handle, timeoutMs = 5_000) {
+  const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     const line = handle.stdout
       .split("\n")
@@ -68,7 +68,7 @@ async function waitForSinkReady(handle) {
   throw new Error(`receipt sink did not become ready: ${handle.stderr}`);
 }
 
-async function startSink(statePath) {
+async function startSink(statePath, options = {}) {
   const handle = startChild({
     nodePath: process.execPath,
     script: sinkPath,
@@ -78,10 +78,15 @@ async function startSink(statePath) {
     role: "receipt-sink",
     onStart: (child) => activeChildren.add(child),
   });
-  const port = await waitForSinkReady(handle);
-  const baseUrl = `http://127.0.0.1:${port}`;
-  assert.equal((await fetch(`${baseUrl}/health`)).status, 200);
-  return { handle, baseUrl, port };
+  try {
+    const port = await waitForSinkReady(handle, options.readyTimeoutMs ?? 5_000);
+    const baseUrl = `http://127.0.0.1:${port}`;
+    assert.equal((await fetch(`${baseUrl}/health`)).status, 200);
+    return { handle, baseUrl, port };
+  } catch (error) {
+    await stop(handle);
+    throw error;
+  }
 }
 
 async function startWorker(databasePath, providerUrl, options = {}) {
@@ -98,12 +103,17 @@ async function startWorker(databasePath, providerUrl, options = {}) {
     role: options.role ?? "ananke-worker",
     onStart: (child) => activeChildren.add(child),
   });
-  await waitForReady(`http://127.0.0.1:${port}`, {
-    timeoutMs: 5_000,
-    handle,
-    identityCheck: (body) => body?.runtime === "ananke",
-  });
-  return { handle, baseUrl: `http://127.0.0.1:${port}`, port };
+  try {
+    await waitForReady(options.readinessUrl ?? `http://127.0.0.1:${port}`, {
+      timeoutMs: options.readinessTimeoutMs ?? 5_000,
+      handle,
+      identityCheck: (body) => body?.runtime === "ananke",
+    });
+    return { handle, baseUrl: `http://127.0.0.1:${port}`, port };
+  } catch (error) {
+    await stop(handle);
+    throw error;
+  }
 }
 
 async function api(baseUrl, path, options = {}) {
@@ -239,6 +249,45 @@ async function runRecoveryScenario(failpoint, crashMode, key) {
     await rm(directory, { recursive: true, force: true });
   }
 }
+
+test("startup readiness failure cleans children before ownership transfer", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "fates-slice04a-readiness-cleanup-"));
+  const before = new Set(activeChildren);
+  try {
+    await assert.rejects(
+      startWorker(
+        join(directory, "worker.sqlite"),
+        "http://127.0.0.1:9",
+        {
+          readinessUrl: "http://127.0.0.1:1",
+          readinessTimeoutMs: 250,
+          role: "readiness-cleanup-probe-worker",
+        },
+      ),
+      /child did not become ready/,
+    );
+    assert.deepEqual(
+      [...activeChildren].filter((child) => !before.has(child)),
+      [],
+      "worker readiness failure must not leave an unowned child",
+    );
+
+    await assert.rejects(
+      startSink(join(directory, "provider.json"), { readyTimeoutMs: 0 }),
+      /receipt sink did not become ready/,
+    );
+    assert.deepEqual(
+      [...activeChildren].filter((child) => !before.has(child)),
+      [],
+      "sink readiness failure must not leave an unowned child",
+    );
+  } finally {
+    for (const child of [...activeChildren].filter((candidate) => !before.has(candidate))) {
+      await stop(child);
+    }
+    await rm(directory, { recursive: true, force: true });
+  }
+});
 
 test("004A Case-C recovery drains naturally without redispatch", async () => {
   const { recovery, beforeRestart, afterRestart } = await runRecoveryScenario(
