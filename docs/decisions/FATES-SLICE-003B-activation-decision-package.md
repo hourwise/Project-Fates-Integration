@@ -1,20 +1,19 @@
 # FATES-SLICE-003B activation-decision package
 
-**Status:** Decision-ready preparation only; `FATES-SLICE-003B` is not
+**Status:** Activation-ready governance package; `FATES-SLICE-003B` is not
 activated, implemented, or represented in `active-slice.json`.
 
 **Date:** 2026-08-18
 
-**Final classification:** `003B_BLOCKED_ARCHITECTURE_DECISION`
+**Final classification:** `003B_ACTIVATION_READY`
 
 ## 1. Decision and scope
 
-This package turns the accepted 003B containment concept into a bounded
-owner-review package for a later activation/implementation transaction. It
-does not select a containment implementation by fiat. The accepted material
-contains a proposed Linux/Firecracker profile, but it also retains legitimate
-alternatives and explicitly requires a separate owner design gate before
-activation. Therefore one material architectural decision remains open.
+This package turns the accepted 003B containment concept and the owner’s
+architecture decision into a bounded package for a later
+activation/implementation transaction. The owner has selected one canonical
+first profile; alternative profiles remain future portability/security-profile
+work and do not weaken this first claim.
 
 The package does not change `active-slice.json`, `fates-lock.json`, the
 compatibility matrix/snapshot, any component repository, Runtime Contracts,
@@ -139,9 +138,9 @@ global host governance outside the selected supervisor/containment domain.
 
 ## 4. Candidate containment profile and unresolved architecture
 
-### Decision-ready recommendation (not yet selected)
+### Owner-selected canonical first profile
 
-The strongest existing candidate is:
+The authoritative first profile is:
 
 `Linux x86_64 / pinned KVM / Firecracker + jailer / no guest NIC / constrained vsock`
 
@@ -154,23 +153,110 @@ independent host evidence collector. KVM, kernel, VMM, profile, policy,
 runner, or evidence-collector unavailability would fail closed. The current
 Windows workstation cannot be evidence for this profile.
 
-This recommendation follows the accepted 003B design gate, but it is not an
-owner-selected architecture. The following alternatives remain legitimate
-and require an explicit decision:
+The following alternatives remain legitimate future profiles but do not define
+the initial 003B claim:
 
 | Option | Security/bypass posture | Testability and portability | Disposition |
 | --- | --- | --- | --- |
-| Firecracker microVM with no NIC and constrained vsock | Strongest proposed first boundary; hardware/guest boundary plus explicit host channel; still depends on pinned host, kernel, VMM, jailer, supervisor, and evidence collector | High deterministic falsifiability on pinned Linux; no current Windows proof; operationally heavier | **Recommended for owner decision, not selected** |
+| Firecracker microVM with no NIC and constrained vsock | Strong first boundary; hardware/guest boundary plus explicit host channel; still depends on pinned host, kernel, VMM, jailer, supervisor, and evidence collector | High deterministic falsifiability on pinned Linux; no current Windows proof; operationally heavier | **Canonical first profile** |
 | gVisor or equivalent sandbox runtime | Layered defense and potentially lower startup cost; different kernel/API and configuration TCB | Linux-focused; requires independent proof of network, filesystem, process, and credential behavior | Viable alternative; not selected |
 | Rootless OCI/container plus namespaces, cgroups, seccomp, Landlock | Lower friction and broad Linux tooling; weaker isolation claim and larger host-kernel/configuration bypass surface than a microVM | Easier CI integration; not accepted as sole hostile-code boundary without a new proof | Defense-in-depth or alternate profile only |
 | Windows AppContainer/restricted token/Job Object profile | Potential Windows developer support; requires proof of reparse points, handles, child creation, IPC, and network policy | Matches current workstation but no accepted profile or host evidence exists | Separate future platform decision |
 | Restricted child process, environment allowlist, ACLs, or localhost proxy alone | Cannot establish a defensible hostile-workload boundary; direct host/process/network/credential paths remain | Easy to run but not sufficient for 003B | Rejected as the sole boundary |
 
-The unresolved choice is material because it changes the trusted computing
-base, supported platform, component implementation, failure behavior,
-acceptance evidence, performance budget, and future 004B route. This is why
-the final classification is `003B_BLOCKED_ARCHITECTURE_DECISION` rather than
-`003B_ACTIVATION_READY`.
+The owner decision resolves the architecture choice. The initial security
+claim is scoped to supported Linux x86_64 hosts with verified KVM capability;
+Windows, gVisor, rootless containers, WSL, and other weaker fallbacks are not
+equivalent profiles and must fail closed if offered in the canonical path.
+
+### Owner decision record
+
+`OWNER_DECISION: Linux x86_64 / pinned KVM / Firecracker + jailer / no guest NIC / constrained vsock / host-side credential custody.`
+
+The owner decision is authoritative for the first profile. It does not
+activate 003B, create a canonical child record, or authorize implementation.
+
+## 4.1 Runtime-artifact pinning strategy
+
+The later activation transaction must carry an immutable platform manifest and
+must refuse mutable “latest” inputs. The manifest is to be produced and
+reviewed before implementation begins, with each entry recording source/release
+identity, version, cryptographic digest, build provenance, license, and
+verification command:
+
+- Firecracker release/build and binary SHA-256;
+- jailer release/build, patch source if any, and binary SHA-256;
+- host Linux distribution/kernel, x86_64 architecture, KVM capability and
+  runner identity;
+- guest kernel and root filesystem/image SHA-256;
+- guest init/agent and workload/image SHA-256;
+- minimal device model and complete VM configuration digest;
+- no-NIC network profile and constrained-vsock endpoint map;
+- seccomp/LSM/Landlock policy identities and required ABI/features;
+- cgroup/resource/process/cleanup policy;
+- Moirae supervisor source/build commit and configuration digest; and
+- Integration acceptance driver, evidence collector, and fixture hashes.
+
+The manifest is a prerequisite artifact for the later activation/implementation
+transaction, not a request to download or build those artifacts now. Any
+digest, runner, policy, or configuration drift invalidates the profile and
+requires a new checkpoint/acceptance decision. No historical 004A component
+pin is treated as an automatic 003B runtime-artifact pin.
+
+### Starting repository pins for the later transaction
+
+The following are explicit starting references, not current lock changes:
+
+| Repository | Role in first 003B proof | Starting reference |
+| --- | --- | --- |
+| Project-Fates-Integration | Control, acceptance orchestration, evidence, and seal | Final commit of this published decision package, recorded by the later activation transaction |
+| Project Moirae Code | Primary trusted host supervisor/platform adapter | Sealed R1 checkpoint `bc7b984bd2eb0e0f07a1cd7259a8eab21556f097` (`moirae-fates-slice-003a-r1-v0.1.0-protocol-1.4.0`) |
+| Project Ananke | Authority/effect boundary consulted by later governed paths; no first-proof provider effect | Sealed R1 checkpoint `dde9f74cbcfefea2176a6f0103e1f6b9064f4e64` (`ananke-fates-slice-003a-r1-v0.1.0-protocol-1.4.0`) |
+| Project Horae | Explicitly out of first 003B proof | No new 003B pin; existing sealed R1 reference remains unchanged |
+| Project Mnemosyne | Out of scope | No 003B pin |
+| Runtime Contracts / Adrasteia | Neutral structural baseline only | Immutable package baseline `124b6aee2629a3147739934ad5f1b45b32c8ba46`, `adrasteia-adoption-v0.4.0-protocol-1.4.0` |
+
+The later activation transaction must record the final Integration SHA and
+confirm all selected repositories are clean at their exact references. It
+must not update the global lock or matrix merely to prepare 003B; any lock or
+compatibility advancement is a separate checkpoint/seal transaction.
+
+## 4.2 Acceptance environment requirement
+
+The authoritative process-heavy proof requires a dedicated Linux x86_64
+environment with verified KVM capability, the pinned Firecracker/jailer
+artifacts, the selected guest artifacts, host-side process/network/filesystem
+observation, and an independent evidence collector. GitHub-hosted CI or the
+current Windows workstation may run static, contract, fixture, and mock tests,
+but cannot substitute for the canonical containment proof unless a separately
+reviewed topology proves the exact requirements.
+
+Nested virtualization, WSL, Docker, rootless containers, or a missing KVM
+capability must produce a named unavailable/preflight failure; they must never
+be reported as successful 003B containment.
+
+## 4.3 Normative first-profile requirements
+
+The following requirements are normative for the canonical first profile. A
+later implementation or acceptance artifact MUST use these meanings; an
+implementation that cannot demonstrate them is unavailable or failed and MUST
+NOT be reported as contained.
+
+| Domain | Normative requirement |
+| --- | --- |
+| Platform and artifacts | The host, KVM capability, Firecracker, jailer, guest artifacts, policies, supervisor, workload, and evidence collector MUST match the immutable activation manifest. Mutable `latest` inputs, unverified drift, and silent fallback MUST NOT be accepted. |
+| Workload | The workload MUST be treated as arbitrary hostile code. Names, metadata, declared intent, and self-reported success MUST NOT establish trust. |
+| Process tree | The supervisor MUST own launch, membership, resource limits, shutdown, and descendant reaping. A surviving or reparented descendant MUST fail the session and MUST block sealing. |
+| Filesystem and mounts | The guest MUST use only the pinned rootfs/workspace and explicitly allowed mounts. Host paths, devices, symlink/hard-link/reparse escapes, and ambiguous descriptors MUST be denied or fail closed. |
+| Environment and handles | The workload MUST receive a minimal explicit environment and only explicitly allowed handles. Host environment, inherited descriptors, control sockets, and host process handles MUST NOT cross the boundary. |
+| Devices and resources | The VM MUST expose only the minimal declared device model and bounded CPU, memory, I/O, process, and file resources. Exhaustion or unsupported primitives MUST produce a named failure, never a fallback. |
+| Network and IPC | The guest MUST have no NIC and MUST use only the fixed-purpose constrained-vsock channel. Direct host, localhost, metadata, private-network, provider, and arbitrary-vsock access MUST be denied. Generic host proxies MUST NOT be substituted. |
+| Credentials | The workload MUST receive no durable host credential or unrestricted reusable bearer credential. Credential material MUST NOT appear in guest files, environment, argv, memory-visible stores, inherited handles, logs, telemetry, or evidence. |
+| Channel identity | Every channel message MUST bind the session ID, supervisor launch nonce, profile digest, workload/artifact digest, sequence/causation data, request digest, and purpose. URL knowledge or copied public identifiers MUST NOT authenticate a peer. |
+| Authorization binding | A supervisor MUST enforce an already-issued Ananke binding and MUST NOT mint, reinterpret, widen, or persist authority. The trusted channel MUST NOT be treated as authorization. |
+| Failure and shutdown | Channel loss, supervisor loss, child crash, profile drift, evidence loss, parser failure, or cleanup ambiguity MUST revoke temporary capability state and fail closed. |
+| Evidence | Acceptance MUST use independent host-side lifecycle/process/network/filesystem observations and immutable sanitized evidence. Missing, delayed, ambiguous, or secret-bearing evidence MUST block release and sealing. |
+| Consequential effects | The first proof MUST be harmless and no-provider. No external effect, provider call, or host consequential action may be used to claim containment. |
 
 ## 5. Proposed trusted supervisor and channel contract
 
@@ -287,11 +373,11 @@ closed; it must not weaken a security invariant.
 | Memory/provenance | Scope check | No | No | No | Sole owner of memory semantics | No |
 | Acceptance and sealing | Sole Integration owner | Component evidence | Component evidence | Not involved initially | Not involved | Schema validation only |
 
-## 9. Proposed 003B subslice contract
+## 9. Activation-ready 003B subslice contract
 
-No canonical 003B subslice artifact exists today. The following is the
-proposed contract to instantiate only after the architecture decision and
-owner activation approval:
+No canonical 003B subslice artifact exists today. The following contract is
+ready to instantiate in the separate activation transaction; instantiation is
+not performed by this preparation/finalization task:
 
 | Field | Proposed value |
 | --- | --- |
@@ -299,10 +385,10 @@ owner activation approval:
 | Parent | `FATES-SLICE-003` |
 | Title | Host containment and governance bypass resistance |
 | Purpose | Prove one selected pinned platform profile can run an arbitrary bounded developer workload while preventing host credential access, host escape, direct consequential paths, and unauthorized process/channel reuse. |
-| Predecessors | Sealed `FATES-SLICE-003A-R1`; sealed `FATES-SLICE-004A`; owner-accepted 003B architecture/profile decision. |
+| Predecessors | Sealed `FATES-SLICE-003A-R1`; sealed `FATES-SLICE-004A`; owner-selected canonical Firecracker profile. |
 | In-scope repositories | Moirae Code (primary supervisor/platform owner) and Project-Fates-Integration (control/evidence). Ananke is a required authority/evidence consumer; Horae is not in the first proof. |
 | Out of scope | 004B effects, provider credentials/effects, generic host proxying, memory/provenance, Mnemosyne, Horae route implementation, Runtime Contracts source changes, all unsupported platforms, and live external effects. |
-| Initial state | `planned` / `provisional`; activation `proposed` until a separate owner transaction. |
+| Initial state | `planned` / `provisional`; activation `ready_for_activation` only in the separate owner activation transaction. |
 | Required pins | Exact host/kernel/architecture/KVM, VMM/jailer, guest artifacts, policy profiles, supervisor, channel map, workload, evidence collector, and all changed component commits. |
 | Invariants | No ambient credentials; no ungoverned host path; no fallback; exact profile/session/channel binding; descendant cleanup; fail closed on drift or evidence loss. |
 | Validation | JSON/control validators, component tests, pinned-profile process-heavy hostile matrix, independent host evidence, full Integration validation, green CI. |
@@ -394,8 +480,8 @@ controls may not be weakened to meet these targets.
 Before a later transaction may set `003B` active, all of the following must
 be true:
 
-1. Owner accepts one containment architecture/profile and resolves the
-   Firecracker/gVisor/container/Windows fork.
+1. The owner-selected canonical profile and Linux x86_64 platform scope are
+   recorded as the authoritative architecture decision.
 2. The threat model, TCB, credential rule, channel contract, acceptance matrix,
    performance budget, and residual-risk statement are accepted.
 3. The canonical 003B subslice record is created as planned/provisional with
@@ -423,7 +509,7 @@ Runtime Contracts change becomes necessary without its own gate.
 
 This sequence is not authorized by this package:
 
-1. Owner resolves the architecture and creates the planned 003B record.
+1. Create the planned/ready-for-activation 003B record from this package.
 2. Add RED governance, profile-manifest, credential, channel, and acceptance
    fixtures.
 3. Implement the Moirae supervisor skeleton and pinned-profile verification.
@@ -442,14 +528,16 @@ This sequence is not authorized by this package:
 
 ## 15. Final decision
 
-The package is sufficiently detailed for owner review and a later activation
-transaction, but it is not activation-ready because the containment mechanism
-and supported first platform remain materially unresolved. The proposed
-Firecracker profile is the recommended decision candidate, not an accepted
-selection.
+The owner decision has resolved the containment mechanism and supported first
+platform. The package now establishes the canonical profile, platform scope,
+ownership, credential custody, channel model, runtime-artifact pinning
+strategy, KVM-capable acceptance environment, deterministic/process-heavy
+acceptance matrix, prerequisites, and stop conditions. It is ready for a
+separate activation transaction; no activation or implementation occurred
+here.
 
-**Final classification: `003B_BLOCKED_ARCHITECTURE_DECISION`.**
+**Final classification: `003B_ACTIVATION_READY`.**
 
 **GO/NO-GO for a separate 003B activation/implementation transaction:
-NO-GO pending explicit owner selection and acceptance of one containment
-architecture/profile.**
+GO, provided the later transaction instantiates the planned child, records the
+exact manifest/checkpoints, and obtains its separate activation authorization.

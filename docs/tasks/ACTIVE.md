@@ -2639,6 +2639,51 @@ separate owner-authorized 003B activation-decision package; 004B
 implementation is **NO-GO** until that prerequisite is accepted/closed and a
 separate 004B definition/activation transaction is authorized.
 
+## FATES-SLICE-003B owner architecture decision finalization - 2026-08-18
+
+Status: **COMPLETE - `003B_ACTIVATION_READY`; activation and implementation remain separately authorized.**
+
+The owner has selected the authoritative first containment profile:
+
+```text
+Linux x86_64 / verified pinned KVM / Firecracker microVM + jailer
+no guest NIC / constrained vsock only / host-side credential custody
+```
+
+This resolves the architecture blocker recorded in the preceding 003B
+package. gVisor, rootless containers, Windows AppContainer/Job Objects, WSL,
+Docker, ordinary host children, and localhost proxies remain future or
+unsupported alternatives and must not weaken the canonical first-profile
+claim.
+
+The package now records normative workload, process-tree, filesystem,
+environment, handle, device, network, IPC, credential, channel identity,
+authorization-binding, failure, shutdown, crash, evidence, and fail-closed
+requirements. It also records the immutable runtime-artifact manifest
+strategy, exact starting repository references for the later transaction, the
+dedicated KVM-capable acceptance-environment requirement, the Firecracker-
+specific deterministic/process-heavy matrix, harmless no-provider acceptance
+plan, performance targets, activation prerequisites, stop conditions, and
+implementation order.
+
+The later starting references are Moirae Code sealed R1
+`bc7b984bd2eb0e0f07a1cd7259a8eab21556f097`, Ananke sealed R1
+`dde9f74cbcfefea2176a6f0103e1f6b9064f4e64`, and the immutable Runtime
+Contracts baseline `124b6aee2629a3147739934ad5f1b45b32c8ba46`. Horae and
+Mnemosyne are excluded from the first proof; no new Runtime Contracts change
+is required. The final Integration SHA and artifact manifest must be recorded
+by the later activation transaction; no mutable "latest" artifact is
+permitted.
+
+The canonical 003B subslice record has not been instantiated, `active-slice`
+state has not changed, 003B remains inactive, no containment code was written,
+and no process-heavy or live acceptance was run. The package is classified
+**`003B_ACTIVATION_READY`**. The next bounded task is the separate activation
+transaction that creates the planned/ready-for-activation child, records the
+exact platform manifest and checkpoints, and obtains explicit activation
+authorization. GO for that separate transaction; NO-GO for implementation
+until activation itself succeeds.
+
 ## FATES-SLICE-003B activation-decision package preparation - 2026-08-18
 
 Status: **COMPLETE — decision-ready preparation; 003B remains paused and inactive.**
