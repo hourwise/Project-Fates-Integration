@@ -2598,3 +2598,43 @@ regression, this process-heavy classification, and this ACTIVE record. 004A
 remains completed/sealed/closed in the candidate representation; parent 004
 remains open with `activeSubsliceId: null`; 004B remains absent and
 unauthorized. Publication is eligible for one normal push and one new CI run.
+
+## FATES-SLICE-004 post-004A successor readiness assessment - 2026-08-18
+
+Status: **COMPLETE — 004B is conceptually defined but not implementation-ready.**
+
+This bounded Integration-only assessment began from the formal sealed 004A
+tag `fates-slice-004a-v0.1.0-protocol-1.4.0` at
+`c57676234ad1eb29af5aecba49e2a1449dd31aab`. It fetched branch refs/tags and
+verified the local and remote branch heads remained that SHA, the annotated
+tag object was `215befaab486ba1094533bacc4668602e0694257`, and the tag peeled
+to the same commit. `main` remained
+`26b19e97468c0c660ef3ea4ed32f75cec84a4dee`; the starting worktree and index
+were clean.
+
+The exact current control state is an open/provisional numeric
+`FATES-SLICE-004` parent with `activeSubsliceId: null`; 004A is
+completed/sealed/closed and references its immutable `PASS_BOUNDED` Attempt
+006 seal basis. No physical 004B subslice artifact or activation decision
+exists. Attempt 007 does not exist. All eleven protected retained-artifact
+hashes matched, `npm run verify:slices` passed, `npm run validate:json` passed
+all 19 JSON files, and `git diff --check` was clean before this documentation
+assessment.
+
+The authoritative classification is **`004B_DEFINED_BUT_INCOMPLETE`**. The
+accepted 004 design gate, parent slice record, proposed requirements, 003B
+design gate, active control record, and generic subslice sealing decision
+define 004B only as a later host-mediated governed-effect capability after
+004A and a separately gated/accepted 003B containment proof. They do not
+define a 004B effect, exact component handoffs, requirements, acceptance
+matrix, dependency pins, or activation decision. The earlier child’s closure
+does not authorize a successor.
+
+The decision-ready dependency analysis and required owner decisions are
+recorded in
+`docs/decisions/FATES-SLICE-004B-post-004A-readiness-assessment.md`. It makes
+no architectural selection, changes no runtime/control/lock/matrix state, and
+does not create or activate 004B. The next bounded executable task is a
+separate owner-authorized 003B activation-decision package; 004B
+implementation is **NO-GO** until that prerequisite is accepted/closed and a
+separate 004B definition/activation transaction is authorized.

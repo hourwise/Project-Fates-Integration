@@ -19,6 +19,7 @@
 - Slice 004A live acceptance preparation: [bounded live-acceptance design](design/FATES-SLICE-004A-live-acceptance-design.md)
 - Slice 004A control-plane child record: [proposed sub-slice](../slices/004-governed-execution/subslices/004A-durable-governed-effect-lifecycle/subslice.json)
 - Letter-qualified sub-slice sealing contract: [decision record](decisions/FATES-SLICE-004-letter-qualified-subslice-sealing-decision.md)
+- Post-004A 004B readiness: [recorded assessment](decisions/FATES-SLICE-004B-post-004A-readiness-assessment.md)
 
 ## Component authorities
 
