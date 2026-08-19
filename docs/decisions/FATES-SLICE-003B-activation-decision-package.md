@@ -7,6 +7,14 @@ activated, implemented, or represented in `active-slice.json`.
 
 **Final classification:** `003B_ACTIVATION_READY`
 
+**Governance remap:** This is the accepted conceptual containment package
+originally labelled `FATES-SLICE-003B`. Its canonical Integration child is
+now `FATES-SLICE-004B` under numeric parent `FATES-SLICE-004`, as recorded in
+[`FATES-SLICE-004B-004C-governance-remap.md`](FATES-SLICE-004B-004C-governance-remap.md).
+The package remains the source architecture and requirements for containment;
+it does not create or activate a canonical child. The prior conceptual
+host-mediated-effects successor is now canonical `FATES-SLICE-004C`.
+
 ## 1. Decision and scope
 
 This package turns the accepted 003B containment concept and the owner’s

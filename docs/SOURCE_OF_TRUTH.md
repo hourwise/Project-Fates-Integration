@@ -21,11 +21,12 @@ When sources disagree, this audit prefers accepted non-superseded ADRs, current 
   `nextRecommendedSlice: FATES-SLICE-004`.
 - `FATES-SLICE-003A-R1`: CLOSED / SEALED. Its evidence, hashes, limitations,
   and historical attempts remain immutable.
-- `FATES-SLICE-003B`: PAUSED; no implementation or activation is implied.
+- Conceptual `FATES-SLICE-003B` is remapped to canonical `FATES-SLICE-004B`
+  containment; it remains paused with no implementation or activation implied.
 - Slice 004 remains a numeric design umbrella with its bounded 004A child
   active in control state only. 004A is a narrow durable Ananke-authoritative
   effect lifecycle; its implementation is not started. Host-mediated effects
-  are deferred to 004B after 003B.
+  are deferred to canonical 004C after canonical 004B containment.
 - Canonical slices remain numeric compatibility/control units. Letter-qualified
   sub-slices are bounded implementation or acceptance units owned by their
   numeric parent. The 004A child is represented beneath `FATES-SLICE-004`; it

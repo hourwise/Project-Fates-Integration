@@ -8,6 +8,14 @@
 `FATES-SLICE-004A` child without reopening that child or treating its closure
 as successor authorization.
 
+**Governance remap:** The host-mediated-effects capability called conceptual
+`FATES-SLICE-004B` in this historical assessment is now canonical
+`FATES-SLICE-004C`. The containment prerequisite called conceptual
+`FATES-SLICE-003B` is now canonical `FATES-SLICE-004B`. This assessment remains
+historical source material; the current mapping and activation-versus-
+acceptance ordering are governed by
+`docs/decisions/FATES-SLICE-004B-004C-governance-remap.md`.
+
 ## Disposition
 
 **Classification: `004B_DEFINED_BUT_INCOMPLETE`.**

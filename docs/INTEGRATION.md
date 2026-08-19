@@ -15,12 +15,14 @@ reconciliation block is authoritative for present control state.
   `FATES-SLICE-004`.
 - R1 is CLOSED / SEALED with bounded application-level identity and route
   claims. It does not claim OS-authenticated process origin or host containment.
-- 003B remains PAUSED and is separately gated.
+- Conceptual 003B is remapped to canonical 004B containment and remains
+  separately gated and inactive.
 - Slice 004 remains a planned numeric umbrella. Its bounded 004A durable
   governed-effect lifecycle child is active in control state only; no
   implementation, live acceptance, or generic governed-execution claim follows
-  from this activation checkpoint. The later decomposition remains 004A
-  implementation -> 003B host containment -> 004B host-mediated effects.
+  from this activation checkpoint. The later decomposition is 004A
+  implementation -> canonical 004B containment -> canonical 004C host-mediated
+  effects.
 - Canonical slices are numbered compatibility/control units. Letter-qualified
   sub-slices are bounded implementation or acceptance units owned by a
   canonical slice. The active 004A child is stored beneath the numeric

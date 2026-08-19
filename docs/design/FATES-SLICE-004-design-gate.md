@@ -4,7 +4,8 @@
 **Date:** 2026-08-11
 **Activation:** NOT ACTIVATED
 **Implementation:** NOT AUTHORIZED
-**003B:** PAUSED and not implicitly authorized
+**Canonical remap:** conceptual 003B -> canonical 004B containment;
+conceptual 004B -> canonical 004C host-mediated effects. Neither is activated.
 
 This document defines the owner-review package for the next proposed slice. It
 does not activate FATES-SLICE-004, change the active-slice slot, alter the
@@ -21,18 +22,24 @@ FATES-SLICE-004 as the design umbrella and decompose implementation into:
    path across the already trusted route. It proves durable pre-dispatch
    evidence, explicit outcome/indeterminate semantics, duplicate handling, and
    reconciliation. It makes no OS-containment or host-wide bypass claim.
-2. **FATES-SLICE-003B — Strict host containment:** the separately proposed and
+2. **FATES-SLICE-004B — Strict host containment (remapped from conceptual
+   003B):** the separately proposed and
    still-paused Linux x86_64 / KVM / Firecracker / no-guest-NIC /
    constrained-vsock proof profile. It is not a prerequisite for the narrow
    004A effect-lifecycle proof, but it is required before any host-local
    developer effect is admitted as governed.
-3. **FATES-SLICE-004B — Host-mediated governed effects:** a later slice, gated
-   on 003B and on the 004A lifecycle proof, for effects that cross a contained
-   developer-host boundary.
+3. **FATES-SLICE-004C — Host-mediated governed effects (remapped from
+   conceptual 004B):** a later child, gated on canonical 004B and on the 004A
+   lifecycle proof, for effects that cross a contained developer-host
+   boundary.
 
 The proposed order is therefore:
 
-`FATES-SLICE-003A-R1 (sealed) → FATES-SLICE-004A → FATES-SLICE-003B → FATES-SLICE-004B`
+`FATES-SLICE-003A-R1 (sealed) -> FATES-SLICE-004A -> FATES-SLICE-004B -> FATES-SLICE-004C`
+
+The identifier remap and activation-versus-acceptance ordering are recorded
+in
+[`docs/decisions/FATES-SLICE-004B-004C-governance-remap.md`](../decisions/FATES-SLICE-004B-004C-governance-remap.md).
 
 This is a recommendation, not an activation. The current Integration control
 state remains idle with `activeSliceId: null`.
@@ -44,7 +51,8 @@ The authoritative current compatibility set is
 `1ed2a5c45607585fa17d72ceed1be91b5f09881f`, the R1 tag is
 `fates-slice-003a-r1-v0.1.0-protocol-1.4.0`, and the baseline is
 `fates-slice-003a-r1-2026-08-11`. The active slot is idle and the next
-recommendation is FATES-SLICE-004. R1 is CLOSED / SEALED; 003B is PAUSED.
+recommendation is FATES-SLICE-004. R1 is CLOSED / SEALED; canonical 004B is
+PAUSED.
 
 The six clean starting checkpoints are:
 
@@ -210,7 +218,7 @@ routing is not authority. A Moirae route is not containment.
 
 ### Explicitly out of scope
 
-- Any 003B implementation or host-containment claim.
+- Any canonical 004B implementation or host-containment claim.
 - Moirae terminal/Git/browser/extension/local filesystem governance.
 - Arbitrary provider or MCP execution, provider failover, blind retry, or
   generic compensation.
@@ -227,7 +235,7 @@ routing is not authority. A Moirae route is not containment.
 | Horae | Canonical route, fresh admission, bounded relay, result projection | No approval, effect dispatch, or reconciliation authority |
 | Integration | Lock/checkpoint policy, cross-Fate requirements, validation, evidence and seal | No runtime or effect execution |
 | Runtime Contracts | Only a separately approved neutral shape if proven necessary | No authority, persistence, outcome truth, or idempotency store |
-| Moirae | No 004A implementation; later 004B/003B consumer only | No host-governance claim in 004A |
+| Moirae | No 004A implementation; later canonical 004B/004C consumer only | No host-governance claim in 004A |
 | Mnemosyne | No 004A implementation; future advisory/provenance work only by separate gate | No execution authority |
 
 ## Prerequisites and sequencing
@@ -243,8 +251,9 @@ routing is not authority. A Moirae route is not containment.
    operator reconciliation permissions.
 5. Preserve the R1 sealed baseline and confirm all six starting repositories
    are clean at the checkpoints recorded above.
-6. 003B is **not required for 004A** because 004A must not claim a local host
-   effect. 003B **is required before 004B** or any developer-host effect.
+6. Canonical 004B is **not required for 004A** because 004A must not claim a
+   local host effect. Canonical 004B **is required before 004C** or any
+   developer-host effect.
 7. Any Runtime Contracts change, Moirae source change, or Mnemosyne source
    change is a stop-and-re-gate condition, not an implicit expansion.
 
@@ -294,7 +303,7 @@ following occurs:
 - a credential value reaches the caller, model, argv, URL, log, or evidence;
 - Horae, Moirae, Mnemosyne, or Runtime Contracts becomes an unapproved source
   of authority;
-- a host-local effect needs 003B or broader bypass claims;
+- a host-local effect needs canonical 004B or broader bypass claims;
 - the selected effect has no trustworthy reconciliation or rollback story;
 - a required contract, lock, tag, sealed evidence, or historical checkpoint
   must be rewritten.

@@ -31,7 +31,7 @@
     {
       "name": "moirae-code",
       "url": "https://github.com/hourwise/Project-Moirae-Code",
-      "role": "No 004A implementation; host-mediated effects are deferred to 004B after 003B."
+      "role": "No 004A implementation; canonical 004C host-mediated effects are deferred until canonical 004B containment is accepted and closed."
     },
     {
       "name": "mnemosyne",
@@ -84,8 +84,8 @@
   ],
   "breakingChanges": [],
   "deferredWork": [
-    "FATES-SLICE-003B strict host containment.",
-    "FATES-SLICE-004B host-mediated developer effects after 003B and 004A.",
+    "FATES-SLICE-004B strict host containment (remapped from conceptual 003B).",
+    "FATES-SLICE-004C host-mediated developer effects (remapped from conceptual 004B) after canonical 004B and 004A.",
     "Qualified Mnemosyne retrieval/provenance admission.",
     "Generic arbitrary effects, automatic retry/fallback, provider failover, and exactly-once claims.",
     "Any shared Runtime Contracts lifecycle/idempotency extension."

@@ -5,7 +5,7 @@
 **Activation:** ACTIVE — CONTROL-PLANE ONLY
 **Implementation:** NOT STARTED
 **R1:** immutable and sealed
-**003B:** paused
+**Canonical 004B containment:** paused and separately gated
 
 This package records the owner-authorized FATES-SLICE-004A activation. The
 Integration control-plane now identifies active numeric parent
@@ -29,8 +29,8 @@ The accepted starting compatibility set before activation was
 `status: idle`, `activeSliceId: null`, with `FATES-SLICE-004` as the next
 recommendation. Following the activation transaction, the active control state is now
 `status: active`, `activeSliceId: FATES-SLICE-004`,
-`activeSubsliceId: FATES-SLICE-004A`. R1 is CLOSED / SEALED and 003B is
-PAUSED.
+`activeSubsliceId: FATES-SLICE-004A`. R1 is CLOSED / SEALED and canonical 004B
+is PAUSED.
 
 The exact inspected component checkpoints are:
 
@@ -102,7 +102,7 @@ history and must not be repurposed as 004A lifecycle authority.
   conflict, or remain unresolved.
 - **Live suitability:** Strongest bounded proof. It is independently
   observable and disposable while remaining outside the host-containment and
-  developer-host effect claims reserved for 003B/004B.
+  developer-host effect claims reserved for canonical 004B/004C.
 - **Cleanup:** Expire or delete the sink record, stop the sink, retain the
   secret-free operation/evidence record, and verify no duplicate operation was
   created.
@@ -123,7 +123,7 @@ history and must not be repurposed as 004A lifecycle authority.
 - **Reconciliation:** Read the target path or inspect a provider receipt.
 - **Testability:** High, with existing deterministic MCP tests.
 - **Live suitability:** Poor for 004A. It is a host-mediated developer effect
-  and would invite a containment/bypass claim that belongs to 003B/004B.
+  and would invite a containment/bypass claim that belongs to canonical 004B/004C.
 - **Cleanup:** Delete the temporary workspace and verify no residue.
 - **Limitation:** Host filesystem/stdio semantics and cleanup are precisely
   the boundary that must not be silently included in 004A.
@@ -325,7 +325,7 @@ or delegated capability. It must not enter action arguments, workload argv,
 model content, Horae payloads, console output, audit metadata, or evidence.
 Rotation/revocation is a provider-custody operation and an expired/revoked
 handle fails closed. 004A does not claim hostile-host credential extraction
-resistance; that remains a 003B/004B concern.
+resistance; that remains a canonical 004B/004C concern.
 
 ## 9. Runtime Contracts disposition
 
@@ -360,7 +360,7 @@ verified by this task.
 | POST004-09 | Add provider operation ID, request/evidence digests, transition IDs, and reconciliation evidence while excluding secrets and host paths. | Portable evidence schema/hash and redaction tests |
 | POST004-10 | Clarify bounded cancellation, late-result joining, crash/restart recovery, and no second dispatch after timeout. | Deterministic timing, late-result, restart, and cleanup tests |
 | POST004-11 | Keep the Runtime Contracts gate: use local Ananke lifecycle records unless a neutral cross-runtime shape is separately justified. | Contract review; compatibility validation; no-change proof |
-| POST004-12 | Keep unchanged: 004A makes no OS-containment or host-wide bypass claim; host-mediated effects remain 004B after 003B. | Scope/nonclaim review; boundary validation |
+| POST004-12 | Keep unchanged: 004A makes no OS-containment or host-wide bypass claim; canonical 004C host-mediated effects remain gated on canonical 004B containment. | Scope/nonclaim review; boundary validation |
 | POST004-13 | New: the selected provider must expose an operation receipt/status contract sufficient to distinguish accepted, rejected, unknown, duplicate, and unresolved states without resubmission. | Provider contract and deterministic independent-sink tests |
 | POST004-14 | New: conflict and terminal-unresolved states must be retained, surfaced, and closed only by later matching evidence or explicit owner disposition; they cannot be erased or silently retried. | Conflict, retention, operator-review, and evidence-integrity tests |
 
@@ -457,7 +457,7 @@ authorized by this activation checkpoint.
   owner review before any live run.
 - **Abort conditions:** missing pre-dispatch durability; ambiguous marker;
   duplicate dispatch; blind retry; unbounded reconciliation; provider
-  conflict guessed away; credential propagation; need for 003B/host claims;
+  conflict guessed away; credential propagation; need for canonical 004B/host claims;
   required Runtime Contracts/Moirae/Mnemosyne expansion; evidence ambiguity.
 - **Rollback/recovery:** stop dispatch, preserve the intent/attempt and
   indeterminate record, cancel or revoke still-valid authority through Ananke,
@@ -528,7 +528,7 @@ No live process, port, credential, or effect was created in this preparation.
 - Ananke governance remains contingent on exclusive routing; direct provider,
   CLI, terminal, IDE, browser, or extension paths remain outside the claim.
 - R1 application identity remains distinct from OS-authenticated process origin.
-- 003B and 004B remain separate future work.
+- Canonical 004B containment and 004C host-mediated effects remain separate future work.
 
 ## Final recommendation
 

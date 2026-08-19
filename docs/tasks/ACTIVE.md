@@ -2769,3 +2769,46 @@ decision that establishes a canonical open numeric parent/lifecycle mapping
 for 003B and satisfies the remaining activation prerequisites; a new
 activation transaction must then be authorized. Implementation remains
 **NO-GO**.
+
+## FATES-SLICE-004B / 004C governance remap preparation - 2026-08-19
+
+Status: **COMPLETE - remap prepared and published for validation; activation remains NO-GO.**
+
+The prior conceptual labels are remapped to the canonical children of the
+open numeric `FATES-SLICE-004` parent:
+
+```text
+conceptual 003B containment -> canonical FATES-SLICE-004B
+conceptual 004B host-mediated effects -> canonical FATES-SLICE-004C
+```
+
+This resolves the stopped activation transaction's parent mismatch without
+reopening sealed Slice 003 or inventing a 003B child under numeric parent 004.
+The conceptual 003B architecture package remains the source design for
+canonical 004B containment; the prior conceptual 004B readiness assessment
+remains historical source material for canonical 004C.
+
+The remap decision establishes the validated ordering:
+
+```text
+remap publication -> 004B activation -> 004B implementation ->
+004B acceptance -> 004B closure -> 004C design/activation
+```
+
+Activation creates a planned/provisional/ready-for-activation child first and
+only a separate activation transition may make it active. Implementation,
+process-heavy acceptance, independent host evidence, closure/sealing, and
+successor 004C authorization remain distinct gates. Activation CI is not
+containment acceptance, and 004B closure does not activate 004C.
+
+No `active-slice.json`, lock, matrix, snapshot, component repository, Runtime
+Contracts source, 004A artifact/tag/evidence, 004B artifact, 004C artifact, or
+Attempt 007 state changed. No runtime implementation, Firecracker/KVM
+execution, hostile workload, live acceptance, credential generation, or
+004B/004C activation occurred. The published decision record is
+`docs/decisions/FATES-SLICE-004B-004C-governance-remap.md`.
+
+GO to the governance remap preparation and publication. NO-GO to activation
+until this remap and the activation-versus-acceptance prerequisite ordering
+are validated and published, followed by a new explicit owner activation
+decision.
