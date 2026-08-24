@@ -1,3 +1,4 @@
+import { generateKeyPairSync } from 'node:crypto';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -24,11 +25,13 @@ const [anankeRuntime, anankePolicy, horae, horaeRegistry, mnemosyne, moirae] = a
   importFrom(moiraeDir, 'integrations/horae-client/dist/index.js'),
 ]);
 
-const { SourceAwareContentPreflightAdapter } = anankeRuntime;
+const { Ed25519ContentReceiptSigner, SourceAwareContentPreflightAdapter } = anankeRuntime;
 const { ContentPolicyEngine } = anankePolicy;
 const { ProvenanceAdmissionEngine, RuntimeContractsPreflightReceiptVerifier } = mnemosyne;
 const { GovernedExecutionCoordinator, createDevelopmentSessionRequest } = horae;
 const { RuntimeRegistry } = horaeRegistry;
+const { privateKey, publicKey } = generateKeyPairSync('ed25519');
+const signer = new Ed25519ContentReceiptSigner('ananke-smoke-key-2026-08-24', privateKey);
 
 const text = 'The Moirae host submitted this source for governed admission through Horae.';
 const sessionRequest = createDevelopmentSessionRequest({
@@ -37,6 +40,12 @@ const sessionRequest = createDevelopmentSessionRequest({
   task: 'admit a source-backed fact',
   purpose: 'mvp-governed-request',
 });
+const executionContext = {
+  runtimeId: 'ananke',
+  runtimeInstanceId: 'ananke-smoke-instance-2026-08-24',
+  projectId: sessionRequest.projectId,
+  correlation: sessionRequest.correlation,
+};
 const envelope = moirae.createMoiraeGovernedRequest({
   idempotencyKey: 'moirae-governed-smoke-001',
   sessionRequest,
@@ -68,10 +77,11 @@ const anankeBinding = {
       tool: { name: 'workspace.read', server: 'workspace', riskClass: 'READ_ONLY', requiredPermissions: [], retryable: false, requiresApproval: false },
       arguments: {},
       data: request.content,
+      executionContext,
       request: request.contentAccess,
     });
     const decision = policy.evaluate(preflight.observation, request.contentAccess);
-    const receipt = preflight.receiptFactory?.(decision);
+    const receipt = preflight.receiptFactory?.(decision, { executionContext, signer });
     return {
       action: decision.action,
       receipt,
@@ -79,13 +89,14 @@ const anankeBinding = {
       decisionId: decision.binding.bindingHash,
       reasonCode: decision.reasonCode,
       grantedExposure: decision.grantedExposure,
+      surface: preflight.surfaces[decision.grantedExposure],
     };
   },
 };
 
 const verifier = new RuntimeContractsPreflightReceiptVerifier({
   now: () => '2026-08-24T15:00:01.000Z',
-  maxAgeMs: 120_000,
+  trustedIssuers: [{ keyId: 'ananke-smoke-key-2026-08-24', publicKey, issuerRuntime: 'ananke', allowedInstanceIds: [executionContext.runtimeInstanceId] }],
 });
 const admissionEngine = new ProvenanceAdmissionEngine({ now: () => '2026-08-24T15:00:01.000Z' });
 const mnemosyneBinding = {
@@ -109,8 +120,16 @@ const mnemosyneBinding = {
       trustDomain: request.sessionRequest.projectId,
       actor: { id: 'horae-governed-route', kind: 'runtime' },
       receipt: preflight.receipt,
+      preflightSurface: preflight.surface,
       preflight: verifier,
       authority: { evaluate: () => ({ kind: 'allowed', decisionId: 'decision_governed_smoke', policyVersion: 'content-policy-v1' }) },
+      expectedContext: {
+        projectId: request.sessionRequest.projectId,
+        purpose: request.contentAccess.purpose,
+        destinationRuntime: 'mnemosyne',
+        requestId: request.sessionRequest.correlation.requestId,
+        correlationId: request.sessionRequest.correlation.correlationId,
+      },
     });
     if (result.admission.state !== 'ADMITTED' || !result.memory) {
       return { state: result.admission.state === 'QUARANTINED' ? 'QUARANTINED' : 'REJECTED', reason: result.admission.reasonCodes?.[0] };
