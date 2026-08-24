@@ -36,7 +36,7 @@
     "mnemosyne": {
       "url": "https://github.com/hourwise/Project-Mnemosyne",
       "tag": null,
-      "commit": "7a4e57a6f654422a577bd334f8d85b2bf6759b9f",
+      "commit": "a1bb07f32d3f6bfd0354564d8956d7ee912ef4a3",
       "checkpointState": "pushed_untagged",
       "role": "authenticated receipt verification and governed admission"
     },

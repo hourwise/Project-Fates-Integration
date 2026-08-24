@@ -25,7 +25,7 @@ The new remediation checkpoints are pushed and tested:
 - Ananke `501f49b45c4dc869a38239b0436cbc6d7da86b90` adds authenticated
   Ed25519 receipt signing, destination fail-closed caps, and all-surfaced-
   output preflight.
-- Mnemosyne `7a4e57a6f654422a577bd334f8d85b2bf6759b9f` adds real signature
+- Mnemosyne `a1bb07f32d3f6bfd0354564d8956d7ee912ef4a3` adds real signature
   verification, trusted issuers, audience/context/freshness checks, exact
   surface-derived candidates, replay tracking, and strict authority/admission
   startup boundaries.
@@ -46,7 +46,7 @@ remain unchanged.
 
 Evidence completed: Runtime Contracts 407 tests plus fixture/package checks;
 Ananke boundary cohort 20 tests and build; Mnemosyne authenticated verifier,
-admission, and MCP cohort 21 tests and build; Moirae vsock/guest/Firecracker/
+admission, and MCP cohort 26 tests and build; Moirae vsock/guest/Firecracker/
 credential cohort 19 tests and build; Horae build; authenticated Integration
 governed smoke completed `received -> composed -> preflighted -> admitted ->
 executing -> completed`.

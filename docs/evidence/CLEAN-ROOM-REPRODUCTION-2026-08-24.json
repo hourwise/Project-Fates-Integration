@@ -24,10 +24,10 @@
     },
     "mnemosyne": {
       "ref": "codex/fates-mnemosyne-admission-gate",
-      "commit": "7a4e57a6f654422a577bd334f8d85b2bf6759b9f",
+      "commit": "a1bb07f32d3f6bfd0354564d8956d7ee912ef4a3",
       "npmCi": "passed",
       "build": "passed",
-      "focusedTests": "23 passed"
+      "focusedTests": "26 passed"
     },
     "horae": {
       "ref": "codex/fates-horae-inspection-admission",
