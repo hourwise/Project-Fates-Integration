@@ -1,5 +1,70 @@
 # ACTIVE — FATES-SLICE-002 Horae Governed Handoff/Relay Implementation
 
+## Completion-oriented continuation — Mnemosyne provenance path — 2026-08-24
+
+Status: **IMPLEMENTED ON COMPONENT BRANCH; INTEGRATION RECORD UPDATED**
+
+Project Mnemosyne now has a coherent record-provenance capability on branch
+`codex/fates-mnemosyne-provenance-envelope`, commit `cad0498`:
+
+- `@mnemosyne/schema` defines durable `MemoryProvenance`, claim bindings, and
+  derivation metadata with fail-closed source-reference validation;
+- `MemoryIngestEngine` emits stable source identities for onboarding candidates,
+  preserves all contributing sources, and enriches legacy-shaped records without
+  changing their identity or lifecycle status; and
+- the governed MCP write boundary uses the same ingest engine, so agent-facing
+  writes receive source and acting-principal provenance before persistence.
+
+Focused Mnemosyne validation passed: schema, ingest, onboarding, and MCP
+boundary cohorts, **30/30 tests**, plus TypeScript build and `git diff --check`.
+This does not claim receipt-gated admission, Content Surface Preflight, inbound
+Ananke decision handling, or Linux containment. The accepted Integration lock,
+matrix, and sealed route evidence remain unchanged. The remaining Mnemosyne
+admission work depends on the deferred shared preflight contract and is tracked
+as the next component capability.
+
+## Completion-oriented continuation — Horae inspection admission — 2026-08-24
+
+Status: **IMPLEMENTED ON COMPONENT BRANCH; INTEGRATION RECORD UPDATED**
+
+Project Horae now has a production coordinator on branch
+`codex/fates-horae-inspection-admission`, commit `00e79d6`:
+
+- `RuntimeDiscoveryCoordinator` connects the existing Ananke/Mnemosyne-style
+  inspection bindings to Horae `RuntimeRegistry` admission;
+- inspection or binding failures fail closed before a registration is created;
+- registry refresh replaces peer snapshots and freshness observations while
+  preserving Horae-owned lifecycle state, so a peer report cannot implicitly
+  recover a degraded runtime; and
+- duplicate instance, protocol, readiness, health, and source checks remain
+  owned by the existing registry admission path.
+
+Focused Horae validation passed: discovery, admission, composition, and
+lifecycle cohorts, **13/13 tests**, TypeScript build, lint, and
+`git diff --check`. This adds no execution, approval, credential, or model
+transport and does not alter the sealed Slice 02 route or Integration locks.
+
+## Completion-oriented continuation — Ananke source-text preflight — 2026-08-24
+
+Status: **IMPLEMENTED ON COMPONENT BRANCH; INTEGRATION RECORD UPDATED**
+
+Project Ananke now has a bounded source-text preflight adapter on branch
+`codex/fates-ananke-text-preflight-adapter`, commit `31a959d`:
+
+- `TextContentPreflightAdapter` produces stable source identity, SHA-256
+  observations, scanner metadata, bounded risk flags, and derived/sanitized
+  surfaces for text output;
+- explicit string-range selection is the only selected-content surface, while
+  non-text data is marked `UNSUPPORTED` and raw data is withheld; and
+- the existing gateway `ContentPolicyEngine` remains the authority deciding
+  whether a surface is allowed, downgraded, quarantined, or requires approval.
+
+Focused Ananke validation passed: text adapter, gateway, and policy cohorts,
+**17/17 tests**, TypeScript build, lint, and `git diff --check`. This is a
+bounded local adapter, not a shared Runtime Contracts Content Surface Preflight
+contract, destination enforcement, or a comprehensive malware/secret scanner.
+The sealed Ananke Slice 02 producer and Integration locks remain unchanged.
+
 ## Completion-oriented continuation — 2026-08-24
 
 Status: **IMPLEMENTED LOCALLY; CONTAINMENT ACCEPTANCE NOT CLAIMED**
