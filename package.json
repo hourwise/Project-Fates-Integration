@@ -14,6 +14,9 @@
     "verify:matrix": "node scripts/verify-compatibility-matrix.mjs",
     "verify:slices": "node scripts/verify-slices.mjs",
     "verify:boundaries": "node scripts/verify-boundaries.mjs",
+    "fates:plan": "node scripts/fates-operator.mjs plan --json",
+    "fates:report": "node scripts/fates-operator.mjs report",
+    "fates:install": "node scripts/fates-operator.mjs install",
     "validate": "node scripts/validate.mjs"
   },
   "devDependencies": {

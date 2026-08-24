@@ -112,6 +112,11 @@ npm run verify:matrix    # Verify compatibility-matrix.json
 npm run verify:slices    # Verify slice records
 npm run verify:boundaries # Verify hard boundaries
 npm run validate         # Run all validation steps including tests
+
+npm run fates:plan       # Discover standalone/integration install and validation paths
+npm run fates:report     # Print a safe checkout/compatibility report
+npm run fates:install -- mnemosyne --yes
+npm run fates:install -- all --yes
 ```
 
 ## Constraints
@@ -122,3 +127,6 @@ npm run validate         # Run all validation steps including tests
 - No local file dependencies
 - Zero runtime dependencies; dev dependencies only for control integrity
 - British English, UTF-8, LF, final newline
+
+See [docs/operator-guide.md](docs/operator-guide.md) for one-click PowerShell/POSIX
+installation, dry-run behaviour, and the report fields available to outside testers.
