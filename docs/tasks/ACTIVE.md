@@ -30,7 +30,10 @@ full Node tests, and governed smoke all pass. Component remediation commits are
 `f5b071bb3f36a3721ca58811c74af5031c456832` (Ananke),
 `932095aabcc7fb60b4af3f26a39e62fd02d907df` (Mnemosyne),
 `fde686bb8706c13db2a1d8768175ef9b95164c3f` (Horae), and
-`0d164e269874fafa31dc3230a6662c0bdb2da6cb` (Moirae), all pushed non-force.
+`b23f723fc5267c95fe9f7eccb2efa32465f8d2f1` (Moirae), all pushed non-force.
+
+The Moirae strict-controller regression also exercises the dishonest
+`OS_BACKED` broker-marker path and proves no credential frame is emitted.
 
 This does not prove live Firecracker/KVM execution, guest workload execution
 evidence, durable multi-process replay, universal OS-keyring deployment, or

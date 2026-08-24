@@ -50,7 +50,7 @@
     "moirae-code": {
       "url": "https://github.com/hourwise/Project-Moirae-Code",
       "tag": null,
-      "commit": "0d164e269874fafa31dc3230a6662c0bdb2da6cb",
+      "commit": "b23f723fc5267c95fe9f7eccb2efa32465f8d2f1",
       "checkpointState": "pushed_untagged",
       "role": "session-owned Firecracker containment, constrained vsock, and credential custody"
     },
