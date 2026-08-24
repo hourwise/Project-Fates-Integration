@@ -12,8 +12,10 @@ expired entries and refuses new entries at its configured bound. Ananke preserve
 approval across exposure downgrades and uses exact named built-in destinations so
 arbitrary `model:*` or external subclasses do not inherit privilege. Horae scopes
 in-flight and completed idempotency by operation and trust scope while rejecting a
-different request identity. Moirae derives strict OS-backed eligibility from the
-production broker capability rather than the `credentialStore` marker.
+different request identity. The final completed-record accessor now requires the
+original governed request binding and exact request identity; key-only idempotency
+lookup is unavailable and fails closed. Moirae derives strict OS-backed eligibility
+from the production broker capability rather than the `credentialStore` marker.
 
 The Integration governed smoke was updated at implementation commit
 `64da691168f7da3cd19e7f04c359b127a5662118`; it carries explicit tenant/workspace
@@ -21,16 +23,31 @@ scope and proves that a tampered released surface is quarantined with
 `PREFLIGHT_SURFACE_HASH_MISMATCH`. The compatibility verifier now compares the
 manifested implementation paths between that smoke commit and publication state;
 the current comparison reports no changed governed paths. The additive R2
-compatibility snapshot remains provisional and does not rewrite the historical
-sealed lock.
+compatibility snapshot now pins Horae to the final pushed accessor-closure commit
+`b5216534bee32467d17316dda5a86ff6484f1c4a`; it remains provisional and does not
+rewrite the historical sealed lock.
 
 Validation completed: Ananke 22 test files / 188 tests; Mnemosyne 20 / 111;
-Horae 41 / 41; Moirae 16 / 163; Integration JSON, lock, matrix, slice, boundary,
-full Node tests, and governed smoke all pass. Component remediation commits are
+Horae full validation 50 tests across 6 files, including the 16-test governed
+execution/accessor cohort; Moirae 16 / 163; Integration JSON, lock, matrix, slice,
+boundary, full Node tests, and governed smoke all pass. Component remediation commits are
 `f5b071bb3f36a3721ca58811c74af5031c456832` (Ananke),
 `932095aabcc7fb60b4af3f26a39e62fd02d907df` (Mnemosyne),
-`fde686bb8706c13db2a1d8768175ef9b95164c3f` (Horae), and
+`b5216534bee32467d17316dda5a86ff6484f1c4a` (Horae), and
 `b23f723fc5267c95fe9f7eccb2efa32465f8d2f1` (Moirae), all pushed non-force.
+
+The final Horae accessor closure was reproduced before modification at the
+required R2 starting SHA: two completed records with the same idempotency key
+under different governed bindings were retrievable through the first-match
+key-only accessor, exposing the wrong request's record fields. HGET-01 through
+HGET-09 now pass against the final Horae commit. The Integration smoke does not
+call this accessor and required no runtime-code change; its canonical Horae
+source remains the smoke implementation at
+`64da691168f7da3cd19e7f04c359b127a5662118`.
+
+The full-content binding-retention observation was deliberately deferred. No
+new digest abstraction, eviction, persistence, Qwen, containment, credential,
+replay, or performance work was introduced by this closure.
 
 The Moirae strict-controller regression also exercises the dishonest
 `OS_BACKED` broker-marker path and proves no credential frame is emitted.
