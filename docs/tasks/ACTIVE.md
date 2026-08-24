@@ -1,5 +1,59 @@
 # ACTIVE — FATES-SLICE-002 Horae Governed Handoff/Relay Implementation
 
+## Completion-oriented continuation — shared preflight, admission, host boundary, and operator surfaces — 2026-08-24
+
+Status: **IMPLEMENTED ON COMPONENT BRANCHES; IMMUTABLE INTEGRATION LOCK UNCHANGED**
+
+This continuation delivered four coherent MVP-enabling capabilities without
+reopening the sealed Slice 003A-R1 or Slice 02 route:
+
+- Runtime Contracts branch `codex/fates-content-preflight-contract`, commit
+  `fca365a`, adds the proposed Content Surface Preflight schemas and fail-closed
+  receipt parser. It binds source hashes, observation/decision identity,
+  exposure, truncation, outcome, failure, and audit links. The ADR remains
+  Proposed and the published `project-runtime-contracts@0.4.0` artifact remains
+  pinned until owner acceptance and immutable publication.
+- Mnemosyne branch `codex/fates-mnemosyne-admission-gate`, commit `5d37123`,
+  adds deterministic candidate/admission identity, ADMITTED/REJECTED/DEFERRED/
+  QUARANTINED states separate from `MemoryRecord.status`, idempotent replay,
+  bounded expiring staging isolation, retry identity, typed append-only history,
+  optional MCP receipt-gated writes, and an inbound Ananke authority adapter.
+  Deferred/quarantined candidates do not enter Almanac persistence or retrieval.
+- Moirae Code branch `codex/fates-moirae-scoped-vsock-delivery`, commit
+  `21aca81`, adds one-shot scoped host credential leases and a fixed-session,
+  allowlisted, bounded vsock channel for guest workload start/cancel and
+  temporary credential delivery. It extends the earlier Firecracker profile
+  supervisor but does not claim Linux/KVM or guest-agent acceptance.
+- Integration branch `codex/fates-004b-implementation`, commit `636bc4f`, adds
+  `fates-operator` plan/report/install commands plus PowerShell/POSIX one-click
+  wrappers. It remains control-only: no peer source is copied and no mutable
+  dependency is introduced. Outside testers can install one Fate or all Fates,
+  inspect checkout readiness, and emit a safe JSON report.
+
+Validation completed for this continuation:
+
+- Runtime Contracts Content Surface Preflight cohort: **5/5 tests**, typecheck.
+- Mnemosyne workspace build and focused admission/MCP/Ananke cohorts:
+  **16/16 tests**, plus prior provenance validation inherited.
+- Moirae workspace build and focused credential/vsock/Firecracker cohorts:
+  **11/11 tests**.
+- Integration operator and existing control tests: **21/21 tests** in the
+  targeted Node test run; plan/install dry-run and `git diff --check` passed.
+
+Cross-component effects are intentionally adapter-based. Mnemosyne does not
+pin a Runtime Contracts branch or invent a local shared receipt schema; a host
+must supply a verifier until the proposed immutable contract is published.
+Moirae's channel is transport-injected and does not imply OS containment.
+Linux/KVM testing remains deferred as requested. The integration lock, matrix,
+snapshot, sealed evidence, and canonical lifecycle numbering remain unchanged.
+
+Largest remaining MVP path, in order: publish/pin the accepted preflight
+contract and connect Ananke's real scanner receipt; wire the existing Horae
+governed relay into a non-fixture integrated request boundary; add a real guest
+agent/workload implementation over the constrained channel; then run Linux/KVM
+containment, hostile, cancellation, and provenance/replay acceptance outside
+this Windows environment.
+
 ## Completion-oriented continuation — Mnemosyne provenance path — 2026-08-24
 
 Status: **IMPLEMENTED ON COMPONENT BRANCH; INTEGRATION RECORD UPDATED**
