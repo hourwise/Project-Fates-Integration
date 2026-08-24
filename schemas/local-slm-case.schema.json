@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fates.local/schemas/local-slm-case.schema.json",
+  "type": "object",
+  "required": ["id", "category", "mode", "title", "startedAt", "endedAt", "durationMs", "expected", "result", "observed"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^(SET|BEN|ADV|FLT|PERF)-[0-9]{2}$" },
+    "category": { "type": "string", "minLength": 1 },
+    "mode": { "enum": ["LIVE_MODEL", "GOVERNED", "FAULT_INJECTION"] },
+    "title": { "type": "string", "minLength": 1 },
+    "startedAt": { "type": "string", "format": "date-time" },
+    "endedAt": { "type": "string", "format": "date-time" },
+    "durationMs": { "type": "number", "minimum": 0 },
+    "expected": {},
+    "result": { "enum": ["PASS", "FAIL", "NOT_EXERCISED", "FRICTION", "KNOWN_LIMITATION"] },
+    "observed": { "type": "object" },
+    "security": { "type": "object" },
+    "usability": { "type": "object" },
+    "baseline": { "type": "object" }
+  },
+  "additionalProperties": true
+}

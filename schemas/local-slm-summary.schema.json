@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fates.local/schemas/local-slm-summary.schema.json",
+  "type": "object",
+  "required": ["schemaVersion", "runId", "suite", "caseCounts", "usability", "security", "timing", "noRealHostEffects"],
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "runId": { "type": "string", "minLength": 1 },
+    "suite": { "enum": ["smoke", "full", "performance", "fault"] },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "caseCounts": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
+    "usability": { "type": "object" },
+    "security": { "type": "object" },
+    "timing": { "type": "object" },
+    "noRealHostEffects": { "const": true }
+  },
+  "additionalProperties": true
+}

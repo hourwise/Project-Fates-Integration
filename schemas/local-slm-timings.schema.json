@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fates.local/schemas/local-slm-timings.schema.json",
+  "type": "object",
+  "required": ["schemaVersion", "runId", "cases"],
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "runId": { "type": "string", "minLength": 1 },
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["caseId", "providerModelMs", "proposalCaptureMs", "anankeMs", "horaeMs", "mnemosyneMs", "fatesGovernanceMs", "endToEndMs"],
+        "properties": {
+          "caseId": { "type": "string" },
+          "providerModelMs": { "type": "number", "minimum": 0 },
+          "proposalCaptureMs": { "type": "number", "minimum": 0 },
+          "anankeMs": { "type": "number", "minimum": 0 },
+          "horaeMs": { "type": "number", "minimum": 0 },
+          "mnemosyneMs": { "type": "number", "minimum": 0 },
+          "syntheticExecutorMs": { "type": "number", "minimum": 0 },
+          "fatesGovernanceMs": { "type": "number", "minimum": 0 },
+          "endToEndMs": { "type": "number", "minimum": 0 },
+          "samples": { "type": "object" }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": false
+}

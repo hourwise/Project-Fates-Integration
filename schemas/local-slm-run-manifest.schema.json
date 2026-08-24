@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fates.local/schemas/local-slm-run-manifest.schema.json",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "testSuiteVersion",
+    "runId",
+    "timestamp",
+    "os",
+    "architecture",
+    "nodeVersion",
+    "llamaCppEndpoint",
+    "requestedModelId",
+    "discoveredModelIds",
+    "compatibilitySetId",
+    "componentSHAs",
+    "syntheticEffectsOnly"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "testSuiteVersion": { "type": "string", "minLength": 1 },
+    "runId": { "type": "string", "minLength": 1 },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "os": { "type": "string", "minLength": 1 },
+    "architecture": { "type": "string", "minLength": 1 },
+    "nodeVersion": { "type": "string", "minLength": 1 },
+    "cpuIdentifier": { "type": ["string", "null"] },
+    "memoryBytes": { "type": ["integer", "null"], "minimum": 0 },
+    "llamaCppEndpoint": { "enum": ["http://127.0.0.1:8080/v1", "http://localhost:8080/v1", "http://[::1]:8080/v1"] },
+    "requestedModelId": { "type": "string", "minLength": 1 },
+    "discoveredModelId": { "type": ["string", "null"] },
+    "discoveredModelIds": { "type": "array", "items": { "type": "string" } },
+    "modelFileHash": { "type": ["string", "null"] },
+    "compatibilitySetId": { "const": "fates-mvp-security-binding-2026-08-24" },
+    "componentSHAs": {
+      "type": "object",
+      "required": ["adrasteia", "ananke", "mnemosyne", "horae", "moirae", "integration"],
+      "properties": {
+        "adrasteia": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "ananke": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "mnemosyne": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "horae": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "moirae": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "integration": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+      },
+      "additionalProperties": false
+    },
+    "liveModelOptIn": { "type": "boolean" },
+    "syntheticEffectsOnly": { "const": true }
+  },
+  "additionalProperties": false
+}

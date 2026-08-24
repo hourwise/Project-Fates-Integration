@@ -1,5 +1,40 @@
 # ACTIVE — Fates MVP convergence and governed request path
 
+## FATES-LOCAL-SLM-001 — local SLM acceptance harness and evidence capture — 2026-08-24
+
+Status: **HARNESS IMPLEMENTED; LIVE QWEN ACCEPTANCE NOT RUN**
+
+The Integration repository now contains a deterministic, opt-in local-SLM
+acceptance harness in `scripts/fates-slm.mjs` with its 40-case corpus in
+`scripts/fates-slm-corpus.mjs`. It uses the canonical pinned Moirae → Horae →
+Ananke → Runtime Contracts → Mnemosyne path, accepts only an explicit
+loopback `http://127.0.0.1:8080/v1`-class endpoint, records redacted evidence,
+and exposes a synthetic executor that cannot perform host effects. It does not
+change canonical Fate semantics and does not silently fall back to a remote
+provider or another model.
+
+Evidence schemas and validation are provided by
+`schemas/local-slm-*.schema.json` and `scripts/validate-slm-evidence.mjs`;
+operator instructions are in `docs/local-slm-acceptance.md`. The exact
+compatibility pins used by the harness are Runtime Contracts
+`6aba3ef466a16292689d4afaf9f9bc40dc013301`, Ananke
+`f5b071bb3f36a3721ca58811c74af5031c456832`, Mnemosyne
+`932095aabcc7fb60b4af3f26a39e62fd02d907df`, Horae
+`b5216534bee32467d17316dda5a86ff6484f1c4a`, and Moirae
+`b23f723fc5267c95fe9f7eccb2efa32465f8d2f1` (`…d2f1`, not `…d2f2`). The
+Integration baseline remains `51be3be823383e9fb3aaf6e3ea96a8a89d2ef79b` and
+the compatibility-set ID remains `fates-mvp-security-binding-2026-08-24`.
+
+Validation evidence: focused harness tests 9/9; fault suite 5/5; full
+non-live corpus 35/35 using a deterministic fake provider; performance suite
+2 pass and 3 explicit `KNOWN_LIMITATION` results because the canonical
+resource-limit path quarantines the larger payloads; all evidence validation
+passes; Integration `npm test` passes 157/157; the complete `npm run validate`
+wrapper passes; and the canonical governed smoke passes. No Qwen inference,
+Firecracker/KVM, credential proxy, durable replay, packaging, tag, or final
+security seal work was started. The larger-payload performance observations are
+deferred without policy tuning.
+
 ## FATES-MVP-SECURITY-BINDING-R2 — dishonest-component and concurrency closure — 2026-08-24
 
 Status: **R2 FIXES IMPLEMENTED; CANDIDATE REMAINS SECURITY-INCOMPLETE; STOP BEFORE QWEN INTEGRATION**
