@@ -1,0 +1,60 @@
+{
+  "evidenceId": "fates-mvp-clean-room-reproduction-2026-08-24",
+  "status": "passed_for_candidate_surface",
+  "checkoutRoot": "disposable temporary clones, removed after validation",
+  "repositories": {
+    "adrasteia": {
+      "ref": "adrasteia-preflight-v0.6.2-protocol-1.4.0",
+      "commit": "6aba3ef466a16292689d4afaf9f9bc40dc013301",
+      "npmCi": "passed",
+      "build": "passed",
+      "validation": "407 tests, fixtures, package verification, and pack check passed",
+      "artifact": {
+        "package": "project-runtime-contracts@0.6.2",
+        "sha256": "44139c4cf1ca05ea684e122a2c4d75ff0f1a77e7020a61317e9569ae643dbd86",
+        "bytes": 150319
+      }
+    },
+    "ananke": {
+      "ref": "codex/fates-ananke-text-preflight-adapter",
+      "commit": "501f49b45c4dc869a38239b0436cbc6d7da86b90",
+      "npmCi": "passed",
+      "build": "passed",
+      "focusedTests": "33 passed"
+    },
+    "mnemosyne": {
+      "ref": "codex/fates-mnemosyne-admission-gate",
+      "commit": "7a4e57a6f654422a577bd334f8d85b2bf6759b9f",
+      "npmCi": "passed",
+      "build": "passed",
+      "focusedTests": "23 passed"
+    },
+    "horae": {
+      "ref": "codex/fates-horae-inspection-admission",
+      "commit": "030a297bebebcf12d5b769a0725425d42424aefe",
+      "npmCi": "passed",
+      "build": "passed",
+      "focusedTests": "38 passed"
+    },
+    "moirae-code": {
+      "ref": "codex/fates-moirae-scoped-vsock-delivery",
+      "commit": "9276cf17fbc66238554461101c949ba4570da109",
+      "npmCi": "passed",
+      "build": "passed",
+      "focusedTests": "19 passed"
+    }
+  },
+  "integration": {
+    "smoke": "passed: received -> composed -> preflighted -> admitted -> executing -> completed",
+    "implementationCommit": "8abc4337d5ac5eca651d1e382ce3a15ba051f0a2"
+  },
+  "commands": [
+    "git clone --branch <immutable-ref> --single-branch <repository>",
+    "npm ci",
+    "npm run build",
+    "component focused security-boundary test commands",
+    "node scripts/fates-governed-smoke.mjs --ananke-dir <clone> --horae-dir <clone> --mnemosyne-dir <clone> --moirae-dir <clone>"
+  ],
+  "historicalArtifactFinding": "The immutable 0.6.1 release asset was not selected: it was packed from a CRLF publisher working tree and differed from a clean checkout in LICENSE and package.json bytes. 0.6.2 was issued from a clean tagged checkout and its published SHA-256 matches the clean-room pack.",
+  "secretsCommitted": false
+}

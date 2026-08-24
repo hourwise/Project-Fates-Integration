@@ -47,7 +47,50 @@
       }
     },
     "notes": { "type": "string" },
-    "knownLimits": { "type": "array", "items": { "type": "string" } }
+    "knownLimits": { "type": "array", "items": { "type": "string" } },
+    "securityBinding": {
+      "type": "object",
+      "required": [
+        "status",
+        "receiptContractVersion",
+        "signatureAlgorithm",
+        "receiptCanonicalizationVersion",
+        "surfaceCanonicalizationVersion",
+        "candidateCanonicalizationVersion",
+        "trustedIssuerPolicy",
+        "receiptValidityPolicy",
+        "replayGuarantee",
+        "firecrackerProfileId",
+        "effectiveConfigBinding",
+        "credentialMode",
+        "integrationCommit"
+      ],
+      "properties": {
+        "status": { "type": "string", "enum": ["security_binding_incomplete", "security_binding_verified"] },
+        "receiptContractVersion": { "type": "string" },
+        "signatureAlgorithm": { "type": "string" },
+        "receiptCanonicalizationVersion": { "type": "string" },
+        "surfaceCanonicalizationVersion": { "type": "string" },
+        "candidateCanonicalizationVersion": { "type": "string" },
+        "trustedIssuerPolicy": { "type": "string" },
+        "receiptValidityPolicy": {
+          "type": "object",
+          "required": ["maxLifetimeMs", "issuedAtRequired", "expiresAtRequired"],
+          "properties": {
+            "maxLifetimeMs": { "type": "integer", "minimum": 1 },
+            "issuedAtRequired": { "type": "boolean" },
+            "expiresAtRequired": { "type": "boolean" }
+          },
+          "additionalProperties": false
+        },
+        "replayGuarantee": { "type": "string" },
+        "firecrackerProfileId": { "type": "string" },
+        "effectiveConfigBinding": { "type": "string" },
+        "credentialMode": { "type": "string" },
+        "integrationCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+      },
+      "additionalProperties": false
+    }
   },
   "additionalProperties": false,
   "$defs": {

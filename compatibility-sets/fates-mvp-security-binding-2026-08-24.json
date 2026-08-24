@@ -1,0 +1,87 @@
+{
+  "$schema": "../schemas/fates-lock.schema.json",
+  "_note": "New provisional security-binding candidate. The historical fates-slice-003a-r1 compatibility set and fates-lock.json remain unchanged.",
+  "schemaVersion": "1.0.0",
+  "compatibilitySetId": "fates-mvp-security-binding-2026-08-24",
+  "snapshotPath": "compatibility-sets/fates-mvp-security-binding-2026-08-24.json",
+  "previousCompatibilitySet": "fates-slice-003a-r1-2026-08-11",
+  "updatedAt": "2026-08-24T17:55:00.000Z",
+  "sealStatus": "provisional",
+  "integrationLevel": "partial_runtime",
+  "protocol": {
+    "current": "1.4.0",
+    "minimum": "1.0.0",
+    "maximum": "1.4.0"
+  },
+  "repositories": {
+    "adrasteia": {
+      "url": "https://github.com/hourwise/Project-Adrasteia",
+      "tag": "adrasteia-preflight-v0.6.2-protocol-1.4.0",
+      "commit": "6aba3ef466a16292689d4afaf9f9bc40dc013301",
+      "checkpointState": "sealed_tagged",
+      "package": "project-runtime-contracts@0.6.2",
+      "artifact": {
+        "url": "https://github.com/hourwise/Project-Adrasteia/releases/download/adrasteia-preflight-v0.6.2-protocol-1.4.0/project-runtime-contracts-0.6.2.tgz",
+        "sha256": "44139c4cf1ca05ea684e122a2c4d75ff0f1a77e7020a61317e9569ae643dbd86"
+      },
+      "role": "authenticated portable receipt contract"
+    },
+    "ananke": {
+      "url": "https://github.com/hourwise/Project-Ananke",
+      "tag": null,
+      "commit": "501f49b45c4dc869a38239b0436cbc6d7da86b90",
+      "checkpointState": "pushed_untagged",
+      "role": "authenticated source inspection and content-surface authority"
+    },
+    "mnemosyne": {
+      "url": "https://github.com/hourwise/Project-Mnemosyne",
+      "tag": null,
+      "commit": "7a4e57a6f654422a577bd334f8d85b2bf6759b9f",
+      "checkpointState": "pushed_untagged",
+      "role": "authenticated receipt verification and governed admission"
+    },
+    "horae": {
+      "url": "https://github.com/hourwise/Project-Horae",
+      "tag": null,
+      "commit": "030a297bebebcf12d5b769a0725425d42424aefe",
+      "checkpointState": "pushed_untagged",
+      "role": "canonical lifecycle composition and exact-surface transport glue"
+    },
+    "moirae-code": {
+      "url": "https://github.com/hourwise/Project-Moirae-Code",
+      "tag": null,
+      "commit": "9276cf17fbc66238554461101c949ba4570da109",
+      "checkpointState": "pushed_untagged",
+      "role": "session-owned Firecracker containment, constrained vsock, and credential custody"
+    }
+  },
+  "securityBinding": {
+    "status": "security_binding_incomplete",
+    "receiptContractVersion": "1.1.0",
+    "signatureAlgorithm": "Ed25519",
+    "receiptCanonicalizationVersion": "fates-content-receipt-json-v1",
+    "surfaceCanonicalizationVersion": "fates-content-surface-json-v1",
+    "candidateCanonicalizationVersion": "mnemosyne-exact-surface-v1",
+    "trustedIssuerPolicy": "Mnemosyne requires keyId -> Ed25519 public key, issuerRuntime=ananke, and an allowlisted issuer instance; audience.runtime=mnemosyne.",
+    "receiptValidityPolicy": {
+      "maxLifetimeMs": 300000,
+      "issuedAtRequired": true,
+      "expiresAtRequired": true
+    },
+    "replayGuarantee": "Admission uses a bounded in-memory receipt-consumption ledger scoped by project, trust domain, audience, and signed receipt digest; durable multi-process replay exclusion is not claimed.",
+    "firecrackerProfileId": "linux-x86_64-kvm-firecracker-no-nic-constrained-vsock-v1",
+    "effectiveConfigBinding": "Session-owned jail staging writes canonical JSON, re-hashes the exact config file passed to jailer/Firecracker, verifies pinned staged artifact digests, and refuses ambient-config drift; live Linux guest execution remains unproven here.",
+    "credentialMode": "Strict mode rejects InMemorySecretBroker and raw long-lived credential frames; OS-backed keyring plus host-proxy/short-lived strategy is required.",
+    "integrationCommit": "8abc4337d5ac5eca651d1e382ce3a15ba051f0a2"
+  },
+  "notes": "Authenticated cross-Fate governed smoke passed from the pushed component builds: Moirae request -> canonical Horae coordinator -> Ananke scanner/policy/signer -> Runtime Contracts 0.6.2 -> Mnemosyne verifier/admission. This is a candidate compatibility set, not MVP SEALED: Linux/KVM clean-room execution, actual guest workload/evidence execution, durable replay guarantees, and production OS-keyring availability on the target deployment platform remain unproven.",
+  "knownLimits": [
+    "Integration self-pin uses the exact tested pre-lock commit because a commit cannot contain its own SHA; the final compatibility-set commit is recorded separately in the report.",
+    "Firecracker live launch was not executed on Linux x86_64/KVM in this Windows environment.",
+    "The guest init was not independently observed executing the pinned workload and evidence collector artifacts.",
+    "The replay ledger is in-memory and does not claim durable multi-process exclusion or power-loss durability.",
+    "OS-backed keyring factory is implemented but availability was not proven on all Windows/macOS/Linux target hosts.",
+    "Peer self-reported identity remains diagnostic-only unless independently attested by the supervisor.",
+    "No final security seal or immutable MVP security tag is claimed."
+  ]
+}

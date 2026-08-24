@@ -4,6 +4,65 @@
 
 Status: **IMPLEMENTED LOCALLY ON COMPONENT BRANCHES; HOSTED RELEASE AND LINUX ACCEPTANCE REMAIN OPEN**
 
+## FATES MVP security-binding remediation and candidate recovery — 2026-08-24
+
+Status: **FUNCTIONAL PATH VERIFIED; SECURITY BINDING INCOMPLETE**
+
+Phase 0 recovery is complete and recorded at
+`docs/evidence/CANDIDATE_COMMIT_RECOVERY-2026-08-24.json`. The reported Moirae
+prefix resolves unchanged to `dc322a47929b8dda4ecf7b108687751f92b4aa12`, and
+the reported Integration prefix resolves unchanged to
+`1c892fbe7237b67d23eb75dc1b9cc06b20021cc4`; both objects were reachable on
+local candidate branches and were published non-force to their corresponding
+remote branches. No missing SHA was fabricated.
+
+The new remediation checkpoints are pushed and tested:
+
+- Runtime Contracts `6aba3ef466a16292689d4afaf9f9bc40dc013301`, tag
+  `adrasteia-preflight-v0.6.2-protocol-1.4.0`, package
+  `project-runtime-contracts@0.6.2`, artifact SHA-256
+  `44139c4cf1ca05ea684e122a2c4d75ff0f1a77e7020a61317e9569ae643dbd86`.
+- Ananke `501f49b45c4dc869a38239b0436cbc6d7da86b90` adds authenticated
+  Ed25519 receipt signing, destination fail-closed caps, and all-surfaced-
+  output preflight.
+- Mnemosyne `7a4e57a6f654422a577bd334f8d85b2bf6759b9f` adds real signature
+  verification, trusted issuers, audience/context/freshness checks, exact
+  surface-derived candidates, replay tracking, and strict authority/admission
+  startup boundaries.
+- Horae `030a297bebebcf12d5b769a0725425d42424aefe` carries the exact released
+  surface through its canonical governed binding.
+- Moirae `9276cf17fbc66238554461101c949ba4570da109` adds session-owned
+  Firecracker config/artifact staging, exact config hashing, no-NIC proof,
+  response-typed vsock correlation, strict credential delivery, and an
+  OS-backed keyring broker.
+- The cross-Fate authenticated governed smoke passed from these component
+  builds at Integration commit
+  `8abc4337d5ac5eca651d1e382ce3a15ba051f0a2`.
+
+The additive candidate compatibility set is
+`compatibility-sets/fates-mvp-security-binding-2026-08-24.json`. The
+historical sealed `fates-lock.json` and all historical compatibility snapshots
+remain unchanged.
+
+Evidence completed: Runtime Contracts 407 tests plus fixture/package checks;
+Ananke boundary cohort 20 tests and build; Mnemosyne authenticated verifier,
+admission, and MCP cohort 21 tests and build; Moirae vsock/guest/Firecracker/
+credential cohort 19 tests and build; Horae build; authenticated Integration
+governed smoke completed `received -> composed -> preflighted -> admitted ->
+executing -> completed`.
+
+Remaining mandatory gaps: Linux x86_64/KVM live guest execution and independent
+evidence of the pinned workload/evidence collector, durable replay-ledger
+guarantees, and target-host OS-keyring availability. These are not warnings
+converted into passes; the compatibility set is provisional and no security
+seal/tag is claimed.
+
+Clean-room reproduction of the final candidate passed from immutable remote
+refs. The first immutable 0.6.1 artifact was retained as historical evidence
+but excluded from consumer pins after its CRLF publisher-worktree bytes were
+found to differ from a clean checkout; Adrasteia 0.6.2 was issued from the
+clean tagged checkout and is the reproduced artifact pinned above.
+
 This continuation delivered the shortest executable path toward an MVP without reopening sealed
 architecture or canonical lifecycle numbering:
 

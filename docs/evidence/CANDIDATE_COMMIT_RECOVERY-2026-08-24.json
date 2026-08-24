@@ -1,0 +1,29 @@
+{
+  "recordType": "CANDIDATE_COMMIT_RECOVERY",
+  "date": "2026-08-24",
+  "repositories": {
+    "moirae": {
+      "reportedPrefix": "dc322a4",
+      "actualFullSha": "dc322a47929b8dda4ecf7b108687751f92b4aa12",
+      "recoveredFrom": "local reachable branch codex/fates-moirae-scoped-vsock-delivery; object existed and was not dangling",
+      "commitMessage": "feat(sandbox): add bounded guest agent and governed host envelope",
+      "parentSha": "21aca8191405ddf7b0b4232d4a64b3cbe6ab14ac",
+      "localBranch": "codex/fates-moirae-scoped-vsock-delivery",
+      "remoteBranch": "codex/fates-moirae-scoped-vsock-delivery",
+      "remoteVerification": "origin now exposes dc322a47929b8dda4ecf7b108687751f92b4aa12 after non-force push",
+      "functionalityMatch": "matches the reported bounded guest-agent/constrained-vsock candidate; no hash was recreated"
+    },
+    "integration": {
+      "reportedPrefix": "1c892fb",
+      "actualFullSha": "1c892fbe7237b67d23eb75dc1b9cc06b20021cc4",
+      "recoveredFrom": "local reachable branch codex/fates-004b-implementation; object existed and was not dangling",
+      "commitMessage": "feat(integration): add governed MVP smoke and tester readiness",
+      "parentSha": "a05caaf73c38f5d039ba48986a93fec9c4ddde61",
+      "localBranch": "codex/fates-004b-implementation",
+      "remoteBranch": "codex/fates-004b-implementation",
+      "remoteVerification": "origin now exposes 1c892fbe7237b67d23eb75dc1b9cc06b20021cc4 after non-force push",
+      "functionalityMatch": "matches the earlier governed-MVP smoke/integration candidate; the security remediation proceeds on new commits"
+    }
+  },
+  "integrityStatement": "The reported prefixes resolved to actual local git objects and were published unchanged. No equivalent code was impersonated as either reported SHA."
+}

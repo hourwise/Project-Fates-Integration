@@ -19,6 +19,7 @@
     "fates:install": "node scripts/fates-operator.mjs install",
     "fates:preflight": "node scripts/fates-preflight-smoke.mjs",
     "fates:governed": "node scripts/fates-governed-smoke.mjs",
+    "verify:mvp-security": "node scripts/verify-mvp-security-binding.mjs",
     "validate": "node scripts/validate.mjs"
   },
   "devDependencies": {
