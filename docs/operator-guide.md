@@ -29,6 +29,35 @@ node scripts/fates-operator.mjs install mnemosyne --yes
 node scripts/fates-operator.mjs install all --yes
 ```
 
+## Shared preflight smoke
+
+After the Ananke and Mnemosyne checkouts have been built, the control repository can run the
+non-fixture receipt boundary without copying component source into Integration:
+
+```text
+npm run fates:preflight -- --ananke-dir "<ananke-checkout>" --mnemosyne-dir "<mnemosyne-checkout>"
+```
+
+The smoke creates a real source-aware Ananke observation and policy decision, builds the released
+Runtime Contracts receipt, verifies it with Mnemosyne's production adapter, and admits one
+source-backed memory. It prints identifiers and state only; it never prints source content or
+credential material. Linux/KVM containment and the complete Moirae/Horae process route remain
+separate acceptance suites.
+
+## Governed request smoke
+
+Once all four component checkouts have been built, run the end-to-end, transport-neutral MVP
+route:
+
+```text
+npm run fates:governed -- --ananke-dir "<ananke-checkout>" --horae-dir "<horae-checkout>" --mnemosyne-dir "<mnemosyne-checkout>" --moirae-dir "<moirae-checkout>"
+```
+
+This sends a Moirae-originated request through Horae composition and lifecycle routing, Ananke
+source-aware preflight and destination policy, the shared receipt contract, and Mnemosyne
+receipt-gated admission. The output is deliberately limited to IDs, lifecycle state, and stage
+names. It is a cross-component workflow smoke, not Linux containment evidence.
+
 Use `--dry-run` to inspect the exact actions. Windows users can run `install-fates.ps1`
 from Explorer/PowerShell; POSIX users can run `./install-fates.sh`. Installation requires
 explicit `--yes` because `npm ci` replaces a checkout's installed dependency tree.

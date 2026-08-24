@@ -1,58 +1,51 @@
-# ACTIVE — FATES-SLICE-002 Horae Governed Handoff/Relay Implementation
+# ACTIVE — Fates MVP convergence and governed request path
 
-## Completion-oriented continuation — shared preflight, admission, host boundary, and operator surfaces — 2026-08-24
+## Completion-oriented continuation — shared preflight, admission, routing, guest boundary, and operator surfaces — 2026-08-24
 
-Status: **IMPLEMENTED ON COMPONENT BRANCHES; IMMUTABLE INTEGRATION LOCK UNCHANGED**
+Status: **IMPLEMENTED LOCALLY ON COMPONENT BRANCHES; HOSTED RELEASE AND LINUX ACCEPTANCE REMAIN OPEN**
 
-This continuation delivered four coherent MVP-enabling capabilities without
-reopening the sealed Slice 003A-R1 or Slice 02 route:
+This continuation delivered the shortest executable path toward an MVP without reopening sealed
+architecture or canonical lifecycle numbering:
 
-- Runtime Contracts branch `codex/fates-content-preflight-contract`, commit
-  `fca365a`, adds the proposed Content Surface Preflight schemas and fail-closed
-  receipt parser. It binds source hashes, observation/decision identity,
-  exposure, truncation, outcome, failure, and audit links. The ADR remains
-  Proposed and the published `project-runtime-contracts@0.4.0` artifact remains
-  pinned until owner acceptance and immutable publication.
-- Mnemosyne branch `codex/fates-mnemosyne-admission-gate`, commit `5d37123`,
-  adds deterministic candidate/admission identity, ADMITTED/REJECTED/DEFERRED/
-  QUARANTINED states separate from `MemoryRecord.status`, idempotent replay,
-  bounded expiring staging isolation, retry identity, typed append-only history,
-  optional MCP receipt-gated writes, and an inbound Ananke authority adapter.
-  Deferred/quarantined candidates do not enter Almanac persistence or retrieval.
-- Moirae Code branch `codex/fates-moirae-scoped-vsock-delivery`, commit
-  `21aca81`, adds one-shot scoped host credential leases and a fixed-session,
-  allowlisted, bounded vsock channel for guest workload start/cancel and
-  temporary credential delivery. It extends the earlier Firecracker profile
-  supervisor but does not claim Linux/KVM or guest-agent acceptance.
-- Integration branch `codex/fates-004b-implementation`, commit `636bc4f`, adds
-  `fates-operator` plan/report/install commands plus PowerShell/POSIX one-click
-  wrappers. It remains control-only: no peer source is copied and no mutable
-  dependency is introduced. Outside testers can install one Fate or all Fates,
-  inspect checkout readiness, and emit a safe JSON report.
+- Runtime Contracts `0.5.0` now accepts the Content Surface Preflight ADR, updates the additive
+  release metadata, and validates the packed artifact. The local tarball SHA-256 is
+  `A4C5ED140331F7D0B4562FE142E20EBC872BD72940001FD04F1781BCD2DC3C0F`. The immutable tag and
+  hosted release asset still need to be published; GitHub CLI authentication is currently invalid.
+- Ananke pins the `0.5.0` release URL and provides a source-aware bounded scanner, receipt factory,
+  and destination-specific exposure caps. Secrets, instruction-like content, executable/archive
+  hazards, parser failures, and unknown formats are handled fail-closed or downgraded.
+- Mnemosyne pins the same release URL and consumes the shared receipt through a production verifier
+  adapter that enforces contract version, freshness, source-path binding, and optional signature
+  presence before admission.
+- Horae now has a transport-neutral `GovernedExecutionCoordinator` that owns composition, ordered
+  Ananke → Mnemosyne routing, idempotency, cancellation, timeout, execution, and explicit recovery
+  states without duplicating policy or memory authority.
+- Moirae now has a bounded guest agent over the constrained vsock dispatcher, one-shot scoped
+  credential delivery, a typed Moirae-originated governed request envelope, and an initial branded
+  VS Code extension surface.
+- Integration now runs both the shared preflight smoke and a non-fixture governed request through
+  Moirae → Horae → Ananke → Runtime Contracts → Mnemosyne. The operator still supports one Fate or
+  all Fates and emits safe JSON/human reports.
 
-Validation completed for this continuation:
+Validation completed during this continuation:
 
-- Runtime Contracts Content Surface Preflight cohort: **5/5 tests**, typecheck.
-- Mnemosyne workspace build and focused admission/MCP/Ananke cohorts:
-  **16/16 tests**, plus prior provenance validation inherited.
-- Moirae workspace build and focused credential/vsock/Firecracker cohorts:
-  **11/11 tests**.
-- Integration operator and existing control tests: **21/21 tests** in the
-  targeted Node test run; plan/install dry-run and `git diff --check` passed.
+- Runtime Contracts package validation: **405 tests passed**, typecheck/build/fixture/package checks.
+- Ananke source-aware/policy/preflight cohort: **17 tests passed**, build passed.
+- Mnemosyne admission/MCP/verifier cohort: **14 tests passed**, build passed.
+- Horae governed coordinator cohort: **4 tests passed**, build passed.
+- Moirae guest/vsock/credential cohort: **9 tests passed**, build passed; Horae-client envelope:
+  **1 test passed**, build passed.
+- Integration governed smoke: **passed**, with a completed lifecycle
+  `received → composed → preflighted → admitted → executing → completed`.
 
-Cross-component effects are intentionally adapter-based. Mnemosyne does not
-pin a Runtime Contracts branch or invent a local shared receipt schema; a host
-must supply a verifier until the proposed immutable contract is published.
-Moirae's channel is transport-injected and does not imply OS containment.
-Linux/KVM testing remains deferred as requested. The integration lock, matrix,
-snapshot, sealed evidence, and canonical lifecycle numbering remain unchanged.
+Linux/KVM containment, hostile-process behavior, real guest launch, cryptographic receipt signature
+verification, and real process transports are not claimed by this Windows run. The full external
+test matrix is recorded in `docs/mvp-testing-and-readiness.md`.
 
-Largest remaining MVP path, in order: publish/pin the accepted preflight
-contract and connect Ananke's real scanner receipt; wire the existing Horae
-governed relay into a non-fixture integrated request boundary; add a real guest
-agent/workload implementation over the constrained channel; then run Linux/KVM
-containment, hostile, cancellation, and provenance/replay acceptance outside
-this Windows environment.
+The remaining ordered path is: publish the immutable Runtime Contracts asset; run Linux/KVM and
+hostile-process acceptance; replace the transport-neutral smoke with the real deployment transport;
+then complete credential-isolation, cancellation/timeout/recovery, replay/provenance, installer,
+and VSCodium fork packaging tests.
 
 ## Completion-oriented continuation — Mnemosyne provenance path — 2026-08-24
 
