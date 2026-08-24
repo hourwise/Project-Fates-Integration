@@ -29,30 +29,37 @@
     "ananke": {
       "url": "https://github.com/hourwise/Project-Ananke",
       "tag": null,
-      "commit": "501f49b45c4dc869a38239b0436cbc6d7da86b90",
+      "commit": "f5b071bb3f36a3721ca58811c74af5031c456832",
       "checkpointState": "pushed_untagged",
       "role": "authenticated source inspection and content-surface authority"
     },
     "mnemosyne": {
       "url": "https://github.com/hourwise/Project-Mnemosyne",
       "tag": null,
-      "commit": "a1bb07f32d3f6bfd0354564d8956d7ee912ef4a3",
+      "commit": "932095aabcc7fb60b4af3f26a39e62fd02d907df",
       "checkpointState": "pushed_untagged",
       "role": "authenticated receipt verification and governed admission"
     },
     "horae": {
       "url": "https://github.com/hourwise/Project-Horae",
       "tag": null,
-      "commit": "030a297bebebcf12d5b769a0725425d42424aefe",
+      "commit": "fde686bb8706c13db2a1d8768175ef9b95164c3f",
       "checkpointState": "pushed_untagged",
       "role": "canonical lifecycle composition and exact-surface transport glue"
     },
     "moirae-code": {
       "url": "https://github.com/hourwise/Project-Moirae-Code",
       "tag": null,
-      "commit": "9276cf17fbc66238554461101c949ba4570da109",
+      "commit": "0d164e269874fafa31dc3230a6662c0bdb2da6cb",
       "checkpointState": "pushed_untagged",
       "role": "session-owned Firecracker containment, constrained vsock, and credential custody"
+    },
+    "integration": {
+      "url": "https://github.com/hourwise/Project-Fates-Integration",
+      "tag": null,
+      "commit": "64da691168f7da3cd19e7f04c359b127a5662118",
+      "checkpointState": "pushed_untagged",
+      "role": "R2 governed smoke implementation and compatibility evidence"
     }
   },
   "securityBinding": {
@@ -68,11 +75,14 @@
       "issuedAtRequired": true,
       "expiresAtRequired": true
     },
-    "replayGuarantee": "Admission uses a bounded in-memory receipt-consumption ledger scoped by project, trust domain, audience, and signed receipt digest; durable multi-process replay exclusion is not claimed.",
+    "replayGuarantee": "Admission uses a single-process in-memory receipt-consumption ledger scoped by project, trust domain, audience, and signed receipt digest, with expiry sweep and a configurable maximum of 4096 entries; durable multi-process replay exclusion is not claimed.",
     "firecrackerProfileId": "linux-x86_64-kvm-firecracker-no-nic-constrained-vsock-v1",
     "effectiveConfigBinding": "Session-owned jail staging writes canonical JSON, re-hashes the exact config file passed to jailer/Firecracker, verifies pinned staged artifact digests, and refuses ambient-config drift; live Linux guest execution remains unproven here.",
-    "credentialMode": "Strict mode rejects InMemorySecretBroker and raw long-lived credential frames; OS-backed keyring plus host-proxy/short-lived strategy is required.",
-    "integrationCommit": "8abc4337d5ac5eca651d1e382ce3a15ba051f0a2"
+    "credentialMode": "Strict mode rejects InMemorySecretBroker and raw long-lived credential frames; only the production keyring-factory capability is eligible for OS-backed credential strategies.",
+    "integrationCommit": "64da691168f7da3cd19e7f04c359b127a5662118",
+    "implementationPaths": [
+      "scripts/fates-governed-smoke.mjs"
+    ]
   },
   "notes": "Authenticated cross-Fate governed smoke passed from the pushed component builds: Moirae request -> canonical Horae coordinator -> Ananke scanner/policy/signer -> Runtime Contracts 0.6.2 -> Mnemosyne verifier/admission. This is a candidate compatibility set, not MVP SEALED: Linux/KVM clean-room execution, actual guest workload/evidence execution, durable replay guarantees, and production OS-keyring availability on the target deployment platform remain unproven.",
   "knownLimits": [

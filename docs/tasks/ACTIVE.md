@@ -1,5 +1,41 @@
 # ACTIVE — Fates MVP convergence and governed request path
 
+## FATES-MVP-SECURITY-BINDING-R2 — dishonest-component and concurrency closure — 2026-08-24
+
+Status: **R2 FIXES IMPLEMENTED; CANDIDATE REMAINS SECURITY-INCOMPLETE; STOP BEFORE QWEN INTEGRATION**
+
+The R2 audit findings were reproduced and remediated on the component branches.
+Strict Mnemosyne admission now accepts only a module-branded, genuinely configured
+authenticated verifier; strict revalidation requires an explicit authority decision;
+tenant/workspace context is not wildcarded; and the in-memory replay ledger sweeps
+expired entries and refuses new entries at its configured bound. Ananke preserves
+approval across exposure downgrades and uses exact named built-in destinations so
+arbitrary `model:*` or external subclasses do not inherit privilege. Horae scopes
+in-flight and completed idempotency by operation and trust scope while rejecting a
+different request identity. Moirae derives strict OS-backed eligibility from the
+production broker capability rather than the `credentialStore` marker.
+
+The Integration governed smoke was updated at implementation commit
+`64da691168f7da3cd19e7f04c359b127a5662118`; it carries explicit tenant/workspace
+scope and proves that a tampered released surface is quarantined with
+`PREFLIGHT_SURFACE_HASH_MISMATCH`. The compatibility verifier now compares the
+manifested implementation paths between that smoke commit and publication state;
+the current comparison reports no changed governed paths. The additive R2
+compatibility snapshot remains provisional and does not rewrite the historical
+sealed lock.
+
+Validation completed: Ananke 22 test files / 188 tests; Mnemosyne 20 / 111;
+Horae 41 / 41; Moirae 16 / 163; Integration JSON, lock, matrix, slice, boundary,
+full Node tests, and governed smoke all pass. Component remediation commits are
+`f5b071bb3f36a3721ca58811c74af5031c456832` (Ananke),
+`932095aabcc7fb60b4af3f26a39e62fd02d907df` (Mnemosyne),
+`fde686bb8706c13db2a1d8768175ef9b95164c3f` (Horae), and
+`0d164e269874fafa31dc3230a6662c0bdb2da6cb` (Moirae), all pushed non-force.
+
+This does not prove live Firecracker/KVM execution, guest workload execution
+evidence, durable multi-process replay, universal OS-keyring deployment, or
+host-proxy credential redemption. No final security tag or seal is claimed.
+
 ## Completion-oriented continuation — shared preflight, admission, routing, guest boundary, and operator surfaces — 2026-08-24
 
 Status: **IMPLEMENTED LOCALLY ON COMPONENT BRANCHES; HOSTED RELEASE AND LINUX ACCEPTANCE REMAIN OPEN**

@@ -43,7 +43,8 @@
         "ananke": { "$ref": "#/$defs/repositoryEntry" },
         "mnemosyne": { "$ref": "#/$defs/repositoryEntry" },
         "horae": { "$ref": "#/$defs/repositoryEntry" },
-        "moirae-code": { "$ref": "#/$defs/repositoryEntry" }
+        "moirae-code": { "$ref": "#/$defs/repositoryEntry" },
+        "integration": { "$ref": "#/$defs/repositoryEntry" }
       }
     },
     "notes": { "type": "string" },
@@ -63,7 +64,8 @@
         "firecrackerProfileId",
         "effectiveConfigBinding",
         "credentialMode",
-        "integrationCommit"
+        "integrationCommit",
+        "implementationPaths"
       ],
       "properties": {
         "status": { "type": "string", "enum": ["security_binding_incomplete", "security_binding_verified"] },
@@ -88,6 +90,7 @@
         "effectiveConfigBinding": { "type": "string" },
         "credentialMode": { "type": "string" },
         "integrationCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+        ,"implementationPaths": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*$" } }
       },
       "additionalProperties": false
     }
