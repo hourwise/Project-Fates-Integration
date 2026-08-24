@@ -1,5 +1,64 @@
 # ACTIVE — FATES-SLICE-002 Horae Governed Handoff/Relay Implementation
 
+## Completion-oriented continuation — 2026-08-24
+
+Status: **IMPLEMENTED LOCALLY; CONTAINMENT ACCEPTANCE NOT CLAIMED**
+
+This continuation followed the shortest remaining executable gap after the
+bounded Moirae → Horae → Ananke route was already live-accepted and sealed:
+the Moirae sandbox adapter had no VMM implementation and returned
+`SandboxOutcome.Unavailable` for every execution attempt.
+
+### Built
+
+Project Moirae Code now has a focused branch,
+`codex/fates-004b-firecracker-supervisor`, at commit
+`3bf7991` (`feat(sandbox): add fail-closed Firecracker profile supervisor`).
+The `@moirae/sandbox-adapter` package adds:
+
+- immutable-profile verification for the selected Linux x86_64/KVM/
+  Firecracker+jailer/no-guest-NIC/constrained-vsock profile;
+- fail-closed checks for platform and architecture, accessible `/dev/kvm`,
+  absolute non-duplicated artifact paths, lowercase SHA-256 pins, artifact
+  digest drift, mutable/placeholder references, fixed vsock endpoint, and
+  bounded VM resources;
+- deterministic profile digesting and a no-NIC Firecracker configuration/
+  jailer launch specification; and
+- host-side VMM process supervision with bounded SIGTERM/SIGKILL cleanup,
+  without a host-process fallback, policy authority, credential delivery, or
+  generic proxy path.
+
+Changed component files:
+
+- `Project Moirae/packages/sandbox-adapter/src/firecracker-profile.ts`
+- `Project Moirae/packages/sandbox-adapter/src/firecracker-profile.test.ts`
+- `Project Moirae/packages/sandbox-adapter/src/index.ts`
+
+### Validation
+
+Moirae focused Firecracker tests: **5/5 passed**.
+
+Moirae repository quick validation: **146/146 tests passed** and TypeScript
+build passed.
+
+### Boundaries and remaining work
+
+No Integration lock, compatibility matrix, snapshot, active-slice control,
+004A seal, Runtime Contracts source, Ananke source, Horae source, Mnemosyne
+source, or accepted evidence was changed. This is component implementation
+progress, not canonical 004B activation, containment acceptance, or a seal.
+
+The current Windows environment cannot prove the required Linux x86_64/KVM
+profile. Guest workload launch/channel handshake, independent host evidence,
+process-heavy hostile tests, and the exact activation/control transaction
+remain outstanding. The supervisor therefore owns only the verified VMM
+process lifecycle; it does not yet claim that a workload executed inside a
+contained guest.
+
+The exact next permitted step is owner review of this component checkpoint,
+followed by the separately authorized canonical 004B activation/control
+transaction and a dedicated pinned Linux/KVM implementation environment.
+
 ## Objective
 
 Implement the bounded Horae consumer/relay step for FATES-SLICE-002 against
