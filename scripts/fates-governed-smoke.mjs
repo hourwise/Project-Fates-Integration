@@ -34,16 +34,23 @@ const { privateKey, publicKey } = generateKeyPairSync('ed25519');
 const signer = new Ed25519ContentReceiptSigner('ananke-smoke-key-2026-08-24', privateKey);
 
 const text = 'The Moirae host submitted this source for governed admission through Horae.';
-const sessionRequest = createDevelopmentSessionRequest({
+const baseSessionRequest = createDevelopmentSessionRequest({
   projectId: 'project_fates_mvp',
   profileId: 'profile_fates_mvp',
   task: 'admit a source-backed fact',
   purpose: 'mvp-governed-request',
 });
+const sessionRequest = {
+  ...baseSessionRequest,
+  execution: { ...baseSessionRequest.execution, tenantId: 'tenant_fates_mvp', workspaceId: 'workspace_fates_mvp' },
+  scope: { ...baseSessionRequest.scope, tenantId: 'tenant_fates_mvp', workspaceId: 'workspace_fates_mvp' },
+};
 const executionContext = {
   runtimeId: 'ananke',
   runtimeInstanceId: 'ananke-smoke-instance-2026-08-24',
   projectId: sessionRequest.projectId,
+  tenantId: 'tenant_fates_mvp',
+  workspaceId: 'workspace_fates_mvp',
   correlation: sessionRequest.correlation,
 };
 const envelope = moirae.createMoiraeGovernedRequest({
@@ -82,7 +89,7 @@ const anankeBinding = {
     });
     const decision = policy.evaluate(preflight.observation, request.contentAccess);
     const receipt = preflight.receiptFactory?.(decision, { executionContext, signer });
-    return {
+    const result = {
       action: decision.action,
       receipt,
       observationId: preflight.observation.observationId,
@@ -91,6 +98,8 @@ const anankeBinding = {
       grantedExposure: decision.grantedExposure,
       surface: preflight.surfaces[decision.grantedExposure],
     };
+    lastPreflight = result;
+    return result;
   },
 };
 
@@ -99,6 +108,7 @@ const verifier = new RuntimeContractsPreflightReceiptVerifier({
   trustedIssuers: [{ keyId: 'ananke-smoke-key-2026-08-24', publicKey, issuerRuntime: 'ananke', allowedInstanceIds: [executionContext.runtimeInstanceId] }],
 });
 const admissionEngine = new ProvenanceAdmissionEngine({ now: () => '2026-08-24T15:00:01.000Z' });
+let lastPreflight;
 const mnemosyneBinding = {
   async admit({ request, preflight }) {
     if (!preflight.receipt) return { state: 'REJECTED', reason: 'PREFLIGHT_RECEIPT_REQUIRED' };
@@ -125,6 +135,8 @@ const mnemosyneBinding = {
       authority: { evaluate: () => ({ kind: 'allowed', decisionId: 'decision_governed_smoke', policyVersion: 'content-policy-v1' }) },
       expectedContext: {
         projectId: request.sessionRequest.projectId,
+        tenantId: request.sessionRequest.scope.tenantId,
+        workspaceId: request.sessionRequest.scope.workspaceId,
         purpose: request.contentAccess.purpose,
         destinationRuntime: 'mnemosyne',
         requestId: request.sessionRequest.correlation.requestId,
@@ -170,6 +182,47 @@ const result = await coordinator.execute({
 });
 
 if (result.state !== 'completed' || !result.admissionId) throw new Error(`Expected a completed governed route, received ${result.state}`);
+if (!lastPreflight?.receipt || lastPreflight.surface === undefined) throw new Error('Smoke did not retain the authenticated released surface');
+const tamperedSurface = lastPreflight.surface && typeof lastPreflight.surface === 'object' && typeof lastPreflight.surface.text === 'string'
+  ? { ...lastPreflight.surface, text: `${lastPreflight.surface.text}!` }
+  : typeof lastPreflight.surface === 'string'
+    ? `${lastPreflight.surface}!`
+    : { tampered: lastPreflight.surface };
+const negativeSurface = admissionEngine.admit({
+  id: 'memory_governed_smoke_negative',
+  kind: 'fact',
+  statement: text,
+  importance: 'high',
+  source: { artifactId: 'artifact_governed_smoke', path: envelope.source.canonicalPath, contentHash: lastPreflight.receipt.observation.source.contentHash, sourceType: 'adr' },
+  locator: 'MNEMOSYNE.GOVERNED.SMOKE.002',
+  tags: ['governed', 'mvp', 'negative'],
+}, {
+  ingestionOperation: 'memory.write',
+  ingestionPath: 'fates-governed-smoke-negative',
+  correlationId: envelope.sessionRequest.correlation.correlationId,
+  idempotencyKey: 'moirae-governed-smoke-negative-001',
+  projectId: envelope.sessionRequest.projectId,
+  trustDomain: envelope.sessionRequest.projectId,
+  tenantId: envelope.sessionRequest.scope.tenantId,
+  workspaceId: envelope.sessionRequest.scope.workspaceId,
+  requestId: envelope.sessionRequest.correlation.requestId,
+  purpose: envelope.contentAccess.purpose,
+  actor: { id: 'horae-governed-route', kind: 'runtime' },
+  receipt: lastPreflight.receipt,
+  preflightSurface: tamperedSurface,
+  preflight: verifier,
+  authority: { evaluate: () => ({ kind: 'allowed', decisionId: 'decision_governed_smoke_negative', policyVersion: 'content-policy-v1' }) },
+  expectedContext: {
+    projectId: envelope.sessionRequest.projectId,
+    tenantId: envelope.sessionRequest.scope.tenantId,
+    workspaceId: envelope.sessionRequest.scope.workspaceId,
+    purpose: envelope.contentAccess.purpose,
+    destinationRuntime: 'mnemosyne',
+    requestId: envelope.sessionRequest.correlation.requestId,
+    correlationId: envelope.sessionRequest.correlation.correlationId,
+  },
+});
+if (negativeSurface.admission.state === 'ADMITTED') throw new Error('Tampered authenticated surface was admitted');
 process.stdout.write(JSON.stringify({
   result: 'passed',
   path: 'Moirae request -> Horae composition/route -> Ananke scanner/policy -> Runtime Contracts receipt -> Mnemosyne admission',
@@ -182,4 +235,5 @@ process.stdout.write(JSON.stringify({
   candidateId: result.candidateId,
   memoryId: result.memoryId,
   history: result.history.map((entry) => entry.state),
+  negativeSurface: { state: negativeSurface.admission.state, reason: negativeSurface.admission.reasonCodes?.[0] },
 }, null, 2) + '\n');
