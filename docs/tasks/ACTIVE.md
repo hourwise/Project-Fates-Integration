@@ -1,5 +1,38 @@
 # ACTIVE — Fates MVP convergence and governed request path
 
+## FATES-PRE-QWEN-CANDIDATE-PUBLICATION — manifest-driven current candidate — 2026-08-25
+
+Status: **PROVISIONAL CANDIDATE MATERIALIZATION IMPLEMENTED; NO QWEN STARTED**
+
+The already-validated runtime-security closure commits were published by normal
+fast-forward pushes: Horae `3a174b3f1bf791b437a22b4cfd41bf9677b9cba9` and
+Mnemosyne `24f8541ce0e0a2f56171544a249cff56e7b634d1`. The predecessor
+compatibility snapshot `fates-mvp-security-binding-2026-08-24.json` and the
+historical `fates-lock.json` remain unchanged.
+
+The successor provisional candidate is
+`compatibility-sets/fates-pre-qwen-security-2026-08-25.json`, selected only by
+the minimal root pointer `current-candidate.json`. It pins Adrasteia / Runtime
+Contracts `6aba3ef466a16292689d4afaf9f9bc40dc013301` with artifact SHA-256
+`44139c4cf1ca05ea684e122a2c4d75ff0f1a77e7020a61317e9569ae643dbd86`, Ananke
+`f5b071bb3f36a3721ca58811c74af5031c456832`, Mnemosyne
+`24f8541ce0e0a2f56171544a249cff56e7b634d1`, Horae
+`3a174b3f1bf791b437a22b4cfd41bf9677b9cba9`, and Moirae Code
+`b23f723fc5267c95fe9f7eccb2efa32465f8d2f1`. The manifest uses the established
+non-recursive Integration convention: control/evidence identity
+`51bad96d3a28b6727de4cffae54b399b9025de5f` is distinct from governed-smoke
+implementation identity `64da691168f7da3cd19e7f04c359b127a5662118`; the final
+manifest/pointer publication commit is recorded separately in the handoff.
+
+`npm run fates:checkout-current` validates both pointer and manifest before
+network or checkout work, verifies repository origins and full commit objects,
+refuses dirty or wrong repositories, never falls back to branches/tags, and
+verifies the Runtime Contracts release digest. Its focused adversarial suite
+passes 8/8; the full Integration test suite passes 165/165. The candidate
+remains provisional, pre-Qwen, and not sealed; Firecracker/KVM containment,
+durable replay/power-loss behavior, and Qwen/model integration remain outside
+this task.
+
 ## FATES-MVP-PRE-QWEN-RUNTIME-CLOSURE — timeout/effect recovery and admission replay — 2026-08-25
 
 Status: **P0-A/P0-B/P0-C REMEDIATED LOCALLY; PRE-QWEN RUNTIME CLOSURE VALIDATED; NO QWEN STARTED**

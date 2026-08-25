@@ -1,0 +1,98 @@
+{
+  "$schema": "../schemas/fates-lock.schema.json",
+  "_note": "Successor provisional post-runtime-security-closure / pre-Qwen candidate. The historical fates-mvp-security-binding-2026-08-24.json and fates-lock.json remain unchanged.",
+  "schemaVersion": "1.0.0",
+  "compatibilitySetId": "fates-pre-qwen-security-2026-08-25",
+  "snapshotPath": "compatibility-sets/fates-pre-qwen-security-2026-08-25.json",
+  "previousCompatibilitySet": "fates-mvp-security-binding-2026-08-24",
+  "updatedAt": "2026-08-25T14:30:00.000Z",
+  "sealStatus": "provisional",
+  "integrationLevel": "partial_runtime",
+  "protocol": {
+    "current": "1.4.0",
+    "minimum": "1.0.0",
+    "maximum": "1.4.0"
+  },
+  "repositories": {
+    "adrasteia": {
+      "url": "https://github.com/hourwise/Project-Adrasteia",
+      "tag": "adrasteia-preflight-v0.6.2-protocol-1.4.0",
+      "commit": "6aba3ef466a16292689d4afaf9f9bc40dc013301",
+      "checkpointState": "sealed_tagged",
+      "package": "project-runtime-contracts@0.6.2",
+      "artifact": {
+        "url": "https://github.com/hourwise/Project-Adrasteia/releases/download/adrasteia-preflight-v0.6.2-protocol-1.4.0/project-runtime-contracts-0.6.2.tgz",
+        "sha256": "44139c4cf1ca05ea684e122a2c4d75ff0f1a77e7020a61317e9569ae643dbd86"
+      },
+      "role": "authenticated portable receipt contract"
+    },
+    "ananke": {
+      "url": "https://github.com/hourwise/Project-Ananke",
+      "tag": null,
+      "commit": "f5b071bb3f36a3721ca58811c74af5031c456832",
+      "checkpointState": "pushed_untagged",
+      "role": "authenticated source inspection and content-surface authority"
+    },
+    "mnemosyne": {
+      "url": "https://github.com/hourwise/Project-Mnemosyne",
+      "tag": null,
+      "commit": "24f8541ce0e0a2f56171544a249cff56e7b634d1",
+      "checkpointState": "pushed_untagged",
+      "role": "authenticated receipt verification and governed admission"
+    },
+    "horae": {
+      "url": "https://github.com/hourwise/Project-Horae",
+      "tag": null,
+      "commit": "3a174b3f1bf791b437a22b4cfd41bf9677b9cba9",
+      "checkpointState": "pushed_untagged",
+      "role": "canonical lifecycle composition and exact-surface transport glue"
+    },
+    "moirae-code": {
+      "url": "https://github.com/hourwise/Project-Moirae-Code",
+      "tag": null,
+      "commit": "b23f723fc5267c95fe9f7eccb2efa32465f8d2f1",
+      "checkpointState": "pushed_untagged",
+      "role": "session-owned Firecracker containment, constrained vsock, and credential custody"
+    },
+    "integration": {
+      "url": "https://github.com/hourwise/Project-Fates-Integration",
+      "tag": null,
+      "commit": "51bad96d3a28b6727de4cffae54b399b9025de5f",
+      "checkpointState": "pushed_untagged",
+      "role": "tested pre-manifest Integration control/evidence checkpoint (non-recursive candidate identity)"
+    }
+  },
+  "securityBinding": {
+    "status": "security_binding_incomplete",
+    "receiptContractVersion": "1.1.0",
+    "signatureAlgorithm": "Ed25519",
+    "receiptCanonicalizationVersion": "fates-content-receipt-json-v1",
+    "surfaceCanonicalizationVersion": "fates-content-surface-json-v1",
+    "candidateCanonicalizationVersion": "mnemosyne-exact-surface-v1",
+    "trustedIssuerPolicy": "Mnemosyne requires keyId -> Ed25519 public key, issuerRuntime=ananke, and an allowlisted issuer instance; audience.runtime=mnemosyne.",
+    "receiptValidityPolicy": {
+      "maxLifetimeMs": 300000,
+      "issuedAtRequired": true,
+      "expiresAtRequired": true
+    },
+    "replayGuarantee": "Admission consumes a single-use authenticated receipt by receipt digest/ID only, independent of caller-selected trustDomain; admission idempotency binds the complete operation identity including project, vault, trust, tenant, workspace, actor, candidate/source identity, and idempotency key. The ledger remains single-process in-memory with expiry sweep and a configurable bound; durable multi-process replay exclusion is not claimed.",
+    "firecrackerProfileId": "linux-x86_64-kvm-firecracker-no-nic-constrained-vsock-v1",
+    "effectiveConfigBinding": "Session-owned jail staging writes canonical JSON, re-hashes the exact config file passed to jailer/Firecracker, verifies pinned staged artifact digests, and refuses ambient-config drift; live Linux guest execution remains unproven here.",
+    "credentialMode": "Strict mode rejects InMemorySecretBroker and raw long-lived credential frames; only the production keyring-factory capability is eligible for OS-backed credential strategies.",
+    "integrationCommit": "64da691168f7da3cd19e7f04c359b127a5662118",
+    "implementationPaths": [
+      "scripts/fates-governed-smoke.mjs"
+    ]
+  },
+  "notes": "Post-runtime-security-closure / pre-Qwen candidate. The authenticated receipt replay and operation-identity binding fixes are included in the pinned Mnemosyne commit; the effect-reconciliation-before-recovery fix is included in the pinned Horae commit. The governed smoke implementation remains at the exact tested Integration commit 64da691168f7da3cd19e7f04c359b127a5662118. Integration control/evidence is represented by 51bad96d3a28b6727de4cffae54b399b9025de5f because a manifest cannot contain its own eventual commit SHA; the final candidate publication commit is recorded separately in the report. This remains provisional and is not sealed, production-ready, containment-proven, security-complete, or live-Qwen validated.",
+  "knownLimits": [
+    "The Integration candidate pin uses the exact tested pre-manifest control/evidence commit because a commit cannot contain its own SHA; the final manifest/pointer publication commit is recorded separately.",
+    "Firecracker live launch was not executed on Linux x86_64/KVM in this Windows environment.",
+    "The guest init was not independently observed executing the pinned workload and evidence collector artifacts.",
+    "The replay ledger is in-memory and does not claim durable multi-process exclusion or power-loss durability.",
+    "OS-backed keyring factory is implemented but availability was not proven on all Windows/macOS/Linux target hosts.",
+    "Peer self-reported identity remains diagnostic-only unless independently attested by the supervisor.",
+    "Qwen/model integration and the live local-SLM acceptance campaign have not been executed.",
+    "No final security seal, immutable release tag, production-readiness claim, or containment proof is made by this candidate."
+  ]
+}
