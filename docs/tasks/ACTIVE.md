@@ -1,5 +1,37 @@
 # ACTIVE — Fates MVP convergence and governed request path
 
+## FATES-PRE-QWEN-LOCAL-SLM-ALIGNMENT — current-candidate evidence binding — 2026-08-25
+
+Status: **IMPLEMENTED LOCALLY; FOCUSED AND FULL INTEGRATION VALIDATION PASSED; NO QWEN STARTED**
+
+At the authoritative Integration checkpoint
+`a4ee480c6c41007188d86f4c530199d16dcd7aaf`, the untouched local-SLM tooling
+was shown to retain predecessor Mnemosyne `932095aabcc7fb60b4af3f26a39e62fd02d907df`,
+Horae `b5216534bee32467d17316dda5a86ff6484f1c4a`, and Integration
+`51be3be823383e9fb3aaf6e3ea96a8a89d2ef79b` identities while the authoritative
+pointer resolved to `fates-pre-qwen-security-2026-08-25`. The stale-pin proof
+was completed before modification.
+
+The SLM runner and evidence validator now resolve only through
+`current-candidate.json` and its provisional successor manifest. The five
+runtime peer SHAs and Runtime Contracts artifact digest are obtained from that
+manifest and verified against clean, origin-checked peer checkouts before a
+live run. Evidence records the candidate ID and manifest-controlled,
+non-recursive Integration control identity separately from the actual clean
+Integration `harnessCommit`. Historical `fates-lock.json` and predecessor
+compatibility material remain unchanged.
+
+The explicit non-Qwen negative-control command
+`npm run test:slm:negative-control` passes 2/2: an intentionally admitted
+tampered surface is classified as `FAIL`, the validator refuses certification,
+and `FRICTION` remains distinct. Focused SLM/candidate tests pass 19/19;
+`npm test`, `npm run validate`, `npm run verify:mvp-security`, exact current
+candidate verify-only materialization, and governed smoke pass. Governed smoke
+retains `received → composed → preflighted → admitted → executing → completed`
+and `QUARANTINED / PREFLIGHT_SURFACE_HASH_MISMATCH` negative evidence. No model
+call, Qwen, runtime Fate, peer pin, Firecracker/KVM, containment, credential,
+durable replay, seal, tag, or historical rewrite work was performed.
+
 ## FATES-PRE-QWEN-CANDIDATE-PUBLICATION — manifest-driven current candidate — 2026-08-25
 
 Status: **PROVISIONAL CANDIDATE MATERIALIZATION IMPLEMENTED; NO QWEN STARTED**

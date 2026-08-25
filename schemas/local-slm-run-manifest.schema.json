@@ -13,8 +13,11 @@
     "llamaCppEndpoint",
     "requestedModelId",
     "discoveredModelIds",
+    "candidateId",
     "compatibilitySetId",
     "componentSHAs",
+    "harnessCommit",
+    "runtimeContractsArtifactSha256",
     "syntheticEffectsOnly"
   ],
   "properties": {
@@ -32,7 +35,8 @@
     "discoveredModelId": { "type": ["string", "null"] },
     "discoveredModelIds": { "type": "array", "items": { "type": "string" } },
     "modelFileHash": { "type": ["string", "null"] },
-    "compatibilitySetId": { "const": "fates-mvp-security-binding-2026-08-24" },
+    "candidateId": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "compatibilitySetId": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
     "componentSHAs": {
       "type": "object",
       "required": ["adrasteia", "ananke", "mnemosyne", "horae", "moirae", "integration"],
@@ -46,6 +50,8 @@
       },
       "additionalProperties": false
     },
+    "harnessCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "runtimeContractsArtifactSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
     "liveModelOptIn": { "type": "boolean" },
     "syntheticEffectsOnly": { "const": true }
   },

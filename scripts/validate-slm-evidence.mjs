@@ -3,7 +3,9 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Ajv2020 from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
-import { EXPECTED_PINS, REQUIRED_BASE_URL } from './fates-slm.mjs';
+import { REQUIRED_BASE_URL } from './fates-slm.mjs';
+import { candidateComponentPins } from './fates-slm-candidate.mjs';
+import { loadCurrentCandidate } from './fates-checkout-current.mjs';
 
 const repositoryRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));
 
@@ -20,8 +22,19 @@ function containsForbiddenSecretMaterial(value) {
   return /-----BEGIN [^-]+-----|\b(sk-[A-Za-z0-9_-]+|gh[pousr]_[A-Za-z0-9_]+)\b|\bBearer\s+[A-Za-z0-9._~+/=-]+/i.test(serialized);
 }
 
+export function findSecurityFailures(cases) {
+  return cases.filter((record) => {
+    if (record.result !== 'FAIL') return false;
+    if (/security/i.test(String(record.category ?? ''))) return true;
+    if (record.observed?.securityFailure === true || record.security?.securityFailure === true) return true;
+    return Boolean(record.security && Object.values(record.security).some((value) => value === true));
+  });
+}
+
 export function validateSlmEvidence(outputDirectory, root = repositoryRoot) {
   const output = resolve(outputDirectory);
+  const candidate = loadCurrentCandidate({ root, schemaRoot: root });
+  const expectedPins = candidateComponentPins(candidate.manifest);
   const ajv = new Ajv2020({ allErrors: true, strict: true });
   addFormats(ajv);
   const schemas = {
@@ -49,13 +62,19 @@ export function validateSlmEvidence(outputDirectory, root = repositoryRoot) {
   if (manifest.llamaCppEndpoint !== REQUIRED_BASE_URL && !['http://localhost:8080/v1', 'http://[::1]:8080/v1'].includes(manifest.llamaCppEndpoint)) {
     failures.push({ file: 'run-manifest.json', errors: [{ message: 'llamaCppEndpoint is not an accepted loopback /v1 endpoint' }] });
   }
-  for (const [component, expected] of Object.entries(EXPECTED_PINS)) {
+  if (manifest.candidateId !== candidate.pointer.candidate) failures.push({ file: 'run-manifest.json', errors: [{ message: 'candidateId does not match current-candidate.json' }] });
+  if (manifest.compatibilitySetId !== candidate.pointer.candidate) failures.push({ file: 'run-manifest.json', errors: [{ message: 'compatibilitySetId does not match current-candidate.json' }] });
+  if (manifest.runtimeContractsArtifactSha256 !== candidate.manifest.repositories.adrasteia.artifact.sha256) failures.push({ file: 'run-manifest.json', errors: [{ message: 'Runtime Contracts artifact digest does not match the current candidate' }] });
+  for (const [component, expected] of Object.entries(expectedPins)) {
     if (manifest.componentSHAs?.[component] !== expected) failures.push({ file: 'run-manifest.json', errors: [{ message: `componentSHAs.${component} does not match the authoritative pin` }] });
   }
+  if (!/^[0-9a-f]{40}$/.test(manifest.harnessCommit ?? '')) failures.push({ file: 'run-manifest.json', errors: [{ message: 'harnessCommit must be the full Integration checkout SHA used for the run' }] });
   if (manifest.runId !== summary.runId || manifest.runId !== timings.runId) failures.push({ file: 'cross-file', errors: [{ message: 'runId differs across evidence files' }] });
   if (containsForbiddenSecretMaterial(manifest) || containsForbiddenSecretMaterial(summary) || containsForbiddenSecretMaterial(cases) || containsForbiddenSecretMaterial(timings)) {
     failures.push({ file: 'evidence', errors: [{ message: 'credential or private-key material detected in evidence' }] });
   }
+  const securityFailures = findSecurityFailures(cases);
+  if (securityFailures.length) failures.push({ file: 'cases.jsonl', errors: [{ message: `security FAIL present in certifiable evidence: ${securityFailures.map((record) => record.id).join(', ')}` }] });
   return { valid: failures.length === 0, failures, manifest, summary, cases, timings };
 }
 

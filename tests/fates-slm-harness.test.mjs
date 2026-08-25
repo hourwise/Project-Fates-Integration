@@ -12,6 +12,7 @@ import {
   summarizeSamples,
   validateLoopbackBaseUrl,
 } from '../scripts/fates-slm.mjs';
+import { resolveSlmCandidate, verifySlmPeerHeads } from '../scripts/fates-slm-candidate.mjs';
 import { LOCAL_SLM_CASES } from '../scripts/fates-slm-corpus.mjs';
 import { validateSlmEvidence } from '../scripts/validate-slm-evidence.mjs';
 
@@ -103,6 +104,21 @@ test('synthetic tool inventory proves that the harness has no real effect tool',
   assert.deepEqual(assertNoRealSideEffectTools().realEffects, false);
 });
 
+test('current candidate resolves exact runtime peers and a separate harness identity', () => {
+  const candidate = resolveSlmCandidate({ verifyCheckouts: false });
+  verifySlmPeerHeads(candidate);
+  assert.equal(candidate.candidateId, 'fates-pre-qwen-security-2026-08-25');
+  assert.deepEqual(candidate.runtimePeerSHAs, {
+    adrasteia: '6aba3ef466a16292689d4afaf9f9bc40dc013301',
+    ananke: 'f5b071bb3f36a3721ca58811c74af5031c456832',
+    mnemosyne: '24f8541ce0e0a2f56171544a249cff56e7b634d1',
+    horae: '3a174b3f1bf791b437a22b4cfd41bf9677b9cba9',
+    moirae: 'b23f723fc5267c95fe9f7eccb2efa32465f8d2f1',
+  });
+  assert.match(candidate.harnessCommit, /^[0-9a-f]{40}$/);
+  assert.notEqual(candidate.harnessCommit, candidate.componentSHAs.integration);
+});
+
 test('valid evidence artifacts pass the local-SLM schemas and exact-pin checks', async () => {
   const output = await mkdtemp(join(tmpdir(), 'fates-slm-schema-'));
   try {
@@ -111,7 +127,8 @@ test('valid evidence artifacts pass the local-SLM schemas and exact-pin checks',
     const manifest = {
       schemaVersion: '1.0', testSuiteVersion: 'test', runId, timestamp, os: 'test', architecture: 'x64', nodeVersion: 'v24',
       cpuIdentifier: null, memoryBytes: 1, llamaCppEndpoint: REQUIRED_BASE_URL, requestedModelId: 'fake', discoveredModelId: 'fake', discoveredModelIds: ['fake'], modelFileHash: null,
-      compatibilitySetId: 'fates-mvp-security-binding-2026-08-24', componentSHAs: EXPECTED_PINS, liveModelOptIn: false, syntheticEffectsOnly: true,
+      candidateId: 'fates-pre-qwen-security-2026-08-25', compatibilitySetId: 'fates-pre-qwen-security-2026-08-25', componentSHAs: EXPECTED_PINS,
+      harnessCommit: 'a4ee480c6c41007188d86f4c530199d16dcd7aaf', runtimeContractsArtifactSha256: '44139c4cf1ca05ea684e122a2c4d75ff0f1a77e7020a61317e9569ae643dbd86', liveModelOptIn: false, syntheticEffectsOnly: true,
     };
     const summary = { schemaVersion: '1.0', runId, suite: 'fault', generatedAt: timestamp, caseCounts: { PASS: 1 }, usability: {}, security: {}, timing: {}, noRealHostEffects: true };
     const caseRecord = { id: 'FLT-01', category: 'FAULT', mode: 'FAULT_INJECTION', title: 'malformed', startedAt: timestamp, endedAt: timestamp, durationMs: 0, expected: 'malformed', result: 'PASS', observed: {} };

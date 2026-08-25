@@ -21,6 +21,7 @@
     "fates:governed": "node scripts/fates-governed-smoke.mjs",
     "fates:checkout-current": "node scripts/fates-checkout-current.mjs",
     "fates:slm": "node scripts/fates-slm.mjs",
+    "test:slm:negative-control": "node --test tests/fates-slm-negative-control.test.mjs",
     "validate:slm": "node scripts/validate-slm-evidence.mjs",
     "verify:mvp-security": "node scripts/verify-mvp-security-binding.mjs",
     "validate": "node scripts/validate.mjs"
