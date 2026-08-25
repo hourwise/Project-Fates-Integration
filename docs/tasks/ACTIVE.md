@@ -1,5 +1,50 @@
 # ACTIVE — Fates MVP convergence and governed request path
 
+## FATES-MVP-PRE-QWEN-RUNTIME-CLOSURE — timeout/effect recovery and admission replay — 2026-08-25
+
+Status: **P0-A/P0-B/P0-C REMEDIATED LOCALLY; PRE-QWEN RUNTIME CLOSURE VALIDATED; NO QWEN STARTED**
+
+Authoritative preflight was exact and clean before edits: Horae
+`b5216534bee32467d17316dda5a86ff6484f1c4a` and Mnemosyne
+`932095aabcc7fb60b4af3f26a39e62fd02d907df`, with both local and origin branch
+heads matching. Integration remained validation-only; its local branch already
+contained the prior local-SLM harness commit `bc873458cd38edc2e9ec8fea5b4f2f4d82239178`
+while origin remained at the observed candidate `51be3be823383e9fb3aaf6e3ea96a8a89d2ef79b`.
+
+P0-A reproduced before the fix against untouched Horae: execution returned
+`timed_out` with zero effects, the late executor then produced effect 1, and
+`recover()` redispatched and produced effect 2. Horae now records any timeout,
+cancellation, or executor failure after dispatch as `recovery_required` with
+`retryable: false`; `recover()` refuses without positive no-effect evidence.
+Pre-dispatch timeout/cancellation remains explicitly recoverable. Permanent
+tests cover ignored abort signals, abort observed after effect, late success,
+cancellation, concurrent recovery, and safe pre-dispatch recovery.
+
+P0-B reproduced before the fix against the real authenticated
+`RuntimeContractsPreflightReceiptVerifier` and `ProvenanceAdmissionEngine`: one
+genuine signed receipt admitted under trust domains A, B, C, and D. Replay
+consumption now uses authenticated receipt digest/ID only, never caller-selected
+`trustDomain`. P0-C also reproduced before the fix: admission A replayed across
+workspace and changed candidate/content under the same idempotency key. Admission
+idempotency now binds operation, project/vault/trust scope, tenant/workspace,
+actor, complete candidate/source identity, and key.
+
+Focused results are Horae 22/22 and Mnemosyne 9/9; full suites are Horae 56/56
+and Mnemosyne 113/113. Both builds, lint, formatter checks, and diff checks pass.
+Horae conformance/comparators/benchmark/CLI/composition checks pass; Mnemosyne
+conformance/comparator/benchmark/basic demo/inspection checks pass. The
+inherited Mnemosyne `validate` wrapper still stops at its pre-existing Adrasteia
+0.4.0-versus-authoritative-0.6.2 immutable URL mismatch, and its full demo still
+fails at the pre-existing strict admission/authority construction guard; neither
+touches the changed P0 paths. Integration validation and governed smoke pass,
+including `received → composed → preflighted → admitted → executing → completed`
+and `PREFLIGHT_SURFACE_HASH_MISMATCH` quarantine.
+
+No Adrasteia, Integration runtime, compatibility set, Qwen, Firecracker,
+containment, credential, sealing, tagging, publication, or unrelated Fate work
+was changed. Component remediation commits are created locally and remain
+unpublished pending explicit direction.
+
 ## FATES-LOCAL-SLM-001 — local SLM acceptance harness and evidence capture — 2026-08-24
 
 Status: **HARNESS IMPLEMENTED; LIVE QWEN ACCEPTANCE NOT RUN**
