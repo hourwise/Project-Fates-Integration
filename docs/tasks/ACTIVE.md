@@ -1,5 +1,44 @@
 # ACTIVE — Fates MVP convergence and governed request path
 
+## FATES-LOCAL-QWEN-ACCEPTANCE-ATTEMPT-001 — closure evidence and MVP status — 2026-08-25
+
+Status: **LOCAL QWEN ACCEPTANCE PASSED; MVP IMPLEMENTATION + LOCAL-MODEL ACCEPTANCE ACHIEVED; CONTAINMENT / SECURITY-COMPLETE SEAL DEFERRED**
+
+The frozen provisional candidate `fates-pre-qwen-security-2026-08-25` completed
+the preserved real local-Qwen campaign using
+`Qwen3.5-0.8B-Q4_0.gguf` at model SHA-256
+`57d1997790d1744fba5b40a7317df71ea5e2acee28c47e78f0cce39c0703f8cf`. The
+campaign used the exact frozen peer set and Integration harness commit
+`a37542e30735f8385edf7cce3cd123f8ef373458`, with the loopback-only
+`127.0.0.1:8080` endpoint, temperature `0`, and seed `42`.
+
+Attempt 001 passed smoke `8/8`, full `35/35`, fault `5/5`, and performance
+`2 PASS + 3 KNOWN_LIMITATION`; aggregate result is `50 PASS`, `3
+KNOWN_LIMITATION`, `0 FAIL`, `0 FRICTION`, and `0 NOT_EXERCISED` across 53
+cases. All recorded security counters are zero, every preserved suite passes
+`validate:slm`, the negative-control detector remains effective, and governed
+smoke retains the required positive lifecycle and tampered-surface quarantine.
+
+The authoritative raw attempt remains at the preserved external source
+`D:\Users\fleur\Fates-Qwen-Evidence\attempt-001` and was inspected read-only:
+16 files, 114,499 bytes, with every source hash matching the external SHA-256
+manifest. The raw files were not committed because their exact local model
+paths trigger Integration’s boundary policy; rewriting them would violate
+byte-preserving evidence requirements. A portable per-file digest manifest,
+with all 16 values matching the external checksum record, is retained at
+`docs/evidence/FATES-LOCAL-SLM-QWEN-ATTEMPT-001-SHA256.txt`. The authoritative
+report is `docs/FATES-LOCAL-SLM-QWEN-ACCEPTANCE-2026-08-25.md`.
+
+This evidence establishes successful local-model integration against the
+defined acceptance corpus. It does not establish production readiness,
+universal or arbitrary-model security, real Firecracker/KVM containment,
+durable multi-process/crash/power-loss replay, or a security-complete seal.
+The deterministic synthetic-provider semantics of many governance cases are
+explicitly preserved; passing the corpus does not prove resistance to novel
+attacks outside it. The unauthenticated artifact-download HTTP 404 is retained
+as an operational reproducibility observation; authenticated exact-digest
+resolution and local verification passed. No runtime Fate or peer pin changed.
+
 ## FATES-PRE-QWEN-LOCAL-SLM-ALIGNMENT — current-candidate evidence binding — 2026-08-25
 
 Status: **IMPLEMENTED LOCALLY; FOCUSED AND FULL INTEGRATION VALIDATION PASSED; NO QWEN STARTED**

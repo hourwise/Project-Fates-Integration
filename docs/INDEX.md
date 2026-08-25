@@ -9,6 +9,7 @@
 - Cross-Fate paths, versions, and gates: [INTEGRATION.md](INTEGRATION.md)
 - Research and candidate routing: [RESEARCH.md](RESEARCH.md)
 - Active audit/task record: [tasks/ACTIVE.md](tasks/ACTIVE.md)
+- Local Qwen acceptance closure: [acceptance report](FATES-LOCAL-SLM-QWEN-ACCEPTANCE-2026-08-25.md), [Attempt 001 checksum manifest](evidence/FATES-LOCAL-SLM-QWEN-ATTEMPT-001-SHA256.txt)
 - Architecture laws: [architecture-laws.md](architecture-laws.md)
 - Workflow and checkpoints: [development-workflow.md](development-workflow.md), [checkpoint-policy.md](checkpoint-policy.md), [compatibility-policy.md](compatibility-policy.md)
 - Current compatibility control: [fates-lock.json](../fates-lock.json), [compatibility-matrix.json](../compatibility-matrix.json), [active-slice.json](../active-slice.json)
