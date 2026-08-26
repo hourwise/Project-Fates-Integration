@@ -58,7 +58,7 @@
     "repository": "https://github.com/hourwise/Project-Ananke",
     "canonicalMainCommit": "0b8c72c3e27fd6151e429712889babdb3846a1f1",
     "mc05FeatureBranch": "codex/mc-05-human-publication-approval",
-    "mc05FeatureCommit": "b5c426648b835b1ae1c2e2bad3a7d00349cf78e7"
+    "mc05FeatureCommit": "0c40c5fdc9f999bd7009b56ab81f26ddd8be6ee3"
   },
   "compatibilityAssertions": [
     "Approval is owned by Ananke and is not a React boolean or Console policy decision.",
