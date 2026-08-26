@@ -1,0 +1,54 @@
+{
+  "evidenceId": "FATES-MOIRAE-006-ANANKE-PUBLICATION-DENY-001",
+  "slice": "MC-06",
+  "status": "ANANKE_AUTHORITATIVE_POLICY_DENY_COMPATIBILITY",
+  "externalOperation": "publish_document",
+  "canonicalAction": "fates.moirae.publish-document.v1",
+  "resource": {
+    "documentId": "demo-policy-001",
+    "expectedSha256": "f00d46e0cb81f67ed7a3d516939bd86ce5401e6c01321dbc90ca3374899a2d6c",
+    "destinationId": "moirae.demo-publication-slot.v1"
+  },
+  "purpose": "moirae.document-publication",
+  "restrictedCaller": {
+    "authenticatedPrincipal": "moirae-restricted-host",
+    "actingPrincipal": "moirae-restricted-agent",
+    "scope": "bounded document demo-policy-001 with read operation only",
+    "credentialDeliveredToBrowser": false,
+    "approvalAuthority": false,
+    "publicationAuthority": false
+  },
+  "policy": {
+    "decision": "DENY",
+    "reason": "INSUFFICIENT_PUBLICATION_SCOPE",
+    "requestDigestBound": true,
+    "sameCanonicalOperation": true,
+    "approvalRequestCreated": false,
+    "executionAuthorityIssued": false
+  },
+  "effectSemantics": {
+    "effectSemantics": "AUTHORIZATION_ONLY_NO_PUBLICATION",
+    "fatesResourceReadAttemptCount": 0,
+    "fatesPublicationAttemptCount": 0,
+    "documentPublicationByFates": false,
+    "moiraeSourceReadCount": 0,
+    "moiraePublicationExecutorInvocationCount": 0,
+    "publicationTargetChanged": false
+  },
+  "compatibilityAssertions": [
+    "The restricted workload is authenticated before policy evaluation.",
+    "The first live request is the exact fixed publication action and is denied by Ananke policy/authority evaluation.",
+    "DENY occurs before request validation, approval issuance, execution authority, and host effect.",
+    "Inspection, historical Slice 02, cached ALLOW, synthetic evidence, and approval material cannot upgrade the denial.",
+    "Moirae displays the authoritative denial and performs no source read or publication.",
+    "The browser cannot choose the restricted credential, caller identity, action, digest, purpose, or destination."
+  ],
+  "ananke": {
+    "repository": "https://github.com/hourwise/Project-Ananke",
+    "canonicalMainCommitBeforeMc06": "0c40c5fdc9f999bd7009b56ab81f26ddd8be6ee3"
+  },
+  "crossRuntimeRoute": {
+    "claimed": false,
+    "reason": "Horae and Moirae Code remain frozen; this is Ananke denial compatibility evidence only."
+  }
+}
