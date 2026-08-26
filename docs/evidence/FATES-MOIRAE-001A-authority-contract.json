@@ -1,0 +1,51 @@
+{
+  "evidenceId": "FATES-MOIRAE-001A-ANANKE-AUTHORITY-001",
+  "slice": "FATES-MOIRAE-001A",
+  "status": "ANANKE_AUTHORITY_ONLY_COMPATIBILITY",
+  "externalOperation": "inspect_document",
+  "canonicalAction": "fates.moirae.inspect-document.v1",
+  "resource": {
+    "documentId": "demo-policy-001",
+    "expectedSha256": "f00d46e0cb81f67ed7a3d516939bd86ce5401e6c01321dbc90ca3374899a2d6c"
+  },
+  "requestSchema": {
+    "id": "urn:fates:moirae:inspect-document-request:v1",
+    "sha256": "72c869a9a6dc416b5a99d8434bb5178a3d1bc9e239fbd54c72e09989776f1ebd",
+    "additionalProperties": false,
+    "required": [
+      "documentId",
+      "expectedSha256"
+    ]
+  },
+  "purpose": "moirae.document-inspection",
+  "ananke": {
+    "repository": "https://github.com/hourwise/Project-Ananke",
+    "branch": "codex/fates-moirae-001a-inspect-authority",
+    "commit": "c6d7656e767ac086aa7f80c7ac04e40a6801c8ea"
+  },
+  "transport": {
+    "endpoint": "POST /api/execute",
+    "authenticatedWorkloadCredential": true,
+    "liveSmokeLabel": "REAL_FATES_AUTHORITATIVE_MOIRAE_INSPECTION",
+    "liveSmokeHttpStatus": 200,
+    "liveSmokeOutcomeState": "COMPLETED",
+    "liveSmokeHasOutcomeData": false
+  },
+  "effectSemantics": {
+    "authorityOnly": true,
+    "fatesReadsMoiraeDocument": false,
+    "fatesReturnsMoiraeDocument": false,
+    "fatesResourceReadAttemptCount": 0,
+    "documentDisclosureByFates": false
+  },
+  "compatibilityAssertions": [
+    "The canonical action is not fates.slice02.inspect-fixed-fixture.v1.",
+    "The canonical resource is not fates.slice02.fixed-fixture.v1.",
+    "The expected digest binds the Moirae-owned bytes without copying them into Fates.",
+    "The later Moirae adapter must verify its host-side bytes before disclosure."
+  ],
+  "crossRuntimeRoute": {
+    "claimed": false,
+    "reason": "Horae and Moirae Code remain frozen; this record is Ananke authority compatibility evidence only."
+  }
+}
