@@ -1,0 +1,75 @@
+{
+  "evidenceId": "FATES-MOIRAE-005-ANANKE-PUBLICATION-APPROVAL-001",
+  "slice": "MC-05",
+  "status": "ANANKE_AUTHORITATIVE_HUMAN_APPROVAL_COMPATIBILITY",
+  "externalOperation": "publish_document",
+  "canonicalAction": "fates.moirae.publish-document.v1",
+  "resource": {
+    "documentId": "demo-policy-001",
+    "expectedSha256": "f00d46e0cb81f67ed7a3d516939bd86ce5401e6c01321dbc90ca3374899a2d6c",
+    "destinationId": "moirae.demo-publication-slot.v1"
+  },
+  "purpose": "moirae.document-publication",
+  "policy": {
+    "initialDecision": "REQUIRES_APPROVAL",
+    "approvalLifetimeSeconds": 30,
+    "maximumApprovalLifetimeSeconds": 60,
+    "browserMayChooseLifetime": false
+  },
+  "pendingApprovalBinding": [
+    "canonical action",
+    "documentId",
+    "expectedSha256",
+    "destinationId",
+    "purpose",
+    "authenticated workload",
+    "acting principal",
+    "requestId",
+    "correlationId",
+    "canonical request digest",
+    "authority binding digest",
+    "approval request identity",
+    "issuedAt",
+    "expiresAt"
+  ],
+  "operator": {
+    "identity": "moirae-demo-operator",
+    "scope": "fates.moirae.publish-document.v1 for demo-policy-001 at moirae.demo-publication-slot.v1",
+    "credentialDeliveredToBrowser": false,
+    "productionAuthentication": false
+  },
+  "transitionSemantics": {
+    "pending": "WAITING_FOR_APPROVAL",
+    "approve": "APPROVED",
+    "reject": "REJECTED",
+    "expiry": "EXPIRED",
+    "approvedExecution": "fresh one-use authority through POST /api/execute",
+    "fatesReadsMoiraeDocument": false,
+    "fatesPublishesMoiraeDocument": false,
+    "moiraePerformsPublication": true
+  },
+  "integrity": {
+    "canonicalDigestBinding": true,
+    "authenticatedTransportBoundAuthority": true,
+    "signedReceipt": false,
+    "processLocalApprovalPersistence": true
+  },
+  "ananke": {
+    "repository": "https://github.com/hourwise/Project-Ananke",
+    "canonicalMainCommit": "0b8c72c3e27fd6151e429712889babdb3846a1f1",
+    "mc05FeatureBranch": "codex/mc-05-human-publication-approval",
+    "mc05FeatureCommit": "b5c426648b835b1ae1c2e2bad3a7d00349cf78e7"
+  },
+  "compatibilityAssertions": [
+    "Approval is owned by Ananke and is not a React boolean or Console policy decision.",
+    "Inspection authority and historical Slice 02 authority cannot authorize publication approval.",
+    "The browser receives only a bounded pending approval identity and explicit decision control.",
+    "Approval does not itself perform publication or return a publication execution receipt.",
+    "The post-approval execution request preserves the original request and correlation identity.",
+    "Moirae verifies the source digest and performs the bounded atomic publication effect."
+  ],
+  "crossRuntimeRoute": {
+    "claimed": false,
+    "reason": "Horae and Moirae Code remain frozen; this is Ananke approval compatibility evidence only."
+  }
+}
