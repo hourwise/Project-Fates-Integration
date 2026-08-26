@@ -1,0 +1,64 @@
+{
+  "evidenceId": "FATES-MOIRAE-004-ANANKE-PUBLICATION-AUTHORITY-001",
+  "slice": "MC-04",
+  "status": "ANANKE_AUTHORITY_ONLY_PUBLICATION_COMPATIBILITY",
+  "externalOperation": "publish_document",
+  "canonicalAction": "fates.moirae.publish-document.v1",
+  "resource": {
+    "documentId": "demo-policy-001",
+    "expectedSha256": "f00d46e0cb81f67ed7a3d516939bd86ce5401e6c01321dbc90ca3374899a2d6c",
+    "destinationId": "moirae.demo-publication-slot.v1"
+  },
+  "requestSchema": {
+    "id": "urn:fates:moirae:publish-document-request:v1",
+    "additionalProperties": false,
+    "required": ["documentId", "expectedSha256", "destinationId"]
+  },
+  "purpose": "moirae.document-publication",
+  "ananke": {
+    "repository": "https://github.com/hourwise/Project-Ananke",
+    "branch": "codex/mc-04-publish-document-authority",
+    "commit": "0b8c72c3e27fd6151e429712889babdb3846a1f1"
+  },
+  "transport": {
+    "endpoint": "POST /api/execute",
+    "authenticatedWorkloadCredential": true,
+    "credentialScope": "publish-only fixed document and destination",
+    "liveSmokeLabel": "REAL_END_TO_END_FATES_MOIRAE_PUBLICATION"
+  },
+  "effectSemantics": {
+    "authorityOnly": true,
+    "fatesReadsMoiraeDocument": false,
+    "fatesPublishesMoiraeDocument": false,
+    "fatesResourceReadAttemptCount": 0,
+    "fatesPublicationAttemptCount": 0,
+    "documentPublicationByFates": false,
+    "moiraePerformsPublication": true
+  },
+  "freshnessAndReplay": {
+    "issuedAt": true,
+    "expiresAt": true,
+    "oneUseReceipt": true,
+    "replayBoundTo": [
+      "canonical action",
+      "documentId",
+      "expectedSha256",
+      "destinationId",
+      "purpose",
+      "authenticated workload",
+      "request and correlation identity"
+    ]
+  },
+  "compatibilityAssertions": [
+    "The canonical action is distinct from fates.moirae.inspect-document.v1.",
+    "The canonical action is not fates.slice02.inspect-fixed-fixture.v1.",
+    "The destination is fixed and is not browser-selectable.",
+    "The expected digest binds the Moirae-owned bytes without copying them into Fates.",
+    "Moirae must verify the source bytes before performing the bounded publication.",
+    "Fates authority-only completion is not publication completion."
+  ],
+  "crossRuntimeRoute": {
+    "claimed": false,
+    "reason": "Horae and Moirae Code remain frozen; this record is Ananke authority compatibility evidence only."
+  }
+}
