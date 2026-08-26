@@ -1,0 +1,2 @@
+# Retained evidence is immutable byte-level provenance; preserve line endings.
+docs/evidence/** -text

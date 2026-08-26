@@ -1,0 +1,323 @@
+{
+  "schemaVersion": 2,
+  "sliceId": "FATES-SLICE-004",
+  "subsliceId": "FATES-SLICE-004A",
+  "attemptId": "004",
+  "classification": "FAIL_BOUNDED",
+  "lifecycle": {
+    "state": "failed",
+    "reservedAt": "2026-08-12T14:29:38.924Z",
+    "startedAt": "2026-08-12T14:29:38.928Z",
+    "finishedAt": "2026-08-12T14:29:48.452Z"
+  },
+  "startingCheckpoints": {
+    "integration": "b842b9a25dec0228c877bd4991ada86ef4c8a8e4",
+    "ananke": "e7b405f3a217db6df31fe9ba7bde376ab666930c",
+    "horae": "3f531d4f5558a10a36aeae20c3458080eb4468b9",
+    "moirae": "bc7b984bd2eb0e0f07a1cd7259a8eab21556f097",
+    "mnemosyne": "f4ab76a9760f856d78908d35facceb068d78c8e5",
+    "runtimeContracts": "bbf240b1fdcb9be1dbd30b13d2fe2708a22ec7b8"
+  },
+  "driverSha256": "4CE12B4431DFF1BA38FCA661BADE0EE89CE5163DB2125FC6A297FDFD9B38214A",
+  "fixtureSha256": "8C9BF1B6160A9BAE679FE5BF80B2352987FAD4B4A57B64E230FA7753CEDC9D67",
+  "workerSha256": "8AF0138F5D1F77ABEACF980B48CCB142FDEBCAA1B31A50F018E145097FC8DC8D",
+  "execute": {
+    "mode": "execute",
+    "ownerAuthorized": true,
+    "runtime": "node",
+    "entrypoint": "scripts/fates-slice04a-live-acceptance.mjs",
+    "provenance": {
+      "runtime": "node",
+      "entrypoint": "scripts/fates-slice04a-live-acceptance.mjs",
+      "mode": "execute",
+      "attemptId": "004",
+      "approvedCheckpoints": {
+        "integration": "b842b9a25dec0228c877bd4991ada86ef4c8a8e4",
+        "ananke": "e7b405f3a217db6df31fe9ba7bde376ab666930c",
+        "horae": "3f531d4f5558a10a36aeae20c3458080eb4468b9",
+        "moirae": "bc7b984bd2eb0e0f07a1cd7259a8eab21556f097",
+        "mnemosyne": "f4ab76a9760f856d78908d35facceb068d78c8e5",
+        "runtimeContracts": "bbf240b1fdcb9be1dbd30b13d2fe2708a22ec7b8"
+      },
+      "artifactHashes": {
+        "driver": "4CE12B4431DFF1BA38FCA661BADE0EE89CE5163DB2125FC6A297FDFD9B38214A",
+        "sink": "8C9BF1B6160A9BAE679FE5BF80B2352987FAD4B4A57B64E230FA7753CEDC9D67",
+        "worker": "8AF0138F5D1F77ABEACF980B48CCB142FDEBCAA1B31A50F018E145097FC8DC8D"
+      }
+    }
+  },
+  "activeState": {
+    "status": "active",
+    "activeSliceId": "FATES-SLICE-004",
+    "activeSubsliceId": "FATES-SLICE-004A"
+  },
+  "currentStage": "case B start",
+  "cases": [
+    {
+      "id": "A",
+      "status": "PASS",
+      "providerOperationCount": 1,
+      "providerOperationCountKnown": true,
+      "redispatchCount": 0,
+      "lastStage": "case A provider observation",
+      "evidenceDigest": "4B768E090E6F3253BDF01D2A07B1B9451CDBBA290C17E58B0D6DF265600891F8",
+      "duplicateDiagnostics": {
+        "firstExecution": {
+          "httpStatus": 200,
+          "gatewayOutcome": "COMPLETED",
+          "reasonCode": null,
+          "errorCode": null,
+          "approvalRequested": true,
+          "approvalIdPresent": true,
+          "approvalIdDigest": "9ED5E805D40445632171721AB5BC4CFA66983A334D9360EE3E2E74F8E666CC2B",
+          "approvalExpiresAt": "2026-08-12T14:34:40.987Z",
+          "durableState": "dispatched_confirmed_success",
+          "providerInvoked": true,
+          "bindingMismatch": false,
+          "correlationIdDigest": "6F33EE5830748B504C4D674AAD0B1ED713A4DAD80BACDD557C3B61A372E22979"
+        },
+        "duplicateExecution": {
+          "httpStatus": 200,
+          "gatewayOutcome": "COMPLETED",
+          "reasonCode": null,
+          "errorCode": null,
+          "approvalRequested": true,
+          "approvalIdPresent": true,
+          "approvalIdDigest": "4A641D67834A5F43A94DF05FF3D506075BC094BB2E8A46FE47FAB80365F8D891",
+          "approvalExpiresAt": "2026-08-12T14:34:41.055Z",
+          "durableState": "dispatched_confirmed_success",
+          "providerInvoked": false,
+          "bindingMismatch": false,
+          "correlationIdDigest": "B6FE228F246120136D1310C5693C1821D65C311E1AFA3F8D1C2CF5C19E0BA385"
+        },
+        "firstApproval": {
+          "requested": {
+            "httpStatus": 200,
+            "gatewayOutcome": "WAITING_FOR_APPROVAL",
+            "reasonCode": "APPROVAL_REQUIRED",
+            "errorCode": null,
+            "approvalRequested": true,
+            "approvalIdPresent": true,
+            "approvalIdDigest": "9ED5E805D40445632171721AB5BC4CFA66983A334D9360EE3E2E74F8E666CC2B",
+            "durableState": null,
+            "providerInvoked": null,
+            "bindingMismatch": false,
+            "correlationIdDigest": "6F33EE5830748B504C4D674AAD0B1ED713A4DAD80BACDD557C3B61A372E22979"
+          },
+          "approvalIdDigest": "9ED5E805D40445632171721AB5BC4CFA66983A334D9360EE3E2E74F8E666CC2B",
+          "expiresAt": "2026-08-12T14:34:40.987Z",
+          "decisionHttpStatus": 200,
+          "decisionStatus": "approved"
+        },
+        "duplicateApproval": {
+          "requested": {
+            "httpStatus": 200,
+            "gatewayOutcome": "WAITING_FOR_APPROVAL",
+            "reasonCode": "APPROVAL_REQUIRED",
+            "errorCode": null,
+            "approvalRequested": true,
+            "approvalIdPresent": true,
+            "approvalIdDigest": "4A641D67834A5F43A94DF05FF3D506075BC094BB2E8A46FE47FAB80365F8D891",
+            "durableState": null,
+            "providerInvoked": null,
+            "bindingMismatch": false,
+            "correlationIdDigest": "B6FE228F246120136D1310C5693C1821D65C311E1AFA3F8D1C2CF5C19E0BA385"
+          },
+          "approvalIdDigest": "4A641D67834A5F43A94DF05FF3D506075BC094BB2E8A46FE47FAB80365F8D891",
+          "expiresAt": "2026-08-12T14:34:41.055Z",
+          "decisionHttpStatus": 200,
+          "decisionStatus": "approved"
+        },
+        "providerCountBefore": 1,
+        "providerCountAfter": 1,
+        "durableReuseResult": "reused_completed",
+        "bindingMismatchResult": "not_observed"
+      }
+    },
+    {
+      "id": "B",
+      "status": "FAIL",
+      "providerOperationCount": null,
+      "providerOperationCountKnown": false,
+      "redispatchCount": null,
+      "lastStage": "case B start"
+    }
+  ],
+  "processFacts": {
+    "processesStarted": 4,
+    "providerProcessesStarted": 2,
+    "starts": [
+      {
+        "role": "receipt-sink",
+        "runtime": "node",
+        "entrypoint": "fixtures/slice-004a-receipt-sink/server.mjs",
+        "startedAt": "2026-08-12T14:29:38.942Z",
+        "readinessReached": true,
+        "stdout": {
+          "status": "observed",
+          "tail": "READY {\"port\":34220,\"fixture\":\"fates-slice-004a-receipt-sink\"}\n",
+          "truncated": false
+        },
+        "stderr": {
+          "status": "not_observed",
+          "tail": "",
+          "truncated": false
+        },
+        "exitCode": null,
+        "signal": "SIGTERM",
+        "spawnError": null,
+        "markers": {
+          "READY": {
+            "status": "observed",
+            "value": "{\"port\":34220,\"fixture\":\"fates-slice-004a-receipt-sink\"}"
+          },
+          "EXECUTION_MARKER": {
+            "status": "not_observed"
+          },
+          "CRASH_MARKER": {
+            "status": "not_observed"
+          },
+          "RECOVERY_RESULT": {
+            "status": "not_observed"
+          }
+        }
+      },
+      {
+        "role": "ananke",
+        "runtime": "node",
+        "entrypoint": "fixtures/slice-004a-ananke-process/server.mjs",
+        "startedAt": "2026-08-12T14:29:39.337Z",
+        "readinessReached": true,
+        "stdout": {
+          "status": "observed",
+          "tail": "ACCEPTANCE_COMPOSITION {\"route\":\"Gateway.execute\",\"toolName\":\"fates.slice04a.receipt.write\",\"durableConsumer\":true,\"lowLevelCallbacks\":false,\"databasePath\":\"<windows-path>\",\"providerUrl\":\"htt<windows-path>\"}\n🔮 Ananke Outcome Gateway running on htt<windows-path>\n[ananke] fates.slice04a.receipt.write → COMPLETED (35ms)\nEXECUTION_MARKER {\"intentId\":\"intent-681250ef-f81d-4e41-b4d9-fa7786ea4695\",\"state\":\"dispatched_confirmed_success\",\"version\":4,\"providerOperationId\":\"receipt-op-1-88fa87eb-bc0f-4de9-bc2b-20926e7ebe59\",\"key\":\"004a-004-a\"}\nEXECUTION_MARKER {\"intentId\":\"intent-681250ef-f81d-4e41-b4d9-fa7786ea4695\",\"state\":\"dispatched_confirmed_success\",\"version\":4,\"providerOperationId\":\"receipt-op-1-88fa87eb-bc0f-4de9-bc2b-20926e7ebe59\",\"key\":\"004a-004-a\"}\n[ananke] fates.slice04a.receipt.write → COMPLETED (2ms)\nEXECUTION_MARKER {\"intentId\":\"intent-681250ef-f81d-4e41-b4d9-fa7786ea4695\",\"state\":\"dispatched_confirmed_success\",\"version\":4,\"providerOperationId\":\"receipt-op-1-88fa87eb-bc0f-4de9-bc2b-20926e7ebe59\",\"key\":\"004a-004-a\"}\n",
+          "truncated": false
+        },
+        "stderr": {
+          "status": "not_observed",
+          "tail": "",
+          "truncated": false
+        },
+        "exitCode": null,
+        "signal": "SIGTERM",
+        "spawnError": null,
+        "markers": {
+          "READY": {
+            "status": "not_observed"
+          },
+          "EXECUTION_MARKER": {
+            "status": "observed",
+            "value": "{\"intentId\":\"intent-681250ef-f81d-4e41-b4d9-fa7786ea4695\",\"state\":\"dispatched_confirmed_success\",\"version\":4,\"providerOperationId\":\"receipt-op-1-88fa87eb-bc0f-4de9-bc2b-20926e7ebe59\",\"key\":\"004a-004-a\"}"
+          },
+          "CRASH_MARKER": {
+            "status": "not_observed"
+          },
+          "RECOVERY_RESULT": {
+            "status": "not_observed"
+          }
+        }
+      },
+      {
+        "role": "receipt-sink",
+        "runtime": "node",
+        "entrypoint": "fixtures/slice-004a-receipt-sink/server.mjs",
+        "startedAt": "2026-08-12T14:29:41.389Z",
+        "readinessReached": true,
+        "stdout": {
+          "status": "observed",
+          "tail": "READY {\"port\":34220,\"fixture\":\"fates-slice-004a-receipt-sink\"}\n",
+          "truncated": false
+        },
+        "stderr": {
+          "status": "not_observed",
+          "tail": "",
+          "truncated": false
+        },
+        "exitCode": null,
+        "signal": "SIGTERM",
+        "spawnError": null,
+        "markers": {
+          "READY": {
+            "status": "observed",
+            "value": "{\"port\":34220,\"fixture\":\"fates-slice-004a-receipt-sink\"}"
+          },
+          "EXECUTION_MARKER": {
+            "status": "not_observed"
+          },
+          "CRASH_MARKER": {
+            "status": "not_observed"
+          },
+          "RECOVERY_RESULT": {
+            "status": "not_observed"
+          }
+        }
+      },
+      {
+        "role": "ananke",
+        "runtime": "node",
+        "entrypoint": "fixtures/slice-004a-ananke-process/server.mjs",
+        "startedAt": "2026-08-12T14:29:42.931Z",
+        "readinessReached": false,
+        "stdout": {
+          "status": "not_observed",
+          "tail": "",
+          "truncated": false
+        },
+        "stderr": {
+          "status": "not_observed",
+          "tail": "",
+          "truncated": false
+        },
+        "exitCode": null,
+        "signal": "SIGTERM",
+        "spawnError": null,
+        "markers": {
+          "READY": {
+            "status": "not_observed"
+          },
+          "EXECUTION_MARKER": {
+            "status": "not_observed"
+          },
+          "CRASH_MARKER": {
+            "status": "not_observed"
+          },
+          "RECOVERY_RESULT": {
+            "status": "not_observed"
+          }
+        }
+      }
+    ]
+  },
+  "providerFacts": {
+    "operationCountKnown": true,
+    "operationCount": 1,
+    "operationDigests": [
+      "4B768E090E6F3253BDF01D2A07B1B9451CDBBA290C17E58B0D6DF265600891F8"
+    ]
+  },
+  "durableFacts": {
+    "observed": true,
+    "lastState": "dispatched_confirmed_success",
+    "intentIdDigest": "1E767C7EE7B49DBD948994CEFD26F84142354A5D0A58F86FC3F63EAF2723C765"
+  },
+  "cleanup": {
+    "attempted": true,
+    "completed": true,
+    "processesRemaining": 0
+  },
+  "failure": {
+    "caseId": "B",
+    "errorClass": "Error",
+    "message": "Ananke did not become ready at http://127.0.0.1:34221",
+    "stage": "case B start"
+  },
+  "unknowns": [
+    "Provider operation count and transient SQLite details may be unknown if failure occurred before observation."
+  ],
+  "limitations": [
+    "Bounded disposable receipt-sink contract only; no arbitrary-provider or exactly-once claim.",
+    "No OS-authenticated process origin, host containment, or complete low-level bypass-resistance claim.",
+    "No third-party provider or provider credential was used.",
+    "Correlation IDs are retained for tracing but excluded from the durable semantic effect binding."
+  ]
+}

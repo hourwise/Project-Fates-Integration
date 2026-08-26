@@ -1,108 +1,470 @@
 // scripts/verify-slices.mjs
-// Verifies slice directory structure and rules with the two-axis status model.
-// Never accesses the network.
+// Verifies canonical slice and bounded sub-slice structure with the two-axis
+// status model. Never accesses the network.
 
+import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
+import { relative, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const root = resolve(__dirname, '..');
-const slicesDir = resolve(root, 'slices');
+export const repositoryRoot = resolve(__dirname, '..');
+export const CANONICAL_SLICE_ID_PATTERN = /^FATES-SLICE-\d{3}$/;
+export const SUBSLICE_ID_PATTERN = /^FATES-SLICE-(\d{3})([A-Z])$/;
+export const SUBSLICE_SEAL_PATH_PATTERN =
+  /^docs\/evidence\/FATES-SLICE-\d{3}[A-Z]-seal\.json$/;
 
-const errors = [];
-
-// Read active-slice.json
-const activeSlice = JSON.parse(readFileSync(resolve(root, 'active-slice.json'), 'utf-8'));
-
-// active-slice rules
-if (activeSlice.status === 'idle' && activeSlice.activeSliceId !== null) {
-  errors.push('active-slice.json: status is idle but activeSliceId is not null');
-}
-if (activeSlice.status === 'active') {
-  if (activeSlice.activeSliceId === null) {
-    errors.push('active-slice.json: status is active but activeSliceId is null');
-  }
-  if (activeSlice.activeSliceId && !/^FATES-SLICE-\d{3}$/.test(activeSlice.activeSliceId)) {
-    errors.push(`active-slice.json: activeSliceId "${activeSlice.activeSliceId}" does not match FATES-SLICE-NNN`);
-  }
-  // Verify the active slice directory exists and is not _template
-  if (activeSlice.activeSliceId) {
-    const expectedDir = activeSlice.activeSliceId.replace(/^FATES-SLICE-(\d{3})$/, '$1-').toLowerCase();
-    // Look for matching directory
-    const dirs = readdirSync(slicesDir, { withFileTypes: true }).filter(e => e.isDirectory());
-    const match = dirs.find(d => d.name.startsWith(activeSlice.activeSliceId.replace(/^FATES-SLICE-(\d{3})$/, '$1-')));
-    if (!match) {
-      errors.push(`active-slice.json: active slice "${activeSlice.activeSliceId}" has no matching directory in slices/`);
-    }
-  }
+export function parentSliceIdForSubslice(subsliceId) {
+  const match = SUBSLICE_ID_PATTERN.exec(subsliceId);
+  return match ? `FATES-SLICE-${match[1]}` : null;
 }
 
-// Iterate slice directories
-const entries = readdirSync(slicesDir, { withFileTypes: true });
-for (const entry of entries) {
-  if (!entry.isDirectory()) continue;
-  const dir = entry.name;
-  const slicePath = resolve(slicesDir, dir, 'slice.json');
+export function expectedSubsliceSealPath(subsliceId) {
+  return SUBSLICE_ID_PATTERN.test(subsliceId)
+    ? `docs/evidence/${subsliceId}-seal.json`
+    : null;
+}
 
-  if (!existsSync(slicePath)) {
-    errors.push(`slices/${dir}: missing slice.json`);
-    continue;
+export function deriveSubsliceTag(
+  subsliceId,
+  releaseVersion = '0.1.0',
+  protocol = '1.4.0',
+) {
+  if (!SUBSLICE_ID_PATTERN.test(subsliceId)) return null;
+  return `fates-slice-${subsliceId
+    .replace('FATES-SLICE-', '')
+    .toLowerCase()}-v${releaseVersion}-protocol-${protocol}`;
+}
+
+export function isEligibleSubsliceForActivation(subslice) {
+  const readyForActivation = subslice?.implementationStatus === 'planned' &&
+    subslice?.sealStatus === 'provisional' &&
+    subslice?.activation?.state === 'ready_for_activation';
+  const activeButUnimplemented = subslice?.implementationStatus === 'active' &&
+    subslice?.sealStatus === 'provisional' &&
+    subslice?.activation?.state === 'active';
+  return (readyForActivation || activeButUnimplemented) &&
+    Array.isArray(subslice?.prerequisites) &&
+    subslice.prerequisites.length > 0;
+}
+
+function readJson(path) {
+  try {
+    return JSON.parse(readFileSync(path, 'utf-8'));
+  } catch {
+    return null;
+  }
+}
+
+function findFiles(directory, filename) {
+  if (!existsSync(directory)) return [];
+  const results = [];
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const path = resolve(directory, entry.name);
+    if (entry.isDirectory()) results.push(...findFiles(path, filename));
+    else if (entry.isFile() && entry.name === filename) results.push(path);
+  }
+  return results;
+}
+
+function expectedCanonicalId(directoryName) {
+  const match = /^(\d{3})-/.exec(directoryName);
+  return match ? `FATES-SLICE-${match[1]}` : null;
+}
+
+function sha256File(path) {
+  return createHash('sha256')
+    .update(readFileSync(path))
+    .digest('hex')
+    .toUpperCase();
+}
+
+function resolveRepositoryPath(root, relativePath) {
+  if (typeof relativePath !== 'string' || relativePath.includes('\\')) return null;
+  const absolutePath = resolve(root, relativePath);
+  const normalized = relative(root, absolutePath).replaceAll('\\', '/');
+  if (normalized === '..' || normalized.startsWith('../') || normalized.includes('/../')) {
+    return null;
+  }
+  return absolutePath;
+}
+
+function findSubsliceSealFiles(root) {
+  const evidenceDir = resolve(root, 'docs', 'evidence');
+  if (!existsSync(evidenceDir)) return [];
+  return readdirSync(evidenceDir, { withFileTypes: true })
+    .filter((entry) => entry.isFile())
+    .map((entry) => `docs/evidence/${entry.name}`)
+    .filter((path) => SUBSLICE_SEAL_PATH_PATTERN.test(path));
+}
+
+function verifyAttemptReference(root, subslice, reference, errors, label) {
+  if (!reference || typeof reference !== 'object') {
+    errors.push(`${label}: evidence reference is missing`);
+    return;
+  }
+  const evidencePath = resolveRepositoryPath(root, reference.evidencePath);
+  const journalPath = resolveRepositoryPath(root, reference.journalPath);
+  if (!evidencePath || !/^docs\/evidence\/[^/]+\.json$/.test(reference.evidencePath ?? '')) {
+    errors.push(`${label}: evidencePath is not a repository-relative evidence path`);
+  }
+  if (!journalPath || !/^docs\/evidence\/[^/]+\.events\.ndjson$/.test(reference.journalPath ?? '')) {
+    errors.push(`${label}: journalPath is not a repository-relative journal path`);
+  }
+  if (!evidencePath || !journalPath || !existsSync(evidencePath) || !existsSync(journalPath)) {
+    errors.push(`${label}: referenced evidence or journal is missing`);
+    return;
   }
 
-  const slice = JSON.parse(readFileSync(slicePath, 'utf-8'));
+  const evidence = readJson(evidencePath);
+  if (!evidence) {
+    errors.push(`${label}: referenced evidence is not valid JSON`);
+    return;
+  }
+  if (evidence.attemptId !== reference.attemptId) {
+    errors.push(`${label}: evidence attemptId does not match the reference`);
+  }
+  if (evidence.subsliceId !== subslice.subsliceId) {
+    errors.push(`${label}: evidence subsliceId does not match the sealed sub-slice`);
+  }
+  if (evidence.classification !== reference.classification) {
+    errors.push(`${label}: evidence classification does not match the reference`);
+  }
+  if (sha256File(evidencePath) !== String(reference.evidenceSha256 ?? '').toUpperCase()) {
+    errors.push(`${label}: evidence SHA-256 mismatch`);
+  }
+  if (sha256File(journalPath) !== String(reference.journalSha256 ?? '').toUpperCase()) {
+    errors.push(`${label}: journal SHA-256 mismatch`);
+  }
+}
 
-  // Check $schema path
-  if (slice.$schema) {
-    const depth = dir === '_template' ? '../..' : '../..';
-    // For _template at slices/_template/slice.json, path to schemas/slice.schema.json is ../../schemas/...
-    const expectedSchemaPath = `${depth}/schemas/slice.schema.json`;
-    // Just verify it exists
-    const schemaAbs = resolve(slicesDir, dir, slice.$schema);
-    if (!existsSync(schemaAbs)) {
-      errors.push(`slices/${dir}: $schema path "${slice.$schema}" does not resolve to a file`);
+export function verifySubsliceSealRecords(root = repositoryRoot) {
+  const errors = [];
+  const slicesDir = resolve(root, 'slices');
+  const canonicalRecords = [];
+  for (const entry of existsSync(slicesDir)
+    ? readdirSync(slicesDir, { withFileTypes: true })
+    : []) {
+    if (!entry.isDirectory()) continue;
+    const path = resolve(slicesDir, entry.name, 'slice.json');
+    const slice = readJson(path);
+    if (slice) canonicalRecords.push({ path, slice });
+  }
+  const canonicalIds = new Set(canonicalRecords.map(({ slice }) => slice.sliceId));
+  const subsliceRecords = findFiles(slicesDir, 'subslice.json')
+    .map((path) => ({ path, subslice: readJson(path) }))
+    .filter(({ subslice }) => subslice);
+  const sealFiles = findSubsliceSealFiles(root);
+  const referencedSealPaths = new Set();
+
+  for (const { subslice } of subsliceRecords) {
+    if (!SUBSLICE_ID_PATTERN.test(subslice.subsliceId ?? '')) continue;
+    if (!canonicalIds.has(subslice.parentSliceId)) continue;
+    const sealRecord = subslice.sealRecord;
+    if (subslice.sealStatus !== 'sealed') {
+      if (sealRecord !== undefined) {
+        errors.push(`${subslice.subsliceId}: provisional sub-slice must not reference a seal record`);
+      }
+      continue;
+    }
+
+    const expectedPath = expectedSubsliceSealPath(subslice.subsliceId);
+    if (subslice.implementationStatus !== 'completed') {
+      errors.push(`${subslice.subsliceId}: sealed sub-slice must be completed`);
+    }
+    if (subslice.activation?.state !== 'closed') {
+      errors.push(`${subslice.subsliceId}: sealed sub-slice must have closed activation state`);
+    }
+    if (sealRecord !== expectedPath) {
+      errors.push(`${subslice.subsliceId}: sealRecord must be ${expectedPath}`);
+      continue;
+    }
+    referencedSealPaths.add(sealRecord);
+    const sealPath = resolveRepositoryPath(root, sealRecord);
+    if (!sealPath || !existsSync(sealPath)) {
+      errors.push(`${subslice.subsliceId}: seal record is missing`);
+      continue;
+    }
+    const seal = readJson(sealPath);
+    if (!seal) {
+      errors.push(`${subslice.subsliceId}: seal record is not valid JSON`);
+      continue;
+    }
+    if (seal.subsliceId !== subslice.subsliceId) {
+      errors.push(`${subslice.subsliceId}: seal record subsliceId mismatch`);
+    }
+    if (seal.parentSliceId !== subslice.parentSliceId) {
+      errors.push(`${subslice.subsliceId}: seal record parentSliceId mismatch`);
+    }
+    if (seal.classification !== 'PASS_BOUNDED') {
+      errors.push(`${subslice.subsliceId}: seal classification must be PASS_BOUNDED`);
+    }
+    const successfulAttempt = seal.acceptance?.successfulAttempt;
+    if (successfulAttempt?.classification !== 'PASS_BOUNDED') {
+      errors.push(`${subslice.subsliceId}: successful acceptance basis must be PASS_BOUNDED`);
+    }
+    verifyAttemptReference(
+      root,
+      subslice,
+      successfulAttempt,
+      errors,
+      `${subslice.subsliceId}: successful acceptance`,
+    );
+    const historicalAttempts = seal.acceptance?.historicalAttempts;
+    if (Array.isArray(historicalAttempts)) {
+      const attemptIds = new Set();
+      for (const [index, reference] of historicalAttempts.entries()) {
+        if (attemptIds.has(reference?.attemptId)) {
+          errors.push(`${subslice.subsliceId}: duplicate historical attemptId`);
+        }
+        attemptIds.add(reference?.attemptId);
+        verifyAttemptReference(
+          root,
+          subslice,
+          reference,
+          errors,
+          `${subslice.subsliceId}: historical attempt ${index + 1}`,
+        );
+      }
+    }
+    const tag = seal.tag;
+    if (tag && deriveSubsliceTag(subslice.subsliceId, tag.releaseVersion, tag.protocol) !== tag.name) {
+      errors.push(`${subslice.subsliceId}: tag name is not the deterministic sub-slice tag`);
     }
   }
 
-  // Directory name and slice ID agree (except _template)
-  if (dir !== '_template') {
-    const expectedId = dir.replace(/^(\d+)-.*$/, 'FATES-SLICE-$1');
-    if (slice.sliceId !== expectedId) {
-      errors.push(`slices/${dir}: sliceId "${slice.sliceId}" does not match directory name (expected "${expectedId}")`);
+  for (const sealPath of sealFiles) {
+    if (!referencedSealPaths.has(sealPath)) {
+      errors.push(`${sealPath}: seal record is not referenced by a sealed sub-slice`);
     }
   }
 
-  // Template rules
-  if (dir === '_template') {
-    if (slice.implementationStatus !== 'template') {
-      errors.push(`slices/_template: implementationStatus must be "template", got "${slice.implementationStatus}"`);
-    }
-    if (slice.sliceId !== '_template') {
-      errors.push(`slices/_template: sliceId must be "_template", got "${slice.sliceId}"`);
+  const matrix = readJson(resolve(root, 'compatibility-matrix.json'));
+  for (const row of matrix?.rows ?? []) {
+    if (SUBSLICE_ID_PATTERN.test(row.sliceId ?? '')) {
+      errors.push(`compatibility-matrix.json: sub-slice ${row.sliceId} must not be a matrix peer`);
     }
   }
 
-  // Stage-A slice checks
-  if (dir === '001-stage-a-adoption') {
-    if (slice.implementationStatus !== 'completed') {
+  return errors;
+}
+
+export function validateActiveSubsliceState(activeSlice, canonicalRecords, subsliceRecords) {
+  const errors = [];
+  const activeSubsliceId = activeSlice.activeSubsliceId ?? null;
+  const canonicalMatches = canonicalRecords.filter(
+    ({ slice }) => slice.sliceId === activeSlice.activeSliceId,
+  );
+
+  if (activeSlice.status === 'idle') {
+    if (activeSubsliceId !== null) {
+      errors.push('active-slice.json: status is idle but activeSubsliceId is not null');
+    }
+    return errors;
+  }
+
+  if (activeSlice.status !== 'active') return errors;
+
+  if (!CANONICAL_SLICE_ID_PATTERN.test(activeSlice.activeSliceId ?? '')) return errors;
+  if (canonicalMatches.length !== 1) {
+    errors.push(
+      `active-slice.json: active canonical slice "${activeSlice.activeSliceId}" ` +
+      `must resolve to exactly one canonical slice record (found ${canonicalMatches.length})`,
+    );
+  }
+
+  if (activeSubsliceId === null) return errors;
+
+  if (!SUBSLICE_ID_PATTERN.test(activeSubsliceId)) {
+    errors.push(`active-slice.json: malformed activeSubsliceId "${activeSubsliceId}"`);
+    return errors;
+  }
+
+  const declaredParent = parentSliceIdForSubslice(activeSubsliceId);
+  if (declaredParent !== activeSlice.activeSliceId) {
+    errors.push(
+      `active-slice.json: activeSubsliceId "${activeSubsliceId}" belongs to ` +
+      `"${declaredParent}", not "${activeSlice.activeSliceId}"`,
+    );
+  }
+
+  const matches = subsliceRecords.filter(({ subslice }) => subslice.subsliceId === activeSubsliceId);
+  if (matches.length !== 1) {
+    errors.push(
+      `active-slice.json: active sub-slice "${activeSubsliceId}" ` +
+      `must resolve to exactly one registered record (found ${matches.length})`,
+    );
+    return errors;
+  }
+
+  const record = matches[0].subslice;
+  if (record.parentSliceId !== activeSlice.activeSliceId) {
+    errors.push(
+      `active sub-slice "${activeSubsliceId}" declares parent "${record.parentSliceId}" ` +
+      `but activeSliceId is "${activeSlice.activeSliceId}"`,
+    );
+  }
+  if (!isEligibleSubsliceForActivation(record)) {
+    errors.push(
+      `active sub-slice "${activeSubsliceId}" is not eligible: ` +
+      'it must be planned/ready_for_activation or active/active, remain provisional, and declare prerequisites',
+    );
+  }
+
+  return errors;
+}
+
+export function verifySlices(root = repositoryRoot) {
+  const slicesDir = resolve(root, 'slices');
+  const errors = [];
+  const canonicalRecords = [];
+  const subsliceRecords = [];
+
+  const activeSlice = readJson(resolve(root, 'active-slice.json'));
+  if (!activeSlice) errors.push('active-slice.json: could not be parsed');
+
+  const entries = existsSync(slicesDir)
+    ? readdirSync(slicesDir, { withFileTypes: true })
+    : [];
+
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    const dir = entry.name;
+    const slicePath = resolve(slicesDir, dir, 'slice.json');
+
+    if (!existsSync(slicePath)) {
+      errors.push(`slices/${dir}: missing slice.json`);
+      continue;
+    }
+
+    const slice = readJson(slicePath);
+    if (!slice) {
+      errors.push(`slices/${dir}: slice.json could not be parsed`);
+      continue;
+    }
+    canonicalRecords.push({ path: slicePath, dir, slice });
+
+    if (slice.$schema) {
+      const schemaAbs = resolve(slicesDir, dir, slice.$schema);
+      if (!existsSync(schemaAbs)) {
+        errors.push(`slices/${dir}: $schema path "${slice.$schema}" does not resolve to a file`);
+      }
+    }
+
+    if (dir !== '_template') {
+      const expectedId = expectedCanonicalId(dir);
+      if (slice.sliceId !== expectedId) {
+        errors.push(`slices/${dir}: sliceId "${slice.sliceId}" does not match directory name (expected "${expectedId}")`);
+      }
+    }
+
+    if (dir === '_template') {
+      if (slice.implementationStatus !== 'template') {
+        errors.push(`slices/_template: implementationStatus must be "template", got "${slice.implementationStatus}"`);
+      }
+      if (slice.sliceId !== '_template') {
+        errors.push(`slices/_template: sliceId must be "_template", got "${slice.sliceId}"`);
+      }
+    }
+
+    if (dir === '001-stage-a-adoption' && slice.implementationStatus !== 'completed') {
       errors.push(`slices/001-stage-a-adoption: expected implementationStatus "completed", got "${slice.implementationStatus}"`);
     }
-    // sealStatus should be provisional while Moirae Code is pushed_untagged
-    // (This is informational; the slice.json itself records the status)
   }
+
+  const canonicalById = new Map();
+  for (const record of canonicalRecords) {
+    if (!CANONICAL_SLICE_ID_PATTERN.test(record.slice.sliceId ?? '')) continue;
+    const existing = canonicalById.get(record.slice.sliceId) ?? [];
+    existing.push(record);
+    canonicalById.set(record.slice.sliceId, existing);
+  }
+  for (const [sliceId, records] of canonicalById) {
+    if (records.length > 1) errors.push(`Duplicate canonical slice ID: ${sliceId}`);
+  }
+
+  for (const subslicePath of findFiles(slicesDir, 'subslice.json')) {
+    const subslice = readJson(subslicePath);
+    if (!subslice) {
+      errors.push(`${subslicePath}: subslice.json could not be parsed`);
+      continue;
+    }
+    subsliceRecords.push({ path: subslicePath, subslice });
+  }
+
+  const subslicesById = new Map();
+  for (const record of subsliceRecords) {
+    const { subslice } = record;
+    if (!SUBSLICE_ID_PATTERN.test(subslice.subsliceId ?? '')) {
+      errors.push(`${record.path}: malformed subsliceId "${subslice.subsliceId}"`);
+      continue;
+    }
+    if (!CANONICAL_SLICE_ID_PATTERN.test(subslice.parentSliceId ?? '')) {
+      errors.push(`${record.path}: malformed parentSliceId "${subslice.parentSliceId}"`);
+    }
+    const expectedParent = parentSliceIdForSubslice(subslice.subsliceId);
+    if (expectedParent !== subslice.parentSliceId) {
+      errors.push(
+        `${record.path}: subsliceId "${subslice.subsliceId}" belongs to "${expectedParent}" ` +
+        `but parentSliceId is "${subslice.parentSliceId}"`,
+      );
+    }
+    if (!canonicalById.has(subslice.parentSliceId)) {
+      errors.push(`${record.path}: parentSliceId "${subslice.parentSliceId}" has no canonical slice record`);
+    }
+    if (subslice.activation?.state === 'ready_for_activation' &&
+        (subslice.implementationStatus !== 'planned' || subslice.sealStatus !== 'provisional')) {
+      errors.push(`${record.path}: ready_for_activation sub-slice must be planned and provisional`);
+    }
+    if (subslice.activation?.state === 'ready_for_activation' &&
+        (!Array.isArray(subslice.prerequisites) || subslice.prerequisites.length === 0)) {
+      errors.push(`${record.path}: ready_for_activation sub-slice must declare prerequisites`);
+    }
+    if (subslice.activation?.state === 'active' &&
+        (subslice.implementationStatus !== 'active' || subslice.sealStatus !== 'provisional')) {
+      errors.push(`${record.path}: active sub-slice must be active and provisional`);
+    }
+    const existing = subslicesById.get(subslice.subsliceId) ?? [];
+    existing.push(record);
+    subslicesById.set(subslice.subsliceId, existing);
+  }
+  for (const [subsliceId, records] of subslicesById) {
+    if (records.length > 1) errors.push(`Duplicate sub-slice ID: ${subsliceId}`);
+  }
+
+  if (!canonicalById.has('FATES-SLICE-001')) {
+    errors.push('Missing required slice: 001-stage-a-adoption');
+  }
+
+  if (activeSlice) {
+    if (activeSlice.status === 'idle' && activeSlice.activeSliceId !== null) {
+      errors.push('active-slice.json: status is idle but activeSliceId is not null');
+    }
+    if (activeSlice.status === 'active' && activeSlice.activeSliceId === null) {
+      errors.push('active-slice.json: status is active but activeSliceId is null');
+    }
+    errors.push(...validateActiveSubsliceState(activeSlice, canonicalRecords, subsliceRecords));
+
+    if (activeSlice.status === 'active' && activeSlice.activeSliceId) {
+      const activeCanonical = canonicalById.get(activeSlice.activeSliceId) ?? [];
+      if (activeCanonical.length !== 1) {
+        errors.push(`active-slice.json: active slice "${activeSlice.activeSliceId}" has no unique canonical record`);
+      }
+    }
+  }
+
+  errors.push(...verifySubsliceSealRecords(root));
+
+  return { errors, canonicalRecords, subsliceRecords };
 }
 
-// Verify Slice 001 exists
-if (!existsSync(resolve(slicesDir, '001-stage-a-adoption', 'slice.json'))) {
-  errors.push('Missing required slice: 001-stage-a-adoption');
-}
-
-if (errors.length > 0) {
-  console.error('FAIL: slices verification failed.');
-  for (const err of errors) {
-    console.error(`  ${err}`);
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const { errors } = verifySlices();
+  if (errors.length > 0) {
+    console.error('FAIL: slices verification failed.');
+    for (const err of errors) console.error(`  ${err}`);
+    process.exit(1);
+  } else {
+    console.log('PASS: slices verified.');
   }
-  process.exit(1);
-} else {
-  console.log('PASS: slices verified.');
 }

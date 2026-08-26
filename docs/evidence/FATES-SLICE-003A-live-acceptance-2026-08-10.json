@@ -1,0 +1,229 @@
+{
+  "sliceId": "FATES-SLICE-003",
+  "acceptanceSubphase": "FATES-SLICE-003A",
+  "runDate": "2026-08-10",
+  "status": "sealed",
+  "credentialDisposition": "provider-side revoked/rotated; former exposed credential set invalid",
+  "endpointSecurityLesson": "An authorized benign agent changed execution technique after encountering a host security control, demonstrating why security authority cannot depend on agent intent or chosen execution mechanism. This is an architectural observation for future bypass-resistance work, not evidence of defective Defender behavior, malware, a successful bypass, or implemented 003B containment.",
+  "endpointSecurityInteraction": "ENDPOINT SECURITY INTERACTION — Defender blocked/remediated the initial PowerShell acceptance harness before successful 003A live acceptance. This event is not evidence of Ananke/Horae/Moirae malware and is not being suppressed or bypassed.",
+  "classification": {
+    "liveRoute": "Attempt 2 completed the authorized 003A positive live route.",
+    "successful003ALiveRoute": true,
+    "liveAcceptanceClaim": true,
+    "fatesRuntimeFailure": false,
+    "confirmedFalsePositive": false,
+    "reason": "Attempt 2 used the corrected reviewed Node driver and completed the bounded positive route; Attempts 0 and 1 remain recorded as accepted harness findings."
+  },
+  "moiraeArtifactNaming": {
+    "value": "moirae-slice02-live-origin",
+    "disposition": "inherited_sealed_route_origin_identifier",
+    "meaning": "The value is the expected origin artifact identifier in the established sealed Horae/Slice 02 relay compatibility contract used by the live wrapper.",
+    "notImplementationIdentity": true,
+    "implementationIdentity": "The actual validated Moirae 003A implementation is identified independently by commit f9b28fb0099d5d32d5debd4db7376066bfc2ac93 and annotated tag moirae-fates-slice-003a-v0.1.0-protocol-1.4.0."
+  },
+  "temporaryHarness": {
+    "path": "%TEMP%\\fates-slice03a-live-20260810-run\\run.ps1",
+    "inspectedWithoutFurtherExecution": true,
+    "lineCount": 315,
+    "byteLength": 15050,
+    "implementation": "PowerShell",
+    "intendedBehavior": [
+      "Use a temporary directory outside the repositories for logs and live-process material.",
+      "Check that ports 34212 and 34216 are free before launch.",
+      "Start compiled Ananke, the established Horae live wrapper, and the compiled Moirae 003A host in bounded child processes.",
+      "Poll readiness and inspect Ananke identity, registration, health, compatibility, action, and negotiation state.",
+      "Exercise the fixed positive route plus origin-drift and malformed-configuration negative cases.",
+      "Compare Ananke audit events, verify one physical producer read and one governed dispatch, collect correlation/process evidence, and stop tracked processes in cleanup.",
+      "Write sanitized acceptance evidence without recording credential values."
+    ],
+    "localDevelopmentAuthentication": "The audit inspection uses local development authentication already present in the temporary harness; no credential value is recorded here.",
+    "defenderFinding": "Owner inspection of Get-MpThreatDetection recorded Trojan:Win32/PowhidSubExec.B with successful remediation. The affected resource was the large inline PowerShell acceptance command; no Ananke, Horae, Moirae, or Node executable/file was identified as the detected resource.",
+    "executionPolicyBypassPresentInPriorAbortedInvocation": true
+  },
+  "harnessFindings": {
+    "quotingDefect": "The first process-launch attempt passed the Ananke script path D:\\Users\\fleur\\Project Ananke\\packages\\runtime-core\\dist\\server.js as an unquoted Start-Process -ArgumentList element. Windows PowerShell split the path at spaces, so Node received D:\\Users\\fleur\\Project and reported that truncated path as the module to load. The analogous Moirae path also contained spaces. This was a defect in the acceptance harness.",
+    "defenderAndQuotingWereIndependent": true,
+    "nodeDriverEndpointDefect": "The first Node driver supplied Horae an Ananke base URL ending in /api even though the established Horae inspection binding appends /api itself. Horae therefore queried the non-canonical /api/api inspection path and returned unavailable before dispatch. The driver has been corrected to pass the transport base; no second live run was performed.",
+    "independenceBasis": "The quoting defect occurred on the first attempted child-process launch. Defender separately blocked/remediated the large inline PowerShell harness according to the owner-inspected Defender event. Neither event is being used as evidence of a Fates runtime failure, and the Defender event is not being classified as a confirmed false positive."
+  },
+  "whyPowerShellWasUsed": "The existing Windows owner-local Slice 02 acceptance pattern used PowerShell Start-Process, hidden child processes, redirected logs, readiness polling, and cleanup. That precedent explains the choice, but the large inline generated command introduced quoting and reviewability risk and is not the proposed 003A replacement.",
+  "liveAcceptance": {
+    "started": true,
+    "attempted": true,
+    "successful": true,
+    "positiveRoute": "LIVE VERIFIED — completed/result_received through Horae and canonical Ananke",
+    "originDriftNegative": "LIVE VERIFIED — malformed/rejected_before_dispatch",
+    "malformedConfigurationNegative": "OWNER-LOCAL / DETERMINISTIC TEST VERIFIED — nonzero exit before route",
+    "deterministicOnlyOutcomes": "Existing owner-local deterministic coverage remains unchanged."
+  },
+  "nodeDriverAttempt": {
+    "command": "node scripts/fates-slice03a-live-acceptance.mjs",
+    "status": "HARNESS FAILURE BEFORE ANANKE DISPATCH",
+    "runDirectory": "%TEMP%\\fates-slice03a-live-DCmokk",
+    "positiveRoute": {
+      "moiraeHostProcessId": 5504,
+      "horaeHttpStatus": 503,
+      "state": "unavailable",
+      "dispatchState": "dispatch_not_attempted",
+      "reason": "Ananke inspection unavailable",
+      "anankeDispatchAttempts": 0,
+      "producerReadAttempts": 0
+    },
+    "rerun": "Not performed; the approved one-run boundary was honored."
+  },
+  "attemptHistory": {
+    "attempt0PowerShell": {
+      "mechanism": "initial large inline PowerShell acceptance harness",
+      "endpointSecurity": "Defender blocked/remediated the command; remediation succeeded",
+      "successful003ALiveRoute": false,
+      "securityControlsChanged": false,
+      "classification": "endpoint-security interaction; not a Fates runtime failure and not a confirmed false positive"
+    },
+    "attempt1Node": {
+      "mechanism": "reviewed Node driver before transport-base correction",
+      "status": "HARNESS FAILURE BEFORE ANANKE DISPATCH",
+      "horaeHttpStatus": 503,
+      "routeState": "unavailable",
+      "dispatchState": "dispatch_not_attempted",
+      "reason": "Ananke inspection unavailable",
+      "anankeDispatchAttempts": 0,
+      "producerReadAttempts": 0,
+      "successful003ALiveRoute": false,
+      "classification": "acceptance-harness configuration failure; not a Fates runtime failure and not an indeterminate side-effect state"
+    },
+    "attempt2CorrectedNode": {
+      "mechanism": "reviewed Node driver with transport-base assertion",
+      "command": "node scripts/fates-slice03a-live-acceptance.mjs",
+      "runTimestamp": "2026-08-10T09:59:19.579Z",
+      "temporaryDirectory": "%TEMP%\\fates-slice03a-live-287h1V",
+      "endpointSecurity": "No new endpoint-security interaction; no controls changed",
+      "processes": {
+        "ananke": { "pid": 16728, "instanceId": "ananke-7acc6c59-74fb-4045-89a5-2b4dfbc84021" },
+        "horae": { "pid": 2120, "artifact": "%TEMP%\\fates-slice02-live-20260809\\horae-live-server.mjs" },
+        "moiraePositive": { "pid": 3596, "instanceId": "moirae-live-origin-1", "artifact": "moirae-slice02-live-origin" }
+      },
+      "positive": {
+        "routeState": "completed",
+        "dispatchState": "result_received",
+        "horaeHttpStatus": 200,
+        "routeId": "route_5e7eb228-5042-42cf-99b0-4e3ed29e451c",
+        "eventId": "event_9b524a3e-2d3f-44d2-91e3-080b13c6f16e",
+        "requestId": "moirae-003a-request-a42ff5a2-7260-4db0-8530-8ae837bda783",
+        "correlationId": "moirae-003a-correlation-78a200f7-f959-42cd-9ee4-30425771bb7e",
+        "anankeInstanceId": "ananke-7acc6c59-74fb-4045-89a5-2b4dfbc84021",
+        "canonicalAnankeEndpoint": "http://localhost:34212/api",
+        "decisionId": "da1cbd7b-87e4-46d0-af89-b1cc28c76f0f",
+        "outcomeId": "d103ceaa-32fe-4f9f-9e65-afba19d0e89f",
+        "producerDigest": "7b28f52d84b07bed8b49650960607e8f8a9809cac299810aba691f7f52fe9ae8",
+        "dispatchAttempts": 1,
+        "readAttemptCount": 1,
+        "retries": 0,
+        "fallbacks": 0,
+        "alternateEndpoints": 0,
+        "duplicateExecutions": 0,
+        "fixtureReadPathsInMoiraeOrHorae": 0
+      },
+      "originDriftNegative": {
+        "pid": 13180,
+        "routeState": "malformed",
+        "dispatchState": "rejected_before_dispatch",
+        "classification": "LIVE VERIFIED"
+      },
+      "malformedConfigurationNegative": {
+        "pid": 19044,
+        "exitCode": 1,
+        "routeStarted": false,
+        "dispatchAttempted": false,
+        "classification": "OWNER-LOCAL / DETERMINISTIC TEST VERIFIED"
+      },
+      "cleanup": {
+        "trackedProcessesAbsent": true,
+        "ports34212And34216Free": true
+      },
+      "successful003ALiveRoute": true
+    }
+  },
+  "cleanup": {
+    "ports": {
+      "ananke": 34212,
+      "horae": 34216,
+      "state": "free"
+    },
+    "matchingLiveProcessCount": 0,
+    "processState": "No process matching the temporary harness marker or either acceptance port remains.",
+    "temporaryMaterialOutsideRepositories": true
+  },
+  "proposedReplacement": {
+    "type": "small reviewed Node/TypeScript acceptance driver",
+    "reviewStatus": "Created, plan/static-reviewed, corrected, and successfully executed once. Candidate is now stopped for owner pre-seal review.",
+    "proposedCommand": "node scripts/fates-slice03a-live-acceptance.mjs",
+    "constraints": [
+      "Use Node child_process.spawn with argument arrays, explicit cwd and allowlisted environment, windowsHide, and bounded readiness/child timeouts.",
+      "Do not use shell=true, dynamically generated inline code, PowerShell orchestration, alternate encodings, or ExecutionPolicy Bypass.",
+      "Keep logs and temporary live material outside all repositories.",
+      "Preserve the exact bounded process roles, fixed ports, readiness/identity checks, positive route, safe negative cases, audit delta, one-read assertion, correlation evidence, and cleanup checks.",
+      "Write sanitized evidence only after a successful owner-approved run; do not record credential values."
+    ],
+    "ownerApprovalRequired": true,
+    "doNotExecuteFromThisRecord": true
+  },
+  "finalSeal": {
+    "sealed": true,
+    "sealedSubphase": "FATES-SLICE-003A",
+    "compatibilitySetId": "fates-slice-003a-2026-08-10",
+    "moiraeCommit": "f9b28fb0099d5d32d5debd4db7376066bfc2ac93",
+    "moiraeTag": "moirae-fates-slice-003a-v0.1.0-protocol-1.4.0",
+    "integrationTag": "fates-slice-003a-v0.1.0-protocol-1.4.0",
+    "slice02ArtifactsPreserved": true,
+    "activeSliceReturnedIdle": true,
+    "runtimeContractsChanged": false,
+    "mnemosyneInRoute": false,
+    "defenderControlsChanged": false,
+    "credentialDisposition": "provider-side revoked/rotated; former exposed credential set invalid"
+  },
+  "finalArtifactHashes": {
+    "acceptanceDriverSha256": "77ad8c51d80d689396de4d2753344b9a4cf3b2ee6b52423863ed3a246f4bd99e",
+    "moiraeHandoffSha256": "b063adaa942f62cc1cf75dc27399e9c32e63024de9532d6d07f248d2542fce57",
+    "fatesLockSha256": "89f106aae91912dcca738a81c8e7a518c68ac1f08c61dcf5644c5f9fdb6a9bfb",
+    "compatibilityMatrixSha256": "d49dfa04e7cc62587a6aa37358e5737d174aa5666d009c6826c4821438ed7967",
+    "compatibilitySnapshotSha256": "4bd9df8459ee09cc940078d608ad881a92901b0ea9549042de0a7f0dfadef0d2",
+    "sliceRecordSha256": "30f1d22d5ca6c2f70e62f35ee51c196bbe9974a15f204bee3f7ac4cee391e068",
+    "activeSliceSha256": "dd943abc27cd1c6f3c6a32316f244453914fb0b270a49e516369db68bd31526b",
+    "activationDecisionSha256": "45205e6f8addcf2a01fe193aeb47b3a4fdd781d8e3161a0020bf91575e063b61"
+  },
+  "defenderControlsChanged": false,
+  "controlStatePreserved": {
+    "runtimeContractsChanged": false,
+    "mnemosyneInRoute": false,
+    "lockChanged": false,
+    "compatibilityMatrixChanged": false,
+    "slice02SnapshotChanged": false,
+    "tagChanged": false,
+    "sealChanged": false
+  },
+  "postLiveValidation": {
+    "Moirae": {
+      "focused003ATests": "8 passed",
+      "fullSuite": "11 files / 139 tests passed",
+      "build": "passed",
+      "format": "passed",
+      "lint": "passed with 23 pre-existing warnings and 0 errors"
+    },
+    "Horae": {
+      "aggregateValidate": "passed; build, lint, 16 tests, conformance, peer comparators, benchmark, CLI smoke, and composition checks"
+    },
+    "Ananke": {
+      "build": "passed",
+      "lint": "passed",
+      "fullSuite": "16 files / 131 tests passed",
+      "focusedMcpAndRuntimeTests": "2 files / 10 tests passed"
+    },
+    "Integration": {
+      "validate": "passed; 15 JSON files and 55 tests, lock/matrix/slice/boundary checks passed",
+      "diffCheck": "passed with only line-ending normalization warnings"
+    },
+    "validateQuick": "Not rerun; the existing uv_os_get_passwd/ENOMEM wrapper limitation remains separately recorded and is not acceptance evidence."
+  },
+  "claimBoundary": "The sealed slice proves only bounded Moirae process origin, governed route, fresh Horae inspection, canonical Ananke dispatch, authority/evidence preservation, bounded fixed effect/result, and bounded fail-closed semantics. It does not prove OS containment, filesystem/network/shell/subprocess resistance, browser/extension containment, credential isolation, arbitrary IPC containment, direct-Ananke or alternate-MCP operating-system prevention, or complete bypass resistance.",
+  "nextDecision": "FATES-SLICE-003A is sealed. Stop here; do not start FATES-SLICE-003B or any deferred capability from this record."
+}

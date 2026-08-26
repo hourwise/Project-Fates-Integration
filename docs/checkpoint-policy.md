@@ -75,7 +75,9 @@ one or more repository checkpoints lack verified annotated tags.
 
 When a new vertical slice is completed:
 
-1. Active slice is approved with explicit scope and acceptance criteria
+1. A separate explicit activation decision records the approved scope,
+   acceptance criteria, exact starting lock, and user authorization; this is
+   the point at which the bounded implementation sequence becomes authorized
 2. Starting lock state is copied as the reference baseline
 3. Owner repository checkpoint is produced (tag, clean worktree, green CI)
 4. Handoff packet is committed to the slice's handoffs directory
@@ -88,9 +90,34 @@ When a new vertical slice is completed:
 11. Full validation passes
 12. Integration checkpoint is committed and tagged
 
+Implementation checkpoints, handoff packets, consumer tests, integration proof,
+and acceptance evidence are post-activation requirements. They remain required
+before lock/matrix advancement and sealing; they are not prerequisites to the
+activation decision.
+
 Not every Fate needs a new checkpoint when not involved in the slice.
 
 No peer `main` branch becomes authoritative at any point.
+
+## Letter-Qualified Sub-slice Checkpoints
+
+Letter-qualified sub-slices use the generic closure contract in
+[`docs/decisions/FATES-SLICE-004-letter-qualified-subslice-sealing-decision.md`](decisions/FATES-SLICE-004-letter-qualified-subslice-sealing-decision.md).
+They remain owned by their numeric parent and do not become rows in
+`compatibility-matrix.json` or independent entries in `fates-lock.json`.
+
+A sealed sub-slice is `implementationStatus: completed`,
+`sealStatus: sealed`, and `activation.state: closed`, with a referenced
+immutable `docs/evidence/FATES-SLICE-NNNA-seal.json` record. The record binds
+the successful `PASS_BOUNDED` acceptance artifact pair, exact SHA-256 values,
+final checkpoint provenance, full validation, successful CI, and the
+deterministically derived annotated tag. Referenced acceptance files become
+tracked at the actual seal transaction. A failed historical attempt may be
+retained but cannot be the successful acceptance basis.
+
+Closing the active child clears `activeSubsliceId` while retaining the numeric
+parent as the active/open owner. It never activates the next child. A separate
+activation decision is required for every later letter-qualified sub-slice.
 
 ## Rollback
 

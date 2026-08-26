@@ -1,0 +1,17 @@
+{"schemaVersion":2,"event":"reserved","at":"2026-08-12T14:29:38.927Z","attemptId":"004","sliceId":"FATES-SLICE-004","subsliceId":"FATES-SLICE-004A","mode":"execute","ownerAuthorized":true,"runtime":"node","entrypoint":"scripts/fates-slice04a-live-acceptance.mjs","provenance":{"runtime":"node","entrypoint":"scripts/fates-slice04a-live-acceptance.mjs","mode":"execute","attemptId":"004","approvedCheckpoints":{"integration":"b842b9a25dec0228c877bd4991ada86ef4c8a8e4","ananke":"e7b405f3a217db6df31fe9ba7bde376ab666930c","horae":"3f531d4f5558a10a36aeae20c3458080eb4468b9","moirae":"bc7b984bd2eb0e0f07a1cd7259a8eab21556f097","mnemosyne":"f4ab76a9760f856d78908d35facceb068d78c8e5","runtimeContracts":"bbf240b1fdcb9be1dbd30b13d2fe2708a22ec7b8"},"artifactHashes":{"driver":"4CE12B4431DFF1BA38FCA661BADE0EE89CE5163DB2125FC6A297FDFD9B38214A","sink":"8C9BF1B6160A9BAE679FE5BF80B2352987FAD4B4A57B64E230FA7753CEDC9D67","worker":"8AF0138F5D1F77ABEACF980B48CCB142FDEBCAA1B31A50F018E145097FC8DC8D"}}}
+{"schemaVersion":2,"event":"progress","at":"2026-08-12T14:29:38.928Z","lifecycle":"started","startedAt":"2026-08-12T14:29:38.928Z"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-12T14:29:38.930Z","caseId":"A","stage":"case_started"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-12T14:29:38.930Z","stage":"case A start","caseId":"A"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-12T14:29:40.888Z","stage":"case A first execution","caseId":"A"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-12T14:29:41.049Z","caseId":"A","stage":"case A first durable result","durableState":"dispatched_confirmed_success"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-12T14:29:41.049Z","stage":"case A changed-correlation duplicate","caseId":"A"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-12T14:29:41.082Z","caseId":"A","stage":"case A provider observation","providerOperationCountKnown":true,"providerOperationCount":1}
+{"schemaVersion":2,"event":"progress","at":"2026-08-12T14:29:41.083Z","caseId":"A","stage":"case_completed","status":"PASS"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-12T14:29:41.085Z","caseId":"A","stage":"cleanup_started"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-12T14:29:41.288Z","caseId":"A","stage":"cleanup_completed"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-12T14:29:41.291Z","caseId":"B","stage":"case_started"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-12T14:29:41.291Z","stage":"case B start","caseId":"B"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-12T14:29:48.182Z","caseId":"B","stage":"failure_observed","failure":{"stage":"case B start","errorClass":"Error","message":"Ananke did not become ready at http://127.0.0.1:34221"}}
+{"schemaVersion":2,"event":"progress","at":"2026-08-12T14:29:48.182Z","caseId":"B","stage":"cleanup_started"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-12T14:29:48.285Z","caseId":"B","stage":"cleanup_completed"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-12T14:29:48.485Z","lifecycle":"terminal","classification":"FAIL_BOUNDED"}

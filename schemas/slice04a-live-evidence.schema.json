@@ -1,0 +1,303 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:fates:slice04a:live-acceptance-evidence:v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "sliceId",
+    "subsliceId",
+    "attemptId",
+    "classification",
+    "lifecycle",
+    "startingCheckpoints",
+    "driverSha256",
+    "fixtureSha256",
+    "workerSha256",
+    "execute",
+    "activeState",
+    "currentStage",
+    "cases",
+    "processFacts",
+    "providerFacts",
+    "durableFacts",
+    "cleanup",
+    "failure",
+    "unknowns",
+    "limitations"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 2 },
+    "sliceId": { "const": "FATES-SLICE-004" },
+    "subsliceId": { "const": "FATES-SLICE-004A" },
+    "attemptId": { "type": "string", "pattern": "^[0-9]{3}$" },
+    "classification": {
+      "enum": ["PASS_BOUNDED", "FAIL_BOUNDED", "INCOMPLETE", "ABORTED"]
+    },
+    "lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "reservedAt", "startedAt"],
+      "properties": {
+        "state": { "enum": ["passed", "failed", "incomplete", "aborted"] },
+        "reservedAt": { "type": "string", "format": "date-time" },
+        "startedAt": { "type": "string", "format": "date-time" },
+        "finishedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "startingCheckpoints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "integration",
+        "ananke",
+        "horae",
+        "moirae",
+        "mnemosyne",
+        "runtimeContracts"
+      ],
+      "properties": {
+        "integration": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "ananke": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "horae": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "moirae": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "mnemosyne": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "runtimeContracts": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+      }
+    },
+    "driverSha256": { "type": "string", "pattern": "^[A-F0-9]{64}$" },
+    "fixtureSha256": { "type": "string", "pattern": "^[A-F0-9]{64}$" },
+    "workerSha256": { "type": "string", "pattern": "^[A-F0-9]{64}$" },
+    "execute": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "ownerAuthorized"],
+      "properties": {
+        "mode": { "const": "execute" },
+        "ownerAuthorized": { "const": true },
+        "runtime": { "const": "node" },
+        "entrypoint": { "type": "string", "pattern": "^[^/\\\\][^:]*$" },
+        "command": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      }
+    },
+    "activeState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "activeSliceId", "activeSubsliceId"],
+      "properties": {
+        "status": { "const": "active" },
+        "activeSliceId": { "const": "FATES-SLICE-004" },
+        "activeSubsliceId": { "const": "FATES-SLICE-004A" }
+      }
+    },
+    "currentStage": { "type": "string", "minLength": 1 },
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "status",
+          "providerOperationCount",
+          "providerOperationCountKnown",
+          "redispatchCount"
+        ],
+        "properties": {
+          "id": { "enum": ["A", "B", "C", "D", "E"] },
+          "status": {
+            "enum": ["STARTED", "PASS", "FAIL", "INCOMPLETE", "ABORTED"]
+          },
+          "providerOperationCount": {
+            "type": ["integer", "null"],
+            "minimum": 0
+          },
+          "providerOperationCountKnown": { "type": "boolean" },
+          "redispatchCount": { "type": ["integer", "null"], "minimum": 0 },
+          "evidenceDigest": { "type": "string", "pattern": "^[A-F0-9]{64}$" },
+          "lastStage": { "type": "string" },
+          "duplicateDiagnostics": { "$ref": "#/$defs/duplicateDiagnostics" }
+        }
+      }
+    },
+    "processFacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["processesStarted", "providerProcessesStarted", "starts"],
+      "properties": {
+        "processesStarted": { "type": "integer", "minimum": 0 },
+        "providerProcessesStarted": { "type": "integer", "minimum": 0 },
+        "starts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["role", "startedAt"],
+            "properties": {
+              "role": { "type": "string" },
+              "runtime": { "const": "node" },
+              "entrypoint": { "type": "string", "pattern": "^[^/\\\\][^:]*$" },
+              "startedAt": { "type": "string", "format": "date-time" },
+              "readinessReached": { "type": "boolean" },
+              "stdout": { "$ref": "#/$defs/diagnostic" },
+              "stderr": { "$ref": "#/$defs/diagnostic" },
+              "exitCode": { "type": ["integer", "null"] },
+              "signal": { "type": ["string", "null"] },
+              "spawnError": { "type": ["string", "null"], "maxLength": 512 },
+              "markers": {
+                "type": "object",
+                "additionalProperties": { "$ref": "#/$defs/marker" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "providerFacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operationCountKnown", "operationCount"],
+      "properties": {
+        "operationCountKnown": { "type": "boolean" },
+        "operationCount": { "type": ["integer", "null"], "minimum": 0 },
+        "operationDigests": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[A-F0-9]{64}$" }
+        }
+      }
+    },
+    "durableFacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["observed", "lastState"],
+      "properties": {
+        "observed": { "type": "boolean" },
+        "lastState": { "type": ["string", "null"] },
+        "intentIdDigest": { "type": "string", "pattern": "^[A-F0-9]{64}$" }
+      }
+    },
+    "failure": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["errorClass", "message", "stage"],
+          "properties": {
+            "caseId": { "type": "string" },
+            "errorClass": { "type": "string" },
+            "message": { "type": "string", "maxLength": 512 },
+            "stage": { "type": "string" }
+          }
+        }
+      ]
+    },
+    "cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["attempted", "completed", "processesRemaining"],
+      "properties": {
+        "attempted": { "type": "boolean" },
+        "completed": { "type": "boolean" },
+        "processesRemaining": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "unknowns": { "type": "array", "items": { "type": "string" } },
+    "limitations": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    }
+  },
+  "$defs": {
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "tail", "truncated"],
+      "properties": {
+        "status": { "enum": ["not_observed", "observed", "observed_empty", "unavailable"] },
+        "tail": { "type": ["string", "null"], "maxLength": 8192 },
+        "truncated": { "type": "boolean" }
+      }
+    },
+    "marker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": { "enum": ["not_observed", "observed", "unavailable"] },
+        "value": { "type": "string", "maxLength": 2048 }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runtime", "entrypoint", "mode", "attemptId", "approvedCheckpoints", "artifactHashes"],
+      "properties": {
+        "runtime": { "const": "node" },
+        "entrypoint": { "type": "string", "pattern": "^[^/\\\\][^:]*$" },
+        "mode": { "const": "execute" },
+        "attemptId": { "type": "string", "pattern": "^[0-9]{3}$" },
+        "approvedCheckpoints": {
+          "type": "object",
+          "additionalProperties": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+        },
+        "artifactHashes": {
+          "type": "object",
+          "additionalProperties": { "type": "string", "pattern": "^[A-F0-9]{64}$" }
+        }
+      }
+    },
+    "httpDiagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["httpStatus", "gatewayOutcome", "reasonCode", "errorCode", "approvalRequested", "approvalIdPresent", "durableState", "providerInvoked", "bindingMismatch", "correlationIdDigest"],
+      "properties": {
+        "httpStatus": { "type": "integer", "minimum": 100, "maximum": 599 },
+        "gatewayOutcome": { "type": ["string", "null"] },
+        "reasonCode": { "type": ["string", "null"] },
+        "errorCode": { "type": ["string", "null"] },
+        "approvalRequested": { "type": "boolean" },
+        "approvalIdPresent": { "type": "boolean" },
+        "approvalIdDigest": { "type": "string", "pattern": "^[A-F0-9]{64}$" },
+        "approvalExpiresAt": { "type": "string", "format": "date-time" },
+        "durableState": { "type": ["string", "null"] },
+        "providerInvoked": { "type": ["boolean", "null"] },
+        "bindingMismatch": { "type": "boolean" },
+        "correlationIdDigest": { "type": "string", "pattern": "^[A-F0-9]{64}$" }
+      }
+    },
+    "approvalDiagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requested", "approvalIdDigest", "expiresAt", "decisionHttpStatus", "decisionStatus"],
+      "properties": {
+        "requested": { "$ref": "#/$defs/httpDiagnostic" },
+        "approvalIdDigest": { "type": "string", "pattern": "^[A-F0-9]{64}$" },
+        "expiresAt": { "type": "string", "format": "date-time" },
+        "decisionHttpStatus": { "type": "integer", "minimum": 100, "maximum": 599 },
+        "decisionStatus": { "type": ["string", "null"] }
+      }
+    },
+    "duplicateDiagnostics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["firstExecution", "duplicateExecution", "firstApproval", "duplicateApproval", "providerCountBefore", "providerCountAfter", "durableReuseResult", "bindingMismatchResult"],
+      "properties": {
+        "firstExecution": { "$ref": "#/$defs/httpDiagnostic" },
+        "duplicateExecution": { "$ref": "#/$defs/httpDiagnostic" },
+        "firstApproval": { "$ref": "#/$defs/approvalDiagnostic" },
+        "duplicateApproval": { "$ref": "#/$defs/approvalDiagnostic" },
+        "providerCountBefore": { "type": "integer", "minimum": 0 },
+        "providerCountAfter": { "type": "integer", "minimum": 0 },
+        "durableReuseResult": { "enum": ["reused_completed", "not_reused", "unknown"] },
+        "bindingMismatchResult": { "enum": ["observed", "not_observed", "unknown"] }
+      }
+    }
+  }
+}

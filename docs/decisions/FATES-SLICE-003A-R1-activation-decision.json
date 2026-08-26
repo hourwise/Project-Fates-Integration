@@ -1,0 +1,150 @@
+{
+  "sliceId": "FATES-SLICE-003",
+  "subphase": "FATES-SLICE-003A-R1",
+  "title": "Reproducibility and route-identity remediation",
+  "decisionKind": "activation",
+  "decision": "ACTIVATED",
+  "activationTimestamp": "2026-08-10T15:43:32.953Z",
+  "userAuthorization": {
+    "authorized": true,
+    "source": "Owner approval in the current task attachment, accepting the final post-003A external-review/design-gate checkpoint at b44194d3273ffa708eaf9c5071fd7f7d6f7adeb1.",
+    "authorizedAt": "2026-08-10T15:43:32.953Z",
+    "scope": "Activate only FATES-SLICE-003A-R1 control state and requirements traceability. Do not implement component changes in this task, start FATES-SLICE-003B, modify sealed 003A artifacts, or run live acceptance."
+  },
+  "baseline": {
+    "compatibilitySetId": "fates-slice-003a-2026-08-10",
+    "lockPath": "fates-lock.json",
+    "snapshotPath": "compatibility-sets/fates-slice-003a-2026-08-10.json",
+    "sealStatus": "sealed",
+    "integrationLevel": "runtime_validated",
+    "protocol": {
+      "current": "1.4.0",
+      "minimum": "1.0.0",
+      "maximum": "1.4.0"
+    },
+    "startingCheckpoints": {
+      "adrasteia": {
+        "tag": "adrasteia-adoption-v0.4.0-protocol-1.4.0",
+        "commit": "124b6aee2629a3147739934ad5f1b45b32c8ba46",
+        "checkpointState": "sealed_tagged"
+      },
+      "ananke": {
+        "tag": "ananke-fates-slice-002-v0.2.0-protocol-1.4.0",
+        "commit": "52b512885edf3fec7ff7ce4b4dcbd3958b170ba4",
+        "checkpointState": "sealed_tagged"
+      },
+      "mnemosyne": {
+        "tag": "mnemosyne-adrasteia-adoption-v0.1.0-protocol-1.4.0",
+        "commit": "f4ab76a9760f856d78908d35facceb068d78c8e5",
+        "checkpointState": "sealed_tagged"
+      },
+      "horae": {
+        "tag": "horae-fates-slice-002-v0.1.0-protocol-1.4.0",
+        "commit": "9566eb2764339d6a6fe143c1630eeb009e00a7bd",
+        "checkpointState": "sealed_tagged"
+      },
+      "moirae-code": {
+        "tag": "moirae-fates-slice-003a-v0.1.0-protocol-1.4.0",
+        "commit": "f9b28fb0099d5d32d5debd4db7376066bfc2ac93",
+        "checkpointState": "sealed_tagged"
+      }
+    }
+  },
+  "approvedScope": {
+    "objective": "FATES-SLICE-003A-R1 - Reproducibility and route-identity remediation",
+    "topology": "Tracked Horae route host -> Horae bounded relay -> canonical Ananke -> Horae -> originating Moirae, with R1 application-level request identity and no alternate route.",
+    "eventualImplementationOwners": ["Horae", "Ananke", "Moirae Code", "Fates Integration"],
+    "runtimeContractsChangeApproved": false,
+    "mnemosyneInRoute": false,
+    "approvedImplementationShape": [
+      "Tracked/versioned/reproducible Horae route host.",
+      "Production-style Ananke execution-authentication validation with development mode disabled and ephemeral test authentication supplied out-of-band.",
+      "Bounded inspection, readiness, dispatch, and action handling with cancellation and fail-closed cleanup.",
+      "Bounded producer-result allowlist projection that prevents unexpected producer fields from overwriting broker-owned fields.",
+      "Short-lived, audience-bound, replay-safe application-level request identity with truthful origin semantics.",
+      "Reproducible real-process acceptance and additive post-seal qualification of historical 003A."
+    ],
+    "excluded": [
+      "OS-authenticated process-origin claims in R1.",
+      "Firecracker, KVM, trusted host supervisor, host/guest channel authentication, and all OS/filesystem/network/process/IPC containment.",
+      "Provider-network redesign and credential-broker implementation.",
+      "FATES-SLICE-003B activation, implementation, or acceptance.",
+      "Live acceptance during this activation/control-state task."
+    ]
+  },
+  "acceptanceCriteria": [
+    "A tracked Horae server artifact has exact pinned source/build identity.",
+    "The route is Moirae -> Horae -> canonical Ananke with no direct, alternate, fallback, or retry path.",
+    "Ananke development mode is disabled and ephemeral execution authentication is supplied out-of-band without any credential value in source, logs, or evidence.",
+    "Peer inspection/readiness/action handling is bounded and cancellable.",
+    "Exactly one dispatch occurs on the positive path and replay-safe application identity rejects malformed, wrong-audience, expired, and replayed requests before dispatch.",
+    "Unexpected Ananke result fields cannot cross the Horae projection boundary.",
+    "Historical PID correlation is recorded as correlation, never as runtime/OS-authenticated process origin.",
+    "The post-seal qualification remains additive and does not rewrite historical 003A evidence or hashes."
+  ],
+  "ownerResponsibilities": {
+    "horae": "Own the tracked route host, bounded inspection/action behavior, and result projection implementation and tests after a separately scheduled R1 implementation task.",
+    "ananke": "Validate the existing production-style execution-authentication path and relevant consumer behavior; no Ananke source change is made by this activation task.",
+    "moiraeCode": "Participate only in the later application-level request-identity and reproducible real-process acceptance scope; no source change is made by this activation task.",
+    "integration": "Activate control state, promote traceability requirements, preserve sealed 003A artifacts, validate control metadata, and later coordinate evidence and owner closure.",
+    "mnemosyne": "Remain outside R1 route and unchanged.",
+    "runtimeContracts": "Remain unchanged and authoritative for the existing shared contract baseline."
+  },
+  "implementationOrder": [
+    "Complete this Integration activation/control-state checkpoint only.",
+    "After this checkpoint is committed and pushed, obtain a separate owner decision to begin R1 implementation.",
+    "Implement and validate the tracked Horae host, bounded relay/projection behavior, production-style Ananke authentication validation, and application-level request identity within the approved scope.",
+    "Run component and Integration checks, then perform separately authorized reproducible real-process acceptance.",
+    "Add post-seal qualification evidence and stop for a separate owner R1 seal/closure decision."
+  ],
+  "postActivationRequirements": [
+    "No live acceptance is run as part of this activation.",
+    "No component repository is modified until the separately authorized R1 implementation task.",
+    "No compatibility lock, matrix, snapshot, tag, or historical 003A evidence is advanced or rewritten by activation.",
+    "R1 implementation, validation, acceptance, and closure are separately reviewed and recorded."
+  ],
+  "authorizationBoundary": {
+    "authorizes": "Integration control-state activation and active traceability for the bounded R1 scope; future implementation only after the separate sequencing decision recorded in the design gate.",
+    "doesNotAuthorize": [
+      "Component source changes in Ananke, Horae, Moirae Code, or Runtime Contracts in this task.",
+      "FATES-SLICE-003B or Firecracker/KVM/containment work.",
+      "OS-authenticated process origin, trusted supervisor identity, host/guest channel authentication, or provider/credential broker work.",
+      "Formal live acceptance, lock/matrix/snapshot advancement, tag creation, or R1 sealing."
+    ],
+    "stopGate": "Stop after the activation checkpoint is validated, committed, pushed, and observed through ordinary CI; do not begin implementation in this task."
+  },
+  "controlState": {
+    "activeSliceFile": "active-slice.json",
+    "activeSliceId": "FATES-SLICE-003",
+    "approvedSubphase": "FATES-SLICE-003A-R1",
+    "status": "active",
+    "lockChanged": false,
+    "compatibilityMatrixChanged": false,
+    "snapshotChanged": false,
+    "sealClaimChanged": false,
+    "globalCompatibilitySetRemains": "fates-slice-003a-2026-08-10",
+    "historical003ASealPreserved": true,
+    "fatesSlice003BRemainsPaused": true
+  },
+  "knownLimitations": [
+    "No R1 component implementation or live acceptance evidence is recorded by this activation decision.",
+    "R1 application-level identity is not OS-authenticated process origin.",
+    "True launch/process/channel identity and containment remain 003B work.",
+    "The historical 003A result remains sealed with its additive post-seal qualifications."
+  ],
+  "createdControlArtifacts": [
+    "active-slice.json",
+    "docs/decisions/FATES-SLICE-003A-R1-activation-decision.json",
+    "docs/REQUIREMENTS_TRACEABILITY.md",
+    "docs/tasks/ACTIVE.md"
+  ],
+  "preservedArtifacts": [
+    "fates-lock.json",
+    "compatibility-matrix.json",
+    "compatibility-sets/fates-slice-003a-2026-08-10.json",
+    "docs/evidence/FATES-SLICE-003A-live-acceptance-2026-08-10.json",
+    "slices/003-constrained-host-route/slice.json",
+    "all existing tags and historical evidence hashes",
+    "all component repositories and source checkpoints"
+  ]
+}

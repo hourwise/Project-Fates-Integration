@@ -12,6 +12,10 @@
       "type": ["string", "null"],
       "pattern": "^(FATES-SLICE-\\d{3}|null)$"
     },
+    "activeSubsliceId": {
+      "type": ["string", "null"],
+      "pattern": "^FATES-SLICE-\\d{3}[A-Z]$"
+    },
     "baselineCompatibilitySet": { "type": "string" },
     "nextRecommendedSlice": { "type": ["string", "null"] },
     "activationRequirements": {
@@ -31,7 +35,12 @@
   "allOf": [
     {
       "if": { "properties": { "status": { "const": "idle" } } },
-      "then": { "properties": { "activeSliceId": { "type": "null" } } }
+      "then": {
+        "properties": {
+          "activeSliceId": { "type": "null" },
+          "activeSubsliceId": { "type": "null" }
+        }
+      }
     },
     {
       "if": { "properties": { "status": { "const": "active" } } },
@@ -39,6 +48,10 @@
         "required": ["nextRecommendedSlice"],
         "properties": {
           "activeSliceId": { "type": "string", "pattern": "^FATES-SLICE-\\d{3}$" },
+          "activeSubsliceId": {
+            "type": ["string", "null"],
+            "pattern": "^FATES-SLICE-\\d{3}[A-Z]$"
+          },
           "nextRecommendedSlice": { "type": "string", "pattern": "^FATES-SLICE-\\d{3}$" }
         }
       }

@@ -1,0 +1,66 @@
+{
+  "$schema": "../schemas/fates-lock.schema.json",
+  "_note": "Immutable historical snapshot of the sealed fates-slice-003a-2026-08-10 compatibility set. FATES-SLICE-003A is sealed only for its bounded process-origin and governed route claim; future host-containment and memory capabilities remain outside this snapshot.",
+  "schemaVersion": "1.0.0",
+  "compatibilitySetId": "fates-slice-003a-2026-08-10",
+  "snapshotPath": "compatibility-sets/fates-slice-003a-2026-08-10.json",
+  "previousCompatibilitySet": "fates-slice-002-2026-08-09",
+  "updatedAt": "2026-08-10T10:32:34.7199714Z",
+  "sealStatus": "sealed",
+  "integrationLevel": "runtime_validated",
+  "protocol": {
+    "current": "1.4.0",
+    "minimum": "1.0.0",
+    "maximum": "1.4.0"
+  },
+  "repositories": {
+    "adrasteia": {
+      "url": "https://github.com/hourwise/Project-Adrasteia",
+      "tag": "adrasteia-adoption-v0.4.0-protocol-1.4.0",
+      "commit": "124b6aee2629a3147739934ad5f1b45b32c8ba46",
+      "checkpointState": "sealed_tagged",
+      "package": "project-runtime-contracts@0.4.0",
+      "artifact": {
+        "url": "https://github.com/hourwise/Project-Adrasteia/releases/download/adrasteia-adoption-v0.4.0-protocol-1.4.0/project-runtime-contracts-0.4.0.tgz",
+        "sha256": "11ee062b079f74d2a4558af315c9b9b12a6aede291d409c48f038d93c416e2c2"
+      },
+      "role": "portable-representation"
+    },
+    "ananke": {
+      "url": "https://github.com/hourwise/Project-Ananke",
+      "tag": "ananke-fates-slice-002-v0.2.0-protocol-1.4.0",
+      "commit": "52b512885edf3fec7ff7ce4b4dcbd3958b170ba4",
+      "checkpointState": "sealed_tagged",
+      "role": "action-authority"
+    },
+    "mnemosyne": {
+      "url": "https://github.com/hourwise/Project-Mnemosyne",
+      "tag": "mnemosyne-adrasteia-adoption-v0.1.0-protocol-1.4.0",
+      "commit": "f4ab76a9760f856d78908d35facceb068d78c8e5",
+      "checkpointState": "sealed_tagged",
+      "role": "memory-provenance; outside 003A route"
+    },
+    "horae": {
+      "url": "https://github.com/hourwise/Project-Horae",
+      "tag": "horae-fates-slice-002-v0.1.0-protocol-1.4.0",
+      "commit": "9566eb2764339d6a6fe143c1630eeb009e00a7bd",
+      "checkpointState": "sealed_tagged",
+      "role": "discovery-composition and sole 003A relay"
+    },
+    "moirae-code": {
+      "url": "https://github.com/hourwise/Project-Moirae-Code",
+      "tag": "moirae-fates-slice-003a-v0.1.0-protocol-1.4.0",
+      "commit": "f9b28fb0099d5d32d5debd4db7376066bfc2ac93",
+      "checkpointState": "sealed_tagged",
+      "role": "bounded governed host/origin"
+    }
+  },
+  "notes": "The sealed FATES-SLICE-003A set records the validated three-process bounded route and replaces the prior pushed_untagged Moirae compatibility reference with the independently tagged implementation checkpoint. It does not reopen or alter the historical fates-slice-002-2026-08-09 snapshot or Slice 02 seal.",
+  "knownLimits": [
+    "Live timeout and post-dispatch indeterminate transport loss were not induced; owner-local deterministic tests cover those semantics",
+    "No qualified memory handoff",
+    "No durable idempotency or recovery",
+    "No content preflight capability",
+    "003A proves bounded process-origin and route evidence only; it does not prove OS filesystem/network/shell/subprocess, browser/extension, credential, arbitrary IPC, or complete bypass containment"
+  ]
+}

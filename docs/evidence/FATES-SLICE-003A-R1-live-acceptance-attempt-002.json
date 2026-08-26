@@ -1,0 +1,446 @@
+{
+  "status": "FAIL / LIVE ACCEPTANCE INCOMPLETE",
+  "attemptId": "002",
+  "predecessorAttemptId": "001",
+  "predecessorEvidencePath": "docs/evidence/FATES-SLICE-003A-R1-live-acceptance-attempt-001.json",
+  "evidencePath": "docs/evidence/FATES-SLICE-003A-R1-live-acceptance-attempt-002.json",
+  "runTimestamp": "2026-08-11T16:41:40.075Z",
+  "preparationStartingBaseline": "07ec80aabe2c62baaa776857fbcefafd154a74d7",
+  "previousPreparationCheckpoint": "17052be6335cae6081fafb6da7b48c0eef1a3cf3",
+  "integrationExecutionCheckpoint": "cb6ffa70983223390510c9611991d1851b06c30e",
+  "ownerApprovedIntegrationCheckpoint": "cb6ffa70983223390510c9611991d1851b06c30e",
+  "pinnedCheckpoints": {
+    "ananke": "dde9f74cbcfefea2176a6f0103e1f6b9064f4e64",
+    "horae": "3f531d4f5558a10a36aeae20c3458080eb4468b9",
+    "moirae": "bc7b984bd2eb0e0f07a1cd7259a8eab21556f097",
+    "mnemosyne": "f4ab76a9760f856d78908d35facceb068d78c8e5",
+    "runtimeContracts": "bbf240b1fdcb9be1dbd30b13d2fe2708a22ec7b8"
+  },
+  "acceptanceDriverSha256": "362e5fed7ab15ba223b8ace94c943159977e1ea132044c3c654f73c2a56fa7f7",
+  "sourcePreflight": {
+    "verified": true,
+    "failures": [],
+    "paths": {
+      "ananke": [
+        {
+          "path": "packages/runtime-core/package.json",
+          "exists": true
+        },
+        {
+          "path": "packages/runtime-core/src/index.ts",
+          "exists": true
+        },
+        {
+          "path": "packages/runtime-core/src/server.ts",
+          "exists": true
+        },
+        {
+          "path": "packages/runtime-core/src/auth.test.ts",
+          "exists": true
+        },
+        {
+          "path": "packages/runtime-core/src/server-config.ts",
+          "exists": true
+        },
+        {
+          "path": "packages/runtime-core/src/server-config.test.ts",
+          "exists": true
+        },
+        {
+          "path": "packages/runtime-core/src/auth.ts",
+          "exists": true
+        },
+        {
+          "path": "packages/runtime-core/src/routes.ts",
+          "exists": true
+        },
+        {
+          "path": "packages/runtime-core/dist/server.js",
+          "exists": true
+        }
+      ],
+      "horae": [
+        {
+          "path": "packages/slice02-host/package.json",
+          "exists": true
+        },
+        {
+          "path": "packages/slice02-host/src/index.ts",
+          "exists": true
+        },
+        {
+          "path": "packages/slice02-relay/src/index.ts",
+          "exists": true
+        },
+        {
+          "path": "packages/slice02-host/dist/index.js",
+          "exists": true
+        }
+      ],
+      "moirae": [
+        {
+          "path": "apps/diagnostics-cli/package.json",
+          "exists": true
+        },
+        {
+          "path": "apps/diagnostics-cli/src/index.ts",
+          "exists": true
+        },
+        {
+          "path": "apps/diagnostics-cli/src/slice03a-host.ts",
+          "exists": true
+        },
+        {
+          "path": "apps/diagnostics-cli/dist/index.js",
+          "exists": true
+        }
+      ]
+    },
+    "historicalDriver": {
+      "path": "scripts\\fates-slice03a-live-acceptance.mjs",
+      "unchanged": true
+    },
+    "sourceClaims": {
+      "ananke": "STATIC SOURCE VERIFIED + DETERMINISTIC TEST VERIFIED FROM COMPONENT CHECKPOINT",
+      "developmentMode": "not supplied; canonical server selects static bearer from ANANKE_EXECUTION_TOKEN",
+      "authMethod": "workload-token",
+      "serverOwnedHoraeProfile": "horae-slice02-relay / horae-slice02-relay-agent / bounded fixed-fixture read",
+      "readiness": "Ananke runtime readiness endpoint is present and Horae re-inspects before dispatch",
+      "processOrigin": "not OS-authenticated; only application identity and PID correlation are evidenced",
+      "deterministicTests": "Ananke auth/server-config tests are present at the pinned component checkpoint"
+    }
+  },
+  "authentication": {
+    "anankeExecutionMode": "workload-token",
+    "developmentMode": false,
+    "credentialValue": "omitted",
+    "processOrigin": "not authenticated by this R1 layer"
+  },
+  "r1": {
+    "audience": "fates.slice03a.r1.horae:horae-r1-live-1:POST:/slice-02/governed-actions",
+    "horaeInstanceId": "horae-r1-live-1",
+    "replayLedger": "single authoritative Horae host; process-restart-persistent claim; no power-loss durability or multi-host exclusion",
+    "moiraeSessionId": "fates-r1-session-0a6a0daf-0607-4958-b1ae-19c1ed3cda49"
+  },
+  "processes": [
+    {
+      "role": "Ananke",
+      "pid": 18780,
+      "executable": "node.exe",
+      "cwd": "repo:ananke",
+      "repository": "repo:ananke",
+      "args": [
+        "packages/runtime-core/dist/server.js"
+      ],
+      "spawnedAt": "2026-08-11T16:41:40.086Z",
+      "envKeys": [
+        "ANANKE_EXECUTION_TOKEN",
+        "ANANKE_PORT",
+        "PATH",
+        "SystemRoot",
+        "TEMP",
+        "TMP",
+        "WINDIR"
+      ],
+      "exitCode": null,
+      "signal": "SIGTERM",
+      "spawnError": "",
+      "cleanup": "exact-pid-termination-attempted",
+      "stdout": "🔮 Ananke Outcome Gateway running on htt[LOCAL_WINDOWS_PATH]\n[ananke] fates.slice02.inspect-fixed-fixture.v1 → COMPLETED (133ms)\n",
+      "stderr": ""
+    },
+    {
+      "role": "Horae positive",
+      "pid": 2536,
+      "executable": "node.exe",
+      "cwd": "repo:horae",
+      "repository": "repo:horae",
+      "args": [
+        "packages/slice02-host/dist/index.js"
+      ],
+      "spawnedAt": "2026-08-11T16:41:40.693Z",
+      "envKeys": [
+        "ANANKE_ENDPOINT",
+        "ANANKE_EXECUTION_TOKEN",
+        "ANANKE_INSTANCE_ID",
+        "EXPECTED_ANANKE_ENDPOINT",
+        "HORAE_BIND_HOST",
+        "HORAE_DISPATCH_TIMEOUT_MS",
+        "HORAE_INSPECTION_TIMEOUT_MS",
+        "HORAE_PORT",
+        "HORAE_R1_INSTANCE_ID",
+        "HORAE_R1_REPLAY_LEDGER_PATH",
+        "PATH",
+        "SystemRoot",
+        "TEMP",
+        "TMP",
+        "WINDIR"
+      ],
+      "exitCode": null,
+      "signal": "SIGTERM",
+      "spawnError": "",
+      "cleanup": "exact-pid-termination-attempted",
+      "stdout": "{\"event\":\"HORAE_SLICE02_HOST_READY\",\"bindHost\":\"127.0.0.1\",\"port\":34216,\"route\":\"/slice-02/governed-actions\"}\n",
+      "stderr": ""
+    },
+    {
+      "role": "Moirae",
+      "pid": 13784,
+      "executable": "node.exe",
+      "cwd": "repo:moirae",
+      "repository": "repo:moirae",
+      "args": [
+        "apps/diagnostics-cli/dist/index.js",
+        "run-003a"
+      ],
+      "spawnedAt": "2026-08-11T16:41:41.055Z",
+      "envKeys": [
+        "MOIRAE_003A_ARTIFACT",
+        "MOIRAE_003A_HORAE_AUDIENCE",
+        "MOIRAE_003A_HORAE_ENDPOINT",
+        "MOIRAE_003A_INSTANCE_ID",
+        "MOIRAE_003A_REQUEST_IDENTITY_VERSION",
+        "MOIRAE_003A_SESSION_ID",
+        "PATH",
+        "SystemRoot",
+        "TEMP",
+        "TMP",
+        "WINDIR"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "spawnError": "",
+      "cleanup": "already-exited",
+      "stdout": "{\n  \"hostEvidence\": {\n    \"runtime\": \"moirae-code\",\n    \"instanceId\": \"moirae-live-origin-1\",\n    \"artifact\": \"moirae-slice02-live-origin\",\n    \"processId\": 13784,\n    \"executable\": \"node.exe\",\n    \"startedAt\": \"2026-08-11T16:41:41.370Z\",\n    \"originId\": \"moirae-003a-origin-13784-9b3e98a2-916c-41be-9c45-4e7b55e29929\",\n    \"originDigest\": \"b3446b9452ac134c3cde91b4c7d2094822abd910b8696a520368fda1d19b7acb\",\n    \"requestId\": \"moirae-003a-request-924c3ddd-5f06-4176-93d0-2d6312b6ec02\",\n    \"correlationId\": \"moirae-003a-correlation-bc0138d5-7633-4201-991a-88d267dd7f9b\",\n    \"applicationIdentityVersion\": \"r1-v2\",\n    \"audience\": \"fates.slice03a.r1.horae:horae-r1-live-1:POS[LOCAL_WINDOWS_PATH]\"\n  },\n  \"request\": {\n    \"action\": \"fates.slice02.inspect-fixed-fixture.v1\",\n    \"route\": \"/slice-02/governed-actions\",\n    \"arguments\": {\n      \"fixtureId\": \"fates.slice02.fixed-fixture.v1\",\n      \"expectedSha256\": \"7b28f52d84b07bed8b49650960607e8f8a9809cac299810aba691f7f52fe9ae8\"\n    }\n  },\n  \"horae\": {\n    \"endpoint\": \"htt[LOCAL_WINDOWS_PATH]\",\n    \"httpStatus\": 200\n  },\n  \"routeResult\": {\n    \"routeId\": \"route_5d5691f5-a6d6-47e8-95d3-062924aac1bd\",\n    \"eventId\": \"event_73c797f4-9bba-452c-92ce-1fab1e34f688\",\n    \"correlation\": {\n      \"requestId\": \"moirae-003a-request-924c3ddd-5f06-4176-93d0-2d6312b6ec02\",\n      \"correlationId\": \"moirae-003a-correlation-bc0138d5-7633-4201-991a-88d267dd7f9b\"\n    },\n    \"dispatchState\": \"result_received\",\n    \"state\": \"completed\",\n    \"receipt\": {\n      \"routeId\": \"route_5d5691f5-a6d6-47e8-95d3-062924aac1bd\",\n      \"eventId\": \"event_73c797f4-9bba-452c-92ce-1fab1e34f688\",\n      \"action\": \"fates.slice02.inspect-fixed-fixture.v1\",\n      \"canonicalArgumentsDigest\": \"b89aaf97aeee88d6e9cfc99e9af0ee28375df560072c740d5bb14224aa8f04bc\",\n      \"origin\": {\n        \"runtime\": \"moirae-code\",\n        \"instanceId\": \"moirae-live-origin-1\",\n        \"artifact\": \"moirae-slice02-live-origin\",\n        \"receipt\": {\n          \"originId\": \"moirae-003a-origin-13784-9b3e98a2-916c-41be-9c45-4e7b55e29929\",\n          \"originDigest\": \"b3446b9452ac134c3cde91b4c7d2094822abd910b8696a520368fda1d19b7acb\",\n          \"schemaId\": \"urn:fates:slice02:inspect-fixed-fixture-request:r1-v2\",\n          \"schemaSha256\": \"104ebc4267914426434968996b2ba2e774ad4ffd6bc2fb4c97b4193a1c7389db\",\n          \"audience\": \"fates.slice03a.r1.horae:horae-r1-live-1:POS[LOCAL_WINDOWS_PATH]\",\n          \"validity\": {\n            \"notBefore\": \"2026-08-11T16:41:41.371Z\",\n            \"expiresAt\": \"2026-08-11T16:42:40.371Z\"\n          }\n        }\n      },\n      \"execution\": {\n        \"authenticatedPrincipal\": {\n          \"id\": \"moirae-003a-host\",\n          \"kind\": \"service\",\n          \"tenantId\": \"fates-003a-tenant\"\n        },\n        \"actingPrincipal\": {\n          \"id\": \"moirae-003a-agent\",\n          \"kind\": \"agent\",\n          \"tenantId\": \"fates-003a-tenant\"\n        },\n        \"runtimeId\": \"moirae-code\",\n        \"runtimeInstanceId\": \"moirae-live-origin-1\",\n        \"sessionId\": \"fates-r1-session-0a6a0daf-0607-4958-b1ae-19c1ed3cda49\",\n        \"projectId\": \"fates-003a-project\",\n        \"workspaceId\": \"fates-003a-workspace\",\n        \"tenantId\": \"fates-003a-tenant\"\n      },\n      \"scope\": {\n        \"mode\": \"bounded\",\n        \"tenantId\": \"fates-003a-tenant\",\n        \"projectId\": \"fates-003a-project\",\n        \"workspaceId\": \"fates-003a-workspace\",\n        \"resourceType\": \"fixed-fixture\",\n        \"resourceIds\": [\n          \"fates.slice02.fixed-fixture.v1\"\n        ],\n        \"operations\": [\n          \"read\"\n        ]\n      },\n      \"purpose\": \"slice02.fixed-fixture-inspection\",\n      \"validity\": {\n        \"notBefore\": \"2026-08-11T16:41:41.371Z\",\n        \"expiresAt\": \"2026-08-11T16:42:40.371Z\"\n      },\n      \"correlation\": {\n        \"requestId\": \"moirae-003a-request-924c3ddd-5f06-4176-93d0-2d6312b6ec02\",\n        \"correlationId\": \"moirae-003a-correlation-bc0138d5-7633-4201-991a-88d267dd7f9b\"\n      },\n      \"ananke\": {\n        \"runtime\": \"ananke\",\n        \"instanceId\": \"ananke-1315ff63-c7c9-4375-ace8-01ceaca8199b\",\n        \"endpoint\": \"htt[LOCAL_WINDOWS_PATH]\",\n        \"producer\": {\n          \"repository\": \"http[LOCAL_WINDOWS_PATH]\",\n          \"checkpoint\": \"a54cb481958e5711afc1c92c622673f85e7e0178\",\n          \"tag\": \"ananke-fates-slice-002-v0.1.0-protocol-1.4.0\",\n          \"implementationCommit\": \"552686fe6e01e2c0bf41ccb52591076bfa68bc2c\"\n        },\n        \"negotiatedProtocol\": \"1.4.0\",\n        \"readinessCheckedAt\": \"2026-08-11T16:41:41.541Z\",\n        \"readinessAgeMs\": 38\n      }\n    },\n    \"ananke\": {\n      \"outcome\": {\n        \"state\": \"COMPLETED\",\n        \"retryable\": false,\n        \"requiresUser\": false,\n        \"safeToContinue\": true,\n        \"data\": \"FATES-SLICE-002\\nfixed-fixture\\nread-only\\nv1\\n\"\n      },\n      \"evidence\": {\n        \"action\": \"fates.slice02.inspect-fixed-fixture.v1\",\n        \"canonicalRequestDigest\": \"b89aaf97aeee88d6e9cfc99e9af0ee28375df560072c740d5bb14224aa8f04bc\",\n        \"requestSchemaId\": \"urn:fates:slice02:inspect-fixed-fixture-request:v1\",\n        \"requestSchemaSha256\": \"db1864fdc4978d6befb4b6d3913461e4f2d2732dd0ca87e076977ab98cf6049c\",\n        \"expectedFixtureDigest\": \"7b28f52d84b07bed8b49650960607e8f8a9809cac299810aba691f7f52fe9ae8\",\n        \"readAttemptCount\": 1,\n        \"adapterInvocation\": true,\n        \"decisionId\": \"337215f9-197b-471a-8ae4-f70e8719ffd6\",\n        \"outcomeId\": \"1131f898-ebb9-4779-95e5-286e16624fae\",\n        \"routeState\": \"ananke-authority\",\n        \"dispatchState\": \"read-completed\",\n        \"originId\": \"moirae-003a-origin-13784-9b3e98a2-916c-41be-9c45-4e7b55e29929\",\n        \"originDigest\": \"b3446b9452ac134c3cde91b4c7d2094822abd910b8696a520368fda1d19b7acb\",\n        \"validityNotBefore\": \"2026-08-11T16:41:41.371Z\",\n        \"validityExpiresAt\": \"2026-08-11T16:42:40.371Z\",\n        \"upstreamApplicationIdentity\": {\n          \"version\": \"r1-v2\",\n          \"originId\": \"moirae-003a-origin-13784-9b3e98a2-916c-41be-9c45-4e7b55e29929\",\n          \"originDigest\": \"b3446b9452ac134c3cde91b4c7d2094822abd910b8696a520368fda1d19b7acb\",\n          \"schemaId\": \"urn:fates:slice02:inspect-fixed-fixture-request:r1-v2\",\n          \"schemaSha256\": \"104ebc4267914426434968996b2ba2e774ad4ffd6bc2fb4c97b4193a1c7389db\",\n          \"audience\": \"fates.slice03a.r1.horae:horae-r1-live-1:POS[LOCAL_WINDOWS_PATH]\",\n          \"claim\": \"Horae-validated application-route identity; not authenticated Moirae OS process origin\"\n        },\n        \"requestId\": \"request-e87e307e-3720-4881-97ef-200b33f2177d\",\n        \"correlationId\": \"moirae-003a-correlation-bc0138d5-7633-4201-991a-88d267dd7f9b\",\n        \"policyVersion\": \"builtin:0.1.0\",\n        \"authorityBindingDigest\": \"64d5c0cced3f164b248bd1ca6498dea81bac55833bbc975c1c783a67c85f0860\",\n        \"actualFixtureDigest\": \"7b28f52d84b07bed8b49650960607e8f8a9809cac299810aba691f7f52fe9ae8\",\n        \"policyDecision\": \"ALLOW\",\n        \"auditId\": \"f6c4728a-688c-4a6a-b0d0-44782deb9a0b\",\n        \"auditReference\": {\n          \"auditId\": \"f6c4728a-688c-4a6a-b0d0-44782deb9a0b\",\n          \"sourceRuntime\": \"ananke\"\n        }\n      }\n    },\n    \"producerEvidence\": {\n      \"action\": \"fates.slice02.inspect-fixed-fixture.v1\",\n      \"canonicalRequestDigest\": \"b89aaf97aeee88d6e9cfc99e9af0ee28375df560072c740d5bb14224aa8f04bc\",\n      \"requestSchemaId\": \"urn:fates:slice02:inspect-fixed-fixture-request:v1\",\n      \"requestSchemaSha256\": \"db1864fdc4978d6befb4b6d3913461e4f2d2732dd0ca87e076977ab98cf6049c\",\n      \"expectedFixtureDigest\": \"7b28f52d84b07bed8b49650960607e8f8a9809cac299810aba691f7f52fe9ae8\",\n      \"readAttemptCount\": 1,\n      \"adapterInvocation\": true,\n      \"decisionId\": \"337215f9-197b-471a-8ae4-f70e8719ffd6\",\n      \"outcomeId\": \"1131f898-ebb9-4779-95e5-286e16624fae\",\n      \"routeState\": \"ananke-authority\",\n      \"dispatchState\": \"read-completed\",\n      \"originId\": \"moirae-003a-origin-13784-9b3e98a2-916c-41be-9c45-4e7b55e29929\",\n      \"originDigest\": \"b3446b9452ac134c3cde91b4c7d2094822abd910b8696a520368fda1d19b7acb\",\n      \"validityNotBefore\": \"2026-08-11T16:41:41.371Z\",\n      \"validityExpiresAt\": \"2026-08-11T16:42:40.371Z\",\n      \"upstreamApplicationIdentity\": {\n        \"version\": \"r1-v2\",\n        \"originId\": \"moirae-003a-origin-13784-9b3e98a2-916c-41be-9c45-4e7b55e29929\",\n        \"originDigest\": \"b3446b9452ac134c3cde91b4c7d2094822abd910b8696a520368fda1d19b7acb\",\n        \"schemaId\": \"urn:fates:slice02:inspect-fixed-fixture-request:r1-v2\",\n        \"schemaSha256\": \"104ebc4267914426434968996b2ba2e774ad4ffd6bc2fb4c97b4193a1c7389db\",\n        \"audience\": \"fates.slice03a.r1.horae:horae-r1-live-1:POS[LOCAL_WINDOWS_PATH]\",\n        \"claim\": \"Horae-validated application-route identity; not authenticated Moirae OS process origin\"\n      },\n      \"requestId\": \"request-e87e307e-3720-4881-97ef-200b33f2177d\",\n      \"correlationId\": \"moirae-003a-correlation-bc0138d5-7633-4201-991a-88d267dd7f9b\",\n      \"policyVersion\": \"builtin:0.1.0\",\n      \"authorityBindingDigest\": \"64d5c0cced3f164b248bd1ca6498dea81bac55833bbc975c1c783a67c85f0860\",\n      \"actualFixtureDigest\": \"7b28f52d84b07bed8b49650960607e8f8a9809cac299810aba691f7f52fe9ae8\",\n      \"policyDecision\": \"ALLOW\",\n      \"auditId\": \"f6c4728a-688c-4a6a-b0d0-44782deb9a0b\",\n      \"auditReference\": {\n        \"auditId\": \"f6c4728a-688c-4a6a-b0d0-44782deb9a0b\",\n        \"sourceRuntime\": \"ananke\"\n      }\n    }\n  },\n  \"limitations\": [\n    \"003A proves bounded process-origin and route evidence only.\",\n    \"R1 application request identity is freshness and audience evidence, not OS-authenticated process origin.\",\n    \"003A does not prove OS containment, credential isolation, or complete bypass resistance.\",\n    \"The IDE, renderer, extensions, terminals, child processes, and direct providers remain outside this claim.\"\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "role": "Horae replay seed",
+      "pid": 22516,
+      "executable": "node.exe",
+      "cwd": "repo:horae",
+      "repository": "repo:horae",
+      "args": [
+        "packages/slice02-host/dist/index.js"
+      ],
+      "spawnedAt": "2026-08-11T16:41:41.770Z",
+      "envKeys": [
+        "ANANKE_ENDPOINT",
+        "ANANKE_EXECUTION_TOKEN",
+        "ANANKE_INSTANCE_ID",
+        "EXPECTED_ANANKE_ENDPOINT",
+        "HORAE_BIND_HOST",
+        "HORAE_DISPATCH_TIMEOUT_MS",
+        "HORAE_INSPECTION_TIMEOUT_MS",
+        "HORAE_PORT",
+        "HORAE_R1_INSTANCE_ID",
+        "HORAE_R1_REPLAY_LEDGER_PATH",
+        "PATH",
+        "SystemRoot",
+        "TEMP",
+        "TMP",
+        "WINDIR"
+      ],
+      "exitCode": null,
+      "signal": "SIGTERM",
+      "spawnError": "",
+      "cleanup": "exact-pid-termination-attempted",
+      "stdout": "{\"event\":\"HORAE_SLICE02_HOST_READY\",\"bindHost\":\"127.0.0.1\",\"port\":34217,\"route\":\"/slice-02/governed-actions\"}\n",
+      "stderr": ""
+    }
+  ],
+  "ownedResources": [],
+  "ports": {
+    "ananke": 34212,
+    "horae": 34216,
+    "replayHorae": 34217,
+    "wrongAuthHorae": 34218,
+    "timeoutScratch": 34219,
+    "timeoutHorae": 34220,
+    "missingAuthHorae": 34221,
+    "state": "checked before launch"
+  },
+  "positive": {
+    "state": "completed",
+    "dispatchState": "result_received",
+    "routeId": "route_5d5691f5-a6d6-47e8-95d3-062924aac1bd",
+    "eventId": "event_73c797f4-9bba-452c-92ce-1fab1e34f688",
+    "correlation": {
+      "requestId": "moirae-003a-request-924c3ddd-5f06-4176-93d0-2d6312b6ec02",
+      "correlationId": "moirae-003a-correlation-bc0138d5-7633-4201-991a-88d267dd7f9b"
+    },
+    "producer": {
+      "outcomeState": "COMPLETED",
+      "decisionId": "337215f9-197b-471a-8ae4-f70e8719ffd6",
+      "outcomeId": "1131f898-ebb9-4779-95e5-286e16624fae",
+      "readAttemptCount": 1,
+      "actualFixtureDigest": "7b28f52d84b07bed8b49650960607e8f8a9809cac299810aba691f7f52fe9ae8"
+    },
+    "effectCount": 1,
+    "dispatchCount": 1
+  },
+  "negatives": {},
+  "negativeMatrix": [
+    {
+      "id": "positive-r1-v2",
+      "execution": "future live",
+      "expected": "completed / result_received / HTTP 200",
+      "proof": "one Horae dispatch, one producer read, preserved route/correlation/decision/outcome evidence"
+    },
+    {
+      "id": "replay",
+      "execution": "future live route-level replay seed on an isolated Horae host",
+      "expected": "denied / rejected_before_dispatch; no Ananke inspection or dispatch",
+      "proof": "the same v2 receipt is rejected by Horae replay ledger",
+      "implementation": "executable"
+    },
+    {
+      "id": "wrong-audience",
+      "execution": "future live route-level request against the tracked Horae host",
+      "expected": "malformed / rejected_before_dispatch; no dispatch",
+      "proof": "Horae rejects a non-canonical or non-matching v2 audience with no downgrade",
+      "implementation": "executable"
+    },
+    {
+      "id": "expired",
+      "execution": "future live route-level request with explicit expired timestamps",
+      "expected": "stale / rejected_before_dispatch; no dispatch",
+      "proof": "expired validity is rejected before Ananke inspection/dispatch",
+      "implementation": "executable"
+    },
+    {
+      "id": "legacy-v1",
+      "execution": "future live route-level historical request shape against the R1 host",
+      "expected": "malformed / rejected_before_dispatch; no v1 downgrade",
+      "proof": "R1 Horae requires the configured r1-v2 schema and audience",
+      "implementation": "executable"
+    },
+    {
+      "id": "wrong-ananke-token",
+      "execution": "future live with a fresh isolated Horae process and wrong token",
+      "expected": "Ananke authentication denied / route fail-closed; no effect",
+      "proof": "distinguish wrong token from Horae startup missing-token configuration failure",
+      "implementation": "executable"
+    },
+    {
+      "id": "pre-dispatch-timeout",
+      "execution": "future live negative induction against a localhost scratch inspection endpoint",
+      "expected": "timed_out / dispatch_not_attempted / HTTP 504",
+      "proof": "bounded cancellation, zero dispatch, no retry/fallback",
+      "implementation": "executable-negative-induction"
+    },
+    {
+      "id": "result-projection",
+      "execution": "deterministic Horae validation unless safe live proof is available",
+      "expected": "only the canonical producer-result allowlist is projected",
+      "proof": "unexpected producer fields do not cross the Horae route boundary"
+    },
+    {
+      "id": "restart-replay",
+      "execution": "future live with the same tracked Horae build, instance, audience, and ledger",
+      "expected": "denied / rejected_before_dispatch after restart; no second effect",
+      "proof": "persisted claim is loaded before inspection/dispatch",
+      "implementation": "executable"
+    }
+  ],
+  "cases": [
+    {
+      "id": "positive-r1-v2",
+      "classification": "LIVE VERIFIED",
+      "observations": [
+        {
+          "httpStatus": 200,
+          "state": "completed",
+          "dispatchState": "result_received",
+          "dispatchDelta": 1,
+          "producerReadDelta": 1,
+          "realAnankeContacted": true,
+          "realProducerReachable": true
+        }
+      ],
+      "dispatchDelta": 1,
+      "producerReadDelta": 1,
+      "effectCount": 1,
+      "processCorrelation": {
+        "moiraePid": 13784,
+        "executable": "node.exe",
+        "cwd": "repo:moirae",
+        "repository": "repo:moirae",
+        "classification": "PROCESS CORRELATION"
+      },
+      "fixtureDigest": "7b28f52d84b07bed8b49650960607e8f8a9809cac299810aba691f7f52fe9ae8"
+    }
+  ],
+  "chronology": [
+    {
+      "timestamp": "2026-08-11T16:41:41.770Z",
+      "caseId": "positive-r1-v2",
+      "classification": "LIVE VERIFIED",
+      "dispatchDelta": 1,
+      "producerReadDelta": 1,
+      "observations": [
+        {
+          "httpStatus": 200,
+          "state": "completed",
+          "dispatchState": "result_received",
+          "dispatchDelta": 1,
+          "producerReadDelta": 1,
+          "realAnankeContacted": true,
+          "realProducerReachable": true
+        }
+      ]
+    }
+  ],
+  "cleanup": {
+    "trackedPidsAbsent": true,
+    "portsFree": true,
+    "ports": {
+      "ananke": 34212,
+      "horae": 34216,
+      "replayHorae": 34217,
+      "wrongAuthHorae": 34218,
+      "timeoutScratch": 34219,
+      "timeoutHorae": 34220,
+      "missingAuthHorae": 34221
+    },
+    "scratchResourcesClosed": true
+  },
+  "limitations": [
+    "This command is preparation only; no live route, process chain, or acceptance PASS artifact is produced.",
+    "A fresh v2 request may still be independently minted by another route-capable process.",
+    "R1 does not authenticate Moirae OS process origin.",
+    "Static bearer proves Horae-to-Ananke credential possession only.",
+    "Environment-variable credential custody is bounded R1 plumbing.",
+    "No artifact-bound producer attestation is established by this driver.",
+    "No multi-process/shared-ledger exclusion is established.",
+    "No power-loss stable-storage guarantee is established.",
+    "No exactly-once claim is made.",
+    "No OS containment is claimed.",
+    "No filesystem containment is claimed.",
+    "No network containment is claimed.",
+    "No IPC containment is claimed.",
+    "No browser or extension containment is claimed.",
+    "No FATES-SLICE-003B claim is made.",
+    "Timeout, projection, and advanced identity negatives remain deterministic/component evidence unless an owner-approved safe live seam exists."
+  ],
+  "credentialDisposition": "credential disposition: provider-side revoked/rotated; former exposed credential set invalid",
+  "endpointSecurity": {
+    "status": "no endpoint-security interaction in this run",
+    "controlsChanged": false
+  },
+  "redactionCanary": {
+    "passed": true,
+    "fields": [
+      "stdout",
+      "stderr",
+      "error",
+      "evidence serialization"
+    ],
+    "trackedValues": 2
+  },
+  "failure": "route-level replay seed was not consumed without an effect",
+  "credentialLeakScan": {
+    "retainedCredentialOccurrences": 0,
+    "retainedOutputScan": "passed without reproducing generated values"
+  }
+}

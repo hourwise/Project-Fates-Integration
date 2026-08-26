@@ -1,12 +1,12 @@
 {
   "$schema": "./schemas/fates-lock.schema.json",
   "schemaVersion": "1.0.0",
-  "compatibilitySetId": "fates-stage-a-2026-07",
-  "snapshotPath": "compatibility-sets/fates-stage-a-2026-07.json",
-  "previousCompatibilitySet": null,
-  "updatedAt": "2026-07-19T00:00:00Z",
-  "sealStatus": "provisional",
-  "integrationLevel": "inspection_only",
+  "compatibilitySetId": "fates-slice-003a-r1-2026-08-11",
+  "snapshotPath": "compatibility-sets/fates-slice-003a-r1-2026-08-11.json",
+  "previousCompatibilitySet": "fates-slice-003a-2026-08-10",
+  "updatedAt": "2026-08-11T18:47:38.439Z",
+  "sealStatus": "sealed",
+  "integrationLevel": "runtime_validated",
   "protocol": {
     "current": "1.4.0",
     "minimum": "1.0.0",
@@ -27,8 +27,8 @@
     },
     "ananke": {
       "url": "https://github.com/hourwise/Project-Ananke",
-      "tag": "ananke-adrasteia-adoption-v0.1.0-protocol-1.4.0",
-      "commit": "dcbb115c5798072221afdd2e4fdd36e786defddf",
+      "tag": "ananke-fates-slice-003a-r1-v0.1.0-protocol-1.4.0",
+      "commit": "dde9f74cbcfefea2176a6f0103e1f6b9064f4e64",
       "checkpointState": "sealed_tagged",
       "role": "action-authority"
     },
@@ -41,24 +41,38 @@
     },
     "horae": {
       "url": "https://github.com/hourwise/Project-Horae",
-      "tag": "horae-adrasteia-adoption-v0.1.0-protocol-1.4.0",
-      "commit": "52e14fa574f7427f62747fe84d2789aec25b94e3",
+      "tag": "horae-fates-slice-003a-r1-v0.1.0-protocol-1.4.0",
+      "commit": "3f531d4f5558a10a36aeae20c3458080eb4468b9",
       "checkpointState": "sealed_tagged",
       "role": "discovery-composition"
     },
     "moirae-code": {
       "url": "https://github.com/hourwise/Project-Moirae-Code",
-      "tag": null,
-      "commit": "a4783db271a61848c66ac4f6652a539bdb515e28",
-      "checkpointState": "pushed_untagged",
+      "tag": "moirae-fates-slice-003a-r1-v0.1.0-protocol-1.4.0",
+      "commit": "bc7b984bd2eb0e0f07a1cd7259a8eab21556f097",
+      "checkpointState": "sealed_tagged",
       "role": "governed-host"
     }
   },
-  "notes": "Stage-A compatibility set. Establishes the Adrasteia portable representation baseline across all Fates. Moirae Code is recorded at a pushed but untagged commit — the integration checkpoint is provisional until a verified annotated tag exists. No complete governed execution, qualified memory handoff, durable recovery, or content preflight is available.",
+  "notes": "Additive sealed R1 qualification of historical FATES-SLICE-003A. Attempt 003 is accepted as PASS / LIVE VERIFIED WITH BOUNDED LIMITATIONS at docs/evidence/FATES-SLICE-003A-R1-live-acceptance-attempt-003.json with SHA256 E573DE1CB599442CCBDD166103841372CEE8C7532B9108CA2CD2EE20ADF98B03. The live execution checkpoint is ed21a349e8de4c9c2a89db6380d6d17da90e85ba; the current pre-seal Integration checkpoint is e6b798764d31e6ae8b7a428d3a2fbf3f9c6d6733. The accepted route is Moirae -> tracked Horae -> canonical Ananke -> fixed-fixture adapter -> Ananke result -> Horae -> Moirae. Runtime Contracts remains project-runtime-contracts@0.4.0 at protocol 1.4.0 with the exact Stage-A artifact digest. Process evidence is PROCESS CORRELATION only, never AUTHENTICATED PROCESS ORIGIN.",
   "knownLimits": [
-    "No complete governed execution path",
-    "No qualified memory handoff",
-    "No durable idempotency or recovery",
-    "No content preflight capability"
+    "Another route-capable process may mint a fresh valid R1-v2 request",
+    "R1 does not authenticate originating Moirae OS-process identity",
+    "Static bearer proves Horae-to-Ananke credential possession only",
+    "Environment-variable credential custody remains bounded R1 plumbing",
+    "No artifact-bound producer attestation",
+    "Replay protection uses a host-local single-authoritative-host ledger",
+    "No shared or multi-process replay-ledger exclusion guarantee",
+    "No fsync or power-loss durability guarantee",
+    "No exactly-once guarantee",
+    "No OS containment",
+    "No filesystem containment",
+    "No network containment",
+    "No IPC containment",
+    "No browser or extension containment",
+    "No credential-isolation proof",
+    "No complete bypass-resistance proof",
+    "No FATES-SLICE-003B containment claim",
+    "Result projection remains DETERMINISTIC TEST VERIFIED rather than a stronger live claim"
   ]
 }

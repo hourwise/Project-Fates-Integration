@@ -1,0 +1,80 @@
+{
+  "$schema": "../schemas/fates-lock.schema.json",
+  "_note": "Additive immutable R1 qualification snapshot for historical fates-slice-003a-2026-08-10. Historical 003A evidence and compatibility records remain unchanged.",
+  "schemaVersion": "1.0.0",
+  "compatibilitySetId": "fates-slice-003a-r1-2026-08-11",
+  "snapshotPath": "compatibility-sets/fates-slice-003a-r1-2026-08-11.json",
+  "previousCompatibilitySet": "fates-slice-003a-2026-08-10",
+  "updatedAt": "2026-08-11T18:47:38.439Z",
+  "sealStatus": "sealed",
+  "integrationLevel": "runtime_validated",
+  "protocol": {
+    "current": "1.4.0",
+    "minimum": "1.0.0",
+    "maximum": "1.4.0"
+  },
+  "repositories": {
+    "adrasteia": {
+      "url": "https://github.com/hourwise/Project-Adrasteia",
+      "tag": "adrasteia-adoption-v0.4.0-protocol-1.4.0",
+      "commit": "124b6aee2629a3147739934ad5f1b45b32c8ba46",
+      "checkpointState": "sealed_tagged",
+      "package": "project-runtime-contracts@0.4.0",
+      "artifact": {
+        "url": "https://github.com/hourwise/Project-Adrasteia/releases/download/adrasteia-adoption-v0.4.0-protocol-1.4.0/project-runtime-contracts-0.4.0.tgz",
+        "sha256": "11ee062b079f74d2a4558af315c9b9b12a6aede291d409c48f038d93c416e2c2"
+      },
+      "role": "portable-representation"
+    },
+    "ananke": {
+      "url": "https://github.com/hourwise/Project-Ananke",
+      "tag": "ananke-fates-slice-003a-r1-v0.1.0-protocol-1.4.0",
+      "commit": "dde9f74cbcfefea2176a6f0103e1f6b9064f4e64",
+      "checkpointState": "sealed_tagged",
+      "role": "action-authority"
+    },
+    "mnemosyne": {
+      "url": "https://github.com/hourwise/Project-Mnemosyne",
+      "tag": "mnemosyne-adrasteia-adoption-v0.1.0-protocol-1.4.0",
+      "commit": "f4ab76a9760f856d78908d35facceb068d78c8e5",
+      "checkpointState": "sealed_tagged",
+      "role": "memory-provenance; outside the R1 route"
+    },
+    "horae": {
+      "url": "https://github.com/hourwise/Project-Horae",
+      "tag": "horae-fates-slice-003a-r1-v0.1.0-protocol-1.4.0",
+      "commit": "3f531d4f5558a10a36aeae20c3458080eb4468b9",
+      "checkpointState": "sealed_tagged",
+      "role": "tracked discovery-composition and R1 relay host"
+    },
+    "moirae-code": {
+      "url": "https://github.com/hourwise/Project-Moirae-Code",
+      "tag": "moirae-fates-slice-003a-r1-v0.1.0-protocol-1.4.0",
+      "commit": "bc7b984bd2eb0e0f07a1cd7259a8eab21556f097",
+      "checkpointState": "sealed_tagged",
+      "role": "bounded governed host and request origin"
+    }
+  },
+  "notes": "Accepted R1 live evidence: docs/evidence/FATES-SLICE-003A-R1-live-acceptance-attempt-003.json, SHA256 E573DE1CB599442CCBDD166103841372CEE8C7532B9108CA2CD2EE20ADF98B03. Live execution ran at Integration checkpoint ed21a349e8de4c9c2a89db6380d6d17da90e85ba with driver SHA256 CAEE81C60B131646984B9B5898BAD8CA2D3A0C027A4F32B67CAC811ED361A4C0. The current pre-seal Integration checkpoint was e6b798764d31e6ae8b7a428d3a2fbf3f9c6d6733. This is an additive qualification of historical 003A, not a rewrite of historical evidence or the historical compatibility set.",
+  "knownLimits": [
+    "Another route-capable process may mint a fresh valid R1-v2 request",
+    "R1 does not authenticate originating Moirae OS-process identity",
+    "Static bearer proves Horae-to-Ananke credential possession only",
+    "Environment-variable credential custody remains bounded R1 plumbing",
+    "No artifact-bound producer attestation",
+    "Replay protection uses a host-local single-authoritative-host ledger",
+    "No shared or multi-process replay-ledger exclusion guarantee",
+    "No fsync or power-loss durability guarantee",
+    "No exactly-once guarantee",
+    "No OS containment",
+    "No filesystem containment",
+    "No network containment",
+    "No IPC containment",
+    "No browser or extension containment",
+    "No credential-isolation proof",
+    "No complete bypass-resistance proof",
+    "No FATES-SLICE-003B containment claim",
+    "Process evidence is PROCESS CORRELATION only, never AUTHENTICATED PROCESS ORIGIN",
+    "Result projection remains DETERMINISTIC TEST VERIFIED"
+  ]
+}

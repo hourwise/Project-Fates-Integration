@@ -1,0 +1,45 @@
+{
+  "$schema": "../../../../schemas/subslice.schema.json",
+  "subsliceId": "FATES-SLICE-004A",
+  "parentSliceId": "FATES-SLICE-004",
+  "title": "Durable governed-effect lifecycle",
+  "implementationStatus": "completed",
+  "sealStatus": "sealed",
+  "objective": "Prove one Ananke-authoritative, durable, bounded governed effect with explicit dispatch, outcome, duplicate, indeterminate, and reconciliation semantics.",
+  "owners": ["Ananke", "Fates Integration"],
+  "components": ["Ananke execution authority", "Integration control and evidence", "Independent disposable receipt sink fixture"],
+  "prerequisites": [
+    "fates-slice-003a-r1-2026-08-11",
+    "R1 sealed artifacts remain immutable",
+    "Owner authorization for separate 004A activation",
+    "No required Runtime Contracts change"
+  ],
+  "scope": [
+    "Independent provider-side receipt/status fixture with separate durable state",
+    "Ananke-owned durable execution intent and attempt state",
+    "Pre-dispatch durable intent and dispatch marker ordering",
+    "Scoped idempotency, bounded reconciliation, and secret-free audit projection",
+    "One normal Ananke governed consumer wired to the disposable receipt sink",
+    "Exhaustive Ananke effect-path inventory and central fail-closed durable-effect chokepoint",
+    "Deterministic owner-local tests and retained evidence"
+  ],
+  "nonScope": [
+    "All later runtime work beyond the bounded Ananke Batch 1 implementation, consumer wiring, and chokepoint enforcement batch",
+    "Horae route integration",
+    "FATES-SLICE-003B and FATES-SLICE-004B",
+    "Moirae, Mnemosyne, or Runtime Contracts source changes",
+    "Live external effects, production credentials, and compatibility sealing"
+  ],
+  "requirements": [
+    "POST004-01 through POST004-14",
+    "Independent provider receipt evidence remains separate from Ananke execution truth",
+    "Approval binding precedes durable intent, dispatch marker, provider call, and outcome/reconciliation"
+  ],
+  "designPackage": "docs/design/FATES-SLICE-004A-activation-package.md",
+  "activation": {
+    "state": "closed",
+    "ownerDecision": "Owner authorization activated the bounded 004A control state; separate owner approvals authorize the bounded Ananke Batch 1 implementation, one receipt-sink consumer-wiring batch, and this effect-path/chokepoint batch while later work remains gated.",
+    "baselineCompatibilitySet": "fates-slice-003a-r1-2026-08-11"
+  },
+  "sealRecord": "docs/evidence/FATES-SLICE-004A-seal.json"
+}

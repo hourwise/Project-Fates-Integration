@@ -1,0 +1,46 @@
+{"schemaVersion":2,"event":"reserved","at":"2026-08-13T21:51:25.099Z","attemptId":"006","sliceId":"FATES-SLICE-004","subsliceId":"FATES-SLICE-004A","mode":"execute","ownerAuthorized":true,"runtime":"node","entrypoint":"scripts/fates-slice04a-live-acceptance.mjs","provenance":{"runtime":"node","entrypoint":"scripts/fates-slice04a-live-acceptance.mjs","mode":"execute","attemptId":"006","approvedCheckpoints":{"integration":"51154b4cd6a70ca63ff75a378838f22e4d715183","ananke":"e7b405f3a217db6df31fe9ba7bde376ab666930c","horae":"3f531d4f5558a10a36aeae20c3458080eb4468b9","moirae":"bc7b984bd2eb0e0f07a1cd7259a8eab21556f097","mnemosyne":"f4ab76a9760f856d78908d35facceb068d78c8e5","runtimeContracts":"bbf240b1fdcb9be1dbd30b13d2fe2708a22ec7b8"},"artifactHashes":{"driver":"5AD8BC50B3416DE0F8C07E181BCADF70396C512ABC5AF325CDCD2456B44B61EB","sink":"8C9BF1B6160A9BAE679FE5BF80B2352987FAD4B4A57B64E230FA7753CEDC9D67","worker":"0E211DA7B8EFB9A4F3A2CE60A9924BEDF1D35B840BB58973D2A214113B7ACFF5"}}}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:25.114Z","lifecycle":"started","startedAt":"2026-08-13T21:51:25.114Z"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:25.116Z","caseId":"A","stage":"case_started"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:25.116Z","stage":"case A start","caseId":"A"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:25.928Z","stage":"case A first execution","caseId":"A"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:25.995Z","caseId":"A","stage":"case A first durable result","durableState":"dispatched_confirmed_success"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:25.996Z","stage":"case A changed-correlation duplicate","caseId":"A"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:26.012Z","caseId":"A","stage":"case A provider observation","providerOperationCountKnown":true,"providerOperationCount":1}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:26.013Z","caseId":"A","stage":"case_completed","status":"PASS"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:26.013Z","caseId":"A","stage":"cleanup_started"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:26.035Z","caseId":"A","stage":"cleanup_completed"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:26.037Z","caseId":"B","stage":"case_started"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:26.038Z","stage":"case B start","caseId":"B"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:27.292Z","stage":"case B provider interruption","caseId":"B"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:27.383Z","caseId":"B","stage":"case B crash marker","durableState":"dispatch_marked"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:27.392Z","caseId":"B","stage":"case B pre-restart provider observation","providerOperationCountKnown":true,"providerOperationCount":1}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:29.046Z","caseId":"B","stage":"case B reconciliation","durableState":"reconciled_success"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:29.049Z","caseId":"B","stage":"case B post-restart provider observation","providerOperationCountKnown":true,"providerOperationCount":1}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:29.049Z","caseId":"B","stage":"case_completed","status":"PASS"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:29.049Z","caseId":"B","stage":"cleanup_started"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:29.069Z","caseId":"B","stage":"cleanup_completed"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:29.077Z","caseId":"C","stage":"case_started"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:29.077Z","stage":"case C start","caseId":"C"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:30.042Z","stage":"case C pre-provider interruption","caseId":"C"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:30.099Z","caseId":"C","stage":"case C crash marker","durableState":"dispatch_marked"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:31.229Z","caseId":"C","stage":"case C reconciliation","durableState":"terminal_unresolved"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:31.231Z","caseId":"C","stage":"case C provider observation","providerOperationCountKnown":true,"providerOperationCount":0}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:31.231Z","caseId":"C","stage":"case_completed","status":"PASS"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:31.232Z","caseId":"C","stage":"cleanup_started"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:31.264Z","caseId":"C","stage":"cleanup_completed"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:31.267Z","caseId":"D","stage":"case_started"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:31.267Z","stage":"case D start","caseId":"D"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:32.377Z","stage":"case D mismatched receipt","caseId":"D"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:32.437Z","caseId":"D","stage":"case D durable mismatch result","durableState":"dispatched_result_unknown"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:33.318Z","caseId":"D","stage":"case D reconciliation","durableState":"terminal_unresolved"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:33.320Z","caseId":"D","stage":"case D provider observation","providerOperationCountKnown":true,"providerOperationCount":1}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:33.320Z","caseId":"D","stage":"case_completed","status":"PASS"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:33.321Z","caseId":"D","stage":"cleanup_started"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:33.353Z","caseId":"D","stage":"cleanup_completed"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:33.360Z","caseId":"E","stage":"case_started"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:33.365Z","stage":"case E start","caseId":"E"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:34.133Z","stage":"case E chokepoint denial","caseId":"E"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:34.165Z","caseId":"E","stage":"case_completed","status":"PASS"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:34.166Z","caseId":"E","stage":"cleanup_started"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:34.179Z","caseId":"E","stage":"cleanup_completed"}
+{"schemaVersion":2,"event":"progress","at":"2026-08-13T21:51:34.183Z","lifecycle":"terminal","classification":"PASS_BOUNDED"}

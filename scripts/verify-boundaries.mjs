@@ -6,6 +6,10 @@
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { resolve, dirname, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  checkForLocalPathsObj,
+  immutableEvidenceAllowedPaths,
+} from './boundary-policy.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
@@ -64,7 +68,7 @@ if (pkg.workspaces) {
 // 4. Check package-lock.json for Fate repository references
 if (existsSync(resolve(root, 'package-lock.json'))) {
   const lock = JSON.parse(readFileSync(resolve(root, 'package-lock.json'), 'utf-8'));
-  checkForLocalPathsObj(lock, 'package-lock.json');
+  checkForLocalPathsObj(lock, 'package-lock.json', errors);
 }
 
 // 5. Scan all JSON evidence files for local paths
@@ -73,7 +77,12 @@ for (const file of evidenceFiles) {
   try {
     const data = JSON.parse(readFileSync(file, 'utf-8'));
     const relPath = file.replace(root, '').replace(/^[\\/]/, '').replace(/\\/g, '/');
-    checkForLocalPathsObj(data, relPath);
+    checkForLocalPathsObj(
+      data,
+      relPath,
+      errors,
+      immutableEvidenceAllowedPaths(file, root),
+    );
   } catch (e) {
     // Skip unparseable files
   }
@@ -81,49 +90,6 @@ for (const file of evidenceFiles) {
 
 // 6. Check for peer snapshots/archives
 scanForArchives(root, '.');
-
-// --- Helper functions ---
-
-function checkForLocalPathsObj(obj, filePath) {
-  if (typeof obj === 'string') {
-    // Windows absolute paths
-    if (/^[A-Za-z]:[/\\]/.test(obj)) {
-      errors.push(`${filePath}: contains absolute Windows path "${obj}"`);
-    }
-    // Unix absolute paths (exclude https://, http://)
-    if (/^\/[^/]/.test(obj) && !/^https?:\/\//.test(obj)) {
-      errors.push(`${filePath}: contains absolute Unix path "${obj}"`);
-    }
-    // Forbidden dependency patterns in any string
-    for (const prefix of forbiddenPrefixes) {
-      if (obj.startsWith(prefix)) {
-        errors.push(`${filePath}: contains forbidden "${prefix}" reference`);
-      }
-    }
-    if (forbiddenBranchPattern.test(obj)) {
-      errors.push(`${filePath}: contains mutable GitHub branch reference`);
-    }
-    // GitHub shorthand
-    for (const repo of fateRepos) {
-      if (obj.includes(`hourwise/${repo}#`) || obj.includes(`hourwise/${repo}@`)) {
-        errors.push(`${filePath}: contains mutable Fate repository reference to ${repo}`);
-      }
-    }
-  } else if (Array.isArray(obj)) {
-    for (const item of obj) {
-      checkForLocalPathsObj(item, filePath);
-    }
-  } else if (typeof obj === 'object' && obj !== null) {
-    for (const [key, value] of Object.entries(obj)) {
-      // Check for Fate repo keys as dependency names
-      if (key === 'resolved' || key === 'version') {
-        checkForLocalPathsObj(value, filePath);
-      } else {
-        checkForLocalPathsObj(value, filePath);
-      }
-    }
-  }
-}
 
 function findAllJsonFiles(dir, excludeDirs) {
   const results = [];

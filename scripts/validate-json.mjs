@@ -16,6 +16,8 @@ const schemaFiles = {
   'compatibility-matrix': 'compatibility-matrix.schema.json',
   'active-slice': 'active-slice.schema.json',
   slice: 'slice.schema.json',
+  subslice: 'subslice.schema.json',
+  'subslice-seal': 'subslice-seal.schema.json',
   handoff: 'handoff.schema.json',
 };
 
@@ -53,8 +55,17 @@ export function discoverValidationTargets(root = repositoryRoot) {
     const normalized = relative(root, file).replaceAll('\\', '/');
     if (normalized.endsWith('/slice.json')) {
       targets.push({ file: normalized, schemaKey: 'slice' });
+    } else if (normalized.endsWith('/subslice.json')) {
+      targets.push({ file: normalized, schemaKey: 'subslice' });
     } else if (normalized.includes('/handoffs/')) {
       targets.push({ file: normalized, schemaKey: 'handoff' });
+    }
+  }
+
+  for (const file of findJsonFiles(resolve(root, 'docs', 'evidence'))) {
+    const normalized = relative(root, file).replaceAll('\\', '/');
+    if (/^docs\/evidence\/FATES-SLICE-\d{3}[A-Z]-seal\.json$/.test(normalized)) {
+      targets.push({ file: normalized, schemaKey: 'subslice-seal' });
     }
   }
 

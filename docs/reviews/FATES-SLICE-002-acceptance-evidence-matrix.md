@@ -2,9 +2,21 @@
 
 ## Status
 
-Frozen design evidence requirements. This matrix specifies future runtime
-evidence; it does not create a fixture, a runtime route, a checkpoint, or a
-Slice activation.
+**FROZEN — pre-implementation evidence contract** as of
+`2026-08-08T18:20:34.521Z`.
+
+This matrix is pinned to the activated baseline
+`fates-stage-a-2026-07` and the activation decision in
+[`docs/decisions/FATES-SLICE-002-activation-decision.json`](../decisions/FATES-SLICE-002-activation-decision.json).
+The normative, machine-readable field-by-field freeze companion is
+[`docs/decisions/FATES-SLICE-002-evidence-freeze.json`](../decisions/FATES-SLICE-002-evidence-freeze.json).
+Together they specify future runtime evidence; they do not create a fixture,
+runtime route, implementation checkpoint, or completion/seal claim.
+
+The companion freeze identifies the claim, producing owner, required artifact,
+case coverage, real-process requirement, and mock-substitution rule for every
+material gate and case below. Any change requires a separately recorded,
+scope-preserving decision before implementation evidence can claim conformance.
 
 Every record must include: `caseId`, initiating `correlationId`, distinct
 Moirae/Horae/Ananke producer IDs as applicable, owner checkpoint commit and

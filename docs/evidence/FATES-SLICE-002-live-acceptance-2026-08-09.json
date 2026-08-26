@@ -1,0 +1,160 @@
+{
+  "sliceId": "FATES-SLICE-002",
+  "runDate": "2026-08-09",
+  "status": "owner-local-live-boundary-positive-and-negative-evidence",
+  "temporaryLiveDirectory": "%TEMP%\\fates-slice02-live-20260809",
+  "authority": {
+    "anankeRepository": "https://github.com/hourwise/Project-Ananke",
+    "anankeCheckpoint": "a54cb481958e5711afc1c92c622673f85e7e0178",
+    "anankeTag": "ananke-fates-slice-002-v0.1.0-protocol-1.4.0",
+    "anankeImplementationCommit": "552686fe6e01e2c0bf41ccb52591076bfa68bc2c",
+    "protocol": "1.4.0",
+    "runtimeContracts": "project-runtime-contracts@0.4.0"
+  },
+  "action": {
+    "name": "fates.slice02.inspect-fixed-fixture.v1",
+    "fixtureId": "fates.slice02.fixed-fixture.v1",
+    "fixtureSha256": "7b28f52d84b07bed8b49650960607e8f8a9809cac299810aba691f7f52fe9ae8",
+    "requestSchemaId": "urn:fates:slice02:inspect-fixed-fixture-request:v1",
+    "requestSchemaSha256": "db1864fdc4978d6befb4b6d3913461e4f2d2732dd0ca87e076977ab98cf6049c",
+    "canonicalEndpoint": "POST http://localhost:34102/api/execute"
+  },
+  "processes": {
+    "ananke": {
+      "pid": 23556,
+      "command": "ANANKE_PORT=34102 ANANKE_DEVELOPMENT_MODE=true node packages/runtime-core/dist/server.js",
+      "rootEndpoint": "http://127.0.0.1:34102/",
+      "registeredEndpoint": "http://localhost:34102/api",
+      "instanceId": "ananke-d9271328-e9a6-4897-9f35-c8f7f65145ba",
+      "observedIdentity": "ananke/0.1.0; protocol 1.4.0; minimum 1.0.0"
+    },
+    "mnemosyne": {
+      "pid": 24608,
+      "command": "node %TEMP%\\fates-slice02-live-20260809\\mnemosyne-live.mjs",
+      "runtimeInstanceId": "mnemosyne-live-instance-1",
+      "observedIdentity": "mnemosyne/0.1.0; protocol 1.4.0; minimum 1.0.0",
+      "observedHealth": "healthy",
+      "observedReadiness": "ready with optional Ananke advisory integration degraded",
+      "routeRole": "independently started baseline process; explicitly excluded from the Slice 02 handoff path"
+    },
+    "horae": {
+      "pid": 7344,
+      "command": "node %TEMP%\\fates-slice02-live-20260809\\horae-live-server.mjs",
+      "externalEndpoint": "http://127.0.0.1:34106/slice-02/governed-actions",
+      "anankeInspectionBase": "http://localhost:34102",
+      "expectedAnankeEndpoint": "http://localhost:34102/api",
+      "expectedAnankeInstanceId": "ananke-d9271328-e9a6-4897-9f35-c8f7f65145ba",
+      "authorization": "configured local development execution credential; value omitted"
+    }
+  },
+  "commands": [
+    "npm.cmd run build (Ananke)",
+    "npm.cmd run build (Horae)",
+    "node packages/runtime-core/dist/server.js (Ananke, with ANANKE_PORT and ANANKE_DEVELOPMENT_MODE)",
+    "node %TEMP%\\fates-slice02-live-20260809\\mnemosyne-live.mjs (independent Mnemosyne runtime)",
+    "node %TEMP%\\fates-slice02-live-20260809\\horae-live-server.mjs (external Horae HTTP wrapper around compiled @horae/slice02-relay)",
+    "HORAE_URL=http://127.0.0.1:34106 node %TEMP%\\fates-slice02-live-20260809\\acceptance-driver.mjs"
+  ],
+  "liveInspection": {
+    "identity": "HTTP 200; runtime ananke; instance matches pinned live configuration",
+    "registration": "HTTP 200; gateway-http endpoint, registered Slice 02 action, required executor dependency ready",
+    "health": "HTTP 200; healthy",
+    "readiness": "HTTP 200; ready; runtime-initialisation, selected-policy, audit-backend, execution-authenticator, adrasteia-adapter, and registered-tool-executors all ready",
+    "compatibility": "HTTP 200; runtime ananke; protocol 1.4.0; supported range 1.0.0-1.4.0",
+    "negotiation": "HTTP 200; compatible; negotiatedVersion 1.4.0",
+    "action": "HTTP 200; exact name/server/schema; additionalProperties false; READ_ONLY; retryable false; requiresApproval false",
+    "producerAttestation": "identity annotations matched the sealed checkpoint, tag, repository, and implementation provenance",
+    "readinessFreshness": "positive relay receipt reported readinessAgeMs 62, below the 1000 ms limit"
+  },
+  "positive": {
+    "status": 200,
+    "horaeState": "completed",
+    "horaeDispatchState": "result_received",
+    "horaeRouteId": "route_1174d21e-19db-4e03-9518-bf51a7c56ac0",
+    "horaeEventId": "event_66061188-a8ff-46b7-b104-f4a9c245a341",
+    "correlation": {
+      "requestId": "live-slice02-request-001",
+      "correlationId": "live-slice02-correlation-001"
+    },
+    "anankeOutcome": "COMPLETED",
+    "anankeRequestId": "request-f3027a0b-ecc8-4942-8f56-9fb5fa9f96b4",
+    "anankeDecisionId": "05d0d928-8561-4a75-a160-35ebba4cbef4",
+    "anankeOutcomeId": "26897cc7-7963-4457-bbe9-b854f2448fd0",
+    "anankeAuditId": "43ae488b-de5a-4d01-83e4-60092e587466",
+    "producerEvidence": {
+      "readAttemptCount": 1,
+      "adapterInvocation": true,
+      "actualFixtureDigest": "7b28f52d84b07bed8b49650960607e8f8a9809cac299810aba691f7f52fe9ae8",
+      "policyDecision": "ALLOW"
+    },
+    "dispatchProof": {
+      "positiveCorrelationToolCallRequested": 1,
+      "positiveCorrelationToolExecuted": 1,
+      "positiveCorrelationOutcomeGenerated": 1,
+      "retry": false,
+      "fallback": false,
+      "alternateEndpoint": false
+    }
+  },
+  "negative": {
+    "malformedExtraArgument": {
+      "status": 400,
+      "state": "malformed",
+      "dispatchState": "rejected_before_dispatch",
+      "anankeAuditIncrement": 0
+    },
+    "mutatedOrigin": {
+      "status": 400,
+      "state": "malformed",
+      "dispatchState": "rejected_before_dispatch",
+      "anankeAuditIncrement": 0
+    },
+    "identityDrift": {
+      "status": 409,
+      "state": "incompatible",
+      "reason": "Ananke identity drifted",
+      "anankeAuditIncrement": 0
+    },
+    "endpointDrift": {
+      "status": 409,
+      "state": "incompatible",
+      "reason": "Ananke endpoint drifted",
+      "anankeAuditIncrement": 0
+    },
+    "digestMismatch": {
+      "status": 200,
+      "state": "denied",
+      "dispatchState": "result_received",
+      "producerOutcome": "FAILED/FIXTURE_DIGEST_MISMATCH",
+      "retryable": false,
+      "readAttemptCount": 1,
+      "anankeEvidencePreserved": true
+    },
+    "unauthorizedMetadataAction": {
+      "status": 400,
+      "response": "adapterMetadata is only accepted for the bounded Slice 02 action"
+    }
+  },
+  "auditCounts": {
+    "beforeExactHostRun": 8,
+    "afterExactHostRun": 16,
+    "exactHostRunToolCallRequestedIncrement": 2,
+    "exactHostRunToolExecutedIncrement": 1,
+    "exactHostRunOutcomeGeneratedIncrement": 2,
+    "note": "The two exact-host dispatches were the successful positive request and the intentional digest-mismatch request; malformed, identity-drift, endpoint-drift, and unauthorized-metadata cases added no governed action audit events."
+  },
+  "limitations": [
+    "Mnemosyne was independently started and inspected but is explicitly excluded from the Slice 02 handoff path by the authoritative slice definition.",
+    "Moirae Code was not modified or started; the live request used the approved moirae-code origin identity shape without claiming a Moirae process.",
+    "Live timeout and post-dispatch indeterminate transport loss were not claimed. Honest induction would require producer mutation, a response-dropping proxy, or an alternate endpoint, all outside the authorized scope. Owner-local tests cover both states.",
+    "No fixture bytes were read by Horae; the expected fixture digest was carried as contract data and the physical read evidence came only from Ananke."
+  ],
+  "controlState": {
+    "runtimeContractsChanged": false,
+    "lockChanged": false,
+    "matrixChanged": false,
+    "snapshotChanged": false,
+    "sealChanged": false,
+    "moiraeChanged": false
+  }
+}

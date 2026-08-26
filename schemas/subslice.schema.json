@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "./subslice.schema.json",
+  "title": "Bounded Sub-slice Record",
+  "description": "Records a bounded implementation or acceptance unit owned by a canonical numeric slice.",
+  "type": "object",
+  "required": [
+    "subsliceId",
+    "parentSliceId",
+    "title",
+    "implementationStatus",
+    "sealStatus",
+    "objective",
+    "owners",
+    "components",
+    "prerequisites",
+    "scope",
+    "nonScope",
+    "requirements",
+    "activation"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "subsliceId": { "type": "string", "pattern": "^FATES-SLICE-\\d{3}[A-Z]$" },
+    "parentSliceId": { "type": "string", "pattern": "^FATES-SLICE-\\d{3}$" },
+    "title": { "type": "string", "minLength": 1 },
+    "implementationStatus": {
+      "type": "string",
+      "enum": ["planned", "active", "implemented", "completed", "superseded"]
+    },
+    "sealStatus": {
+      "type": "string",
+      "enum": ["provisional", "sealed", "superseded"]
+    },
+    "objective": { "type": "string", "minLength": 1 },
+    "owners": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "components": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "prerequisites": { "type": "array", "items": { "type": "string" } },
+    "scope": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "nonScope": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "requirements": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "designPackage": { "type": "string" },
+    "activation": {
+      "type": "object",
+      "required": ["state", "ownerDecision", "baselineCompatibilitySet"],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": ["proposed", "ready_for_activation", "active", "closed"]
+        },
+        "ownerDecision": { "type": "string", "minLength": 1 },
+        "baselineCompatibilitySet": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "sealRecord": {
+      "type": "string",
+      "pattern": "^docs/evidence/FATES-SLICE-\\d{3}[A-Z]-seal\\.json$"
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": { "properties": { "sealStatus": { "const": "sealed" } } },
+      "then": {
+        "required": ["sealRecord"],
+        "properties": {
+          "implementationStatus": { "const": "completed" },
+          "activation": {
+            "type": "object",
+            "properties": {
+              "state": { "const": "closed" }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "sealStatus": { "const": "provisional" } } },
+      "then": {
+        "not": { "required": ["sealRecord"] }
+      }
+    }
+  ]
+}
