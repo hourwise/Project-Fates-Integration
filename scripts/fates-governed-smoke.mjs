@@ -2,7 +2,7 @@
 // evidence path, not a Firecracker, Qwen, provider, or containment test.
 
 import { createHash, generateKeyPairSync } from 'node:crypto';
-import { mkdtempSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -38,6 +38,54 @@ function canonicalize(value) {
 
 export function canonicalRequestDigest(binding) {
   return sha256(canonicalize(binding));
+}
+
+function createControlledEffectSink(filePath) {
+  const read = () => {
+    if (!existsSync(filePath)) return { schemaVersion: 1, attempts: 0, successes: 0, effectId: null, digest: null, inFlight: false, completed: {} };
+    const state = JSON.parse(readFileSync(filePath, 'utf8'));
+    if (state?.schemaVersion !== 1 || typeof state.attempts !== 'number' || typeof state.successes !== 'number' || typeof state.completed !== 'object') throw new Error('controlled effect state is malformed');
+    return state;
+  };
+  const write = (state) => {
+    const temporary = `${filePath}.${process.pid}.${Date.now()}.tmp`;
+    writeFileSync(temporary, JSON.stringify(state), { encoding: 'utf8', flag: 'wx' });
+    renameSync(temporary, filePath);
+  };
+  return {
+    get attempts() { return read().attempts; },
+    get successes() { return read().successes; },
+    get effectId() { return read().effectId; },
+    get digest() { return read().digest; },
+    get completedCount() { return Object.keys(read().completed).length; },
+    begin(effectId, digest) {
+      const state = read();
+      if (Object.hasOwn(state.completed, effectId)) throw new Error('duplicate controlled effect invocation');
+      state.attempts += 1;
+      state.effectId = effectId;
+      state.digest = digest;
+      state.inFlight = true;
+      write(state);
+    },
+    complete(effectId, output) {
+      const state = read();
+      if (Object.hasOwn(state.completed, effectId)) throw new Error('duplicate controlled effect invocation');
+      state.successes += 1;
+      state.completed[effectId] = output;
+      state.inFlight = false;
+      write(state);
+    },
+    reconcile(effectId) {
+      const state = read();
+      if (state.inFlight) return { status: 'UNKNOWN' };
+      const output = state.completed[effectId];
+      return output ? { status: 'CONFIRMED', output } : { status: 'ABSENT' };
+    },
+    syntheticSuccess(effectId = 'synthetic-effect', digest = 'synthetic-digest') {
+      this.begin(effectId, digest);
+      this.complete(effectId, { effectId, digest });
+    },
+  };
 }
 
 export function createOperationBinding({ requestId, correlationId, callerId, actingAgentId, tenantId, workspaceId, projectId, action, sourceId, memoryId, destination, content }) {
@@ -268,7 +316,7 @@ export async function runGovernedSmoke({ workspaceRoot = resolve(repositoryRoot,
     trustedIssuers: [{ keyId: 'ananke-fates-005c-key', publicKey, issuerRuntime: 'ananke', allowedInstanceIds: [executionContext.runtimeInstanceId] }],
   });
   const admissionEngine = new ProvenanceAdmissionEngine({ now: () => BASE_NOW, history: new DurableAdmissionHistoryStore({ filePath: join(durableStateRoot, 'mnemosyne-admission.json'), now: () => BASE_NOW }) });
-  const effect = { attempts: 0, successes: 0, effectId: null, digest: null, completed: new Map(), inFlight: false };
+  const effect = createControlledEffectSink(join(durableStateRoot, 'effect-main.json'));
   let lastPreflight;
   let lastAdmission;
 
@@ -342,23 +390,14 @@ export async function runGovernedSmoke({ workspaceRoot = resolve(repositoryRoot,
       mnemosyne: mnemosyneBinding,
       executor: { run: async ({ request, admission, effectId }) => {
         if (admission.state !== 'ADMITTED') throw new Error('effect dispatch requires admitted operation');
-        effectSink.attempts += 1;
-        effectSink.inFlight = true;
-        effectSink.effectId = effectId ?? `controlled-effect:${request.operationBindingDigest}`;
-        effectSink.digest = request.operationBindingDigest;
-        if (effectSink.completed.has(effectSink.effectId)) throw new Error('duplicate controlled effect invocation');
-        effectSink.successes += 1;
-        const output = { effect: 'controlled-local-sink', effectId: effectSink.effectId, effectDigest: effectSink.digest };
-        effectSink.completed.set(effectSink.effectId, output);
-        effectSink.inFlight = false;
+        const controlledEffectId = effectId ?? `controlled-effect:${request.operationBindingDigest}`;
+        effectSink.begin(controlledEffectId, request.operationBindingDigest);
+        const output = { effect: 'controlled-local-sink', effectId: controlledEffectId, effectDigest: request.operationBindingDigest };
+        effectSink.complete(controlledEffectId, output);
         return output;
       } },
       stateStore: new FileDurableExecutionStateStore({ filePath: join(durableStateRoot, stateFile) }),
-      effectReconciler: effectReconciler ? { reconcile: async ({ effectId }) => {
-        if (effectSink.inFlight) return { status: 'UNKNOWN' };
-        const output = effectSink.completed.get(effectId);
-        return output ? { status: 'CONFIRMED', output } : { status: 'ABSENT' };
-      } } : undefined,
+      effectReconciler: effectReconciler ? { reconcile: async ({ effectId }) => effectSink.reconcile(effectId) } : undefined,
       faultInjector,
       timeoutMs,
       now: () => BASE_NOW,
@@ -398,13 +437,13 @@ export async function runGovernedSmoke({ workspaceRoot = resolve(repositoryRoot,
     ['malformedAuthorityResult', 'malformed', {}],
     ['nonSuccessAuthorityTransport', 'transport_failure', {}],
   ]) {
-    const scenarioEffect = { attempts: 0, successes: 0, effectId: null, digest: null, completed: new Map(), inFlight: false };
+    const scenarioEffect = createControlledEffectSink(join(durableStateRoot, `effect-${name}.json`));
     const scenarioRequest = cloneRequest(baseRequest, { idempotencyKey: `fates-005c-${name}`, sessionRequest: { correlation: { requestId: `req_fates_005c_${name}`, correlationId: `cor_fates_005c_${name}` } } });
     const scenarioCoordinator = makeCoordinator({ mode, effectSink: scenarioEffect, surfaceMutator: extra.surfaceMutator });
     let record;
     if (mode === 'malformed') {
       const malformedAnanke = { async preflight() { return { action: 'ALLOW', reasonCode: 'MALFORMED_AUTHORITY_RESULT' }; } };
-      const malformedCoordinator = new GovernedExecutionCoordinator({ orchestrator: new SessionOrchestrator(new RuntimeRegistry()), ananke: malformedAnanke, mnemosyne: { admit: async () => ({ state: 'ADMITTED' }) }, executor: { run: async () => { scenarioEffect.attempts += 1; scenarioEffect.successes += 1; } }, stateStore: new FileDurableExecutionStateStore({ filePath: join(durableStateRoot, 'horae-malformed.json') }), timeoutMs: 5000, now: () => BASE_NOW });
+      const malformedCoordinator = new GovernedExecutionCoordinator({ orchestrator: new SessionOrchestrator(new RuntimeRegistry()), ananke: malformedAnanke, mnemosyne: { admit: async () => ({ state: 'ADMITTED' }) }, executor: { run: async () => { scenarioEffect.syntheticSuccess('malformed-effect', 'malformed-digest'); } }, stateStore: new FileDurableExecutionStateStore({ filePath: join(durableStateRoot, 'horae-malformed.json') }), timeoutMs: 5000, now: () => BASE_NOW });
       record = await malformedCoordinator.execute(scenarioRequest);
     } else if (name === 'expiredAuthority') {
       const expiredVerifier = new RuntimeContractsPreflightReceiptVerifier({ now: () => '2026-08-27T12:10:00.000Z', trustedIssuers: [{ keyId: 'ananke-fates-005c-key', publicKey, issuerRuntime: 'ananke', allowedInstanceIds: [executionContext.runtimeInstanceId] }] });
@@ -432,7 +471,8 @@ export async function runGovernedSmoke({ workspaceRoot = resolve(repositoryRoot,
   };
   if (Object.values(assertions).some((value) => !value)) throw new Error(`governed smoke assertion failed: ${JSON.stringify({ assertions, effect, negatives, replay, lastAdmission, negativePreflights })}`);
   const crashRequest = cloneRequest(baseRequest, { idempotencyKey: 'fates-005d-crash-after-effect', sessionRequest: { correlation: { requestId: 'req_fates_005d_crash', correlationId: 'cor_fates_005d_crash' } } });
-  const crashEffect = { attempts: 0, successes: 0, effectId: null, digest: null, completed: new Map(), inFlight: false };
+  const crashEffectPath = join(durableStateRoot, 'effect-crash.json');
+  const crashEffect = createControlledEffectSink(crashEffectPath);
   const crashAdmissionState = new DurableAdmissionHistoryStore({ filePath: join(durableStateRoot, 'mnemosyne-crash.json'), now: () => BASE_NOW });
   const crashEngine = new ProvenanceAdmissionEngine({ now: () => BASE_NOW, history: crashAdmissionState });
   let crashObserved = false;
@@ -443,12 +483,13 @@ export async function runGovernedSmoke({ workspaceRoot = resolve(repositoryRoot,
   } catch (error) {
     crashObserved = error?.name === 'GovernedExecutionCrash';
   }
-  const recoveredCrash = await makeCoordinator({ engine: new ProvenanceAdmissionEngine({ now: () => BASE_NOW, history: new DurableAdmissionHistoryStore({ filePath: join(durableStateRoot, 'mnemosyne-crash.json'), now: () => BASE_NOW }) }), effectSink: crashEffect, stateFile: 'horae-crash.json' }).execute(crashRequest);
+  const recoveredCrashEffect = createControlledEffectSink(crashEffectPath);
+  const recoveredCrash = await makeCoordinator({ engine: new ProvenanceAdmissionEngine({ now: () => BASE_NOW, history: new DurableAdmissionHistoryStore({ filePath: join(durableStateRoot, 'mnemosyne-crash.json'), now: () => BASE_NOW }) }), effectSink: recoveredCrashEffect, stateFile: 'horae-crash.json' }).execute(crashRequest);
   const durability = {
     crashObserved,
     recoveredState: recoveredCrash.state,
-    effectAttempts: crashEffect.attempts,
-    effectSuccesses: crashEffect.successes,
+    effectAttempts: recoveredCrashEffect.attempts,
+    effectSuccesses: recoveredCrashEffect.successes,
     effectId: recoveredCrash.effectId,
     history: recoveredCrash.history.map((entry) => entry.state),
   };
@@ -470,7 +511,7 @@ export async function runGovernedSmoke({ workspaceRoot = resolve(repositoryRoot,
     ananke: { authenticatedPrincipal: authenticatedIdentity.authenticatedPrincipal, authority: lastPreflight.authority, receiptId: lastPreflight.receipt?.receiptId ?? null, observationId: positive.observationId },
     mnemosyne: { state: 'ADMITTED', admissionId: positive.admissionId, memoryId: positive.memoryId, replay: replay.state },
     moirae: { origin: baseRequest.origin, directProviderExecution: false },
-    effect: { attempts: effect.attempts, successes: effect.successes, effectId: effect.effectId, digest: effect.digest, completed: effect.completed.size, occursAfter: 'ADMITTED' },
+    effect: { attempts: effect.attempts, successes: effect.successes, effectId: effect.effectId, digest: effect.digest, completed: effect.completedCount, occursAfter: 'ADMITTED' },
     durability,
     negatives,
     assertions,

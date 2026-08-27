@@ -21,8 +21,8 @@ const pointer = {
   status: 'provisional',
 };
 const currentPointer = {
-  candidate: 'fates-durable-candidate-2026-08-27-r2',
-  manifest: 'compatibility-sets/fates-durable-candidate-2026-08-27-r2.json',
+  candidate: 'fates-durable-candidate-2026-08-27-r3',
+  manifest: 'compatibility-sets/fates-durable-candidate-2026-08-27-r3.json',
   status: 'provisional',
 };
 
@@ -73,7 +73,7 @@ test('current pointer selects the exact six-repository candidate without reading
   assert.equal(manifest.repositories.mnemosyne.commit, 'da6a9396d8d84b87724c4c1f96c40fd188ea68b3');
   assert.equal(manifest.repositories.horae.commit, 'e5c3e90714af40c4f87414d1c2fd3bab1bf50121');
   assert.equal(manifest.repositories['moirae-code'].commit, 'b23f723fc5267c95fe9f7eccb2efa32465f8d2f1');
-  assert.equal(manifest.repositories.integration.commit, '9230b838edaae2c6c854299bb1a927b02d3c9b1a');
+  assert.equal(manifest.repositories.integration.commit, 'd8699436e3a82ca99ad4fd17d45ff186b5d75493');
 });
 
 test('historical lock disagreement cannot influence current candidate resolution', async () => {
