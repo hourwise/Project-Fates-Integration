@@ -43,11 +43,50 @@
         "ananke": { "$ref": "#/$defs/repositoryEntry" },
         "mnemosyne": { "$ref": "#/$defs/repositoryEntry" },
         "horae": { "$ref": "#/$defs/repositoryEntry" },
-        "moirae-code": { "$ref": "#/$defs/repositoryEntry" }
+        "moirae-code": { "$ref": "#/$defs/repositoryEntry" },
+        "integration": { "$ref": "#/$defs/repositoryEntry" }
       }
     },
     "notes": { "type": "string" },
-    "knownLimits": { "type": "array", "items": { "type": "string" } }
+    "knownLimits": { "type": "array", "items": { "type": "string" } },
+    "candidateOperation": {
+      "type": "object",
+      "required": ["name", "replaySemantics", "contractRuntimeVersion", "status"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "replaySemantics": { "type": "string", "enum": ["ONE_USE", "IDEMPOTENT_SAME_EFFECT", "REPLAY_REJECTED"] },
+        "contractRuntimeVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+        "status": { "type": "string", "enum": ["bounded_vertical", "inspection_only", "not_applicable"] },
+        "mnemosyneParticipation": { "type": "string", "enum": ["STRICT_ADMISSION", "NOT_APPLICABLE_TO_OPERATION"] },
+        "effectModel": { "type": "string" },
+        "freshness": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "securityBinding": {
+      "type": "object",
+      "required": ["status", "contractRuntimeVersion", "operationBinding", "integrationIdentity", "implementationPaths"],
+      "properties": {
+        "status": { "type": "string", "enum": ["security_binding_incomplete", "security_binding_verified"] },
+        "contractRuntimeVersion": { "type": "string" },
+        "operationBinding": { "type": "string" },
+        "integrationIdentity": {
+          "type": "object",
+          "required": ["controlCommit", "identityMode"],
+          "properties": {
+            "controlCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+            "identityMode": { "type": "string", "enum": ["non_recursive_control_commit"] },
+            "finalPublicationCommit": { "type": ["string", "null"], "pattern": "^[0-9a-f]{40}$" }
+          },
+          "additionalProperties": false
+        },
+        "implementationPaths": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "freshnessPolicy": { "type": "string" },
+        "replayPolicy": { "type": "string" },
+        "artifactVerification": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
   },
   "additionalProperties": false,
   "$defs": {
@@ -58,8 +97,10 @@
         "url": { "type": "string", "pattern": "^https://github\\.com/hourwise/Project-[A-Za-z-]+$" },
         "tag": { "type": ["string", "null"] },
         "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "branch": { "type": ["string", "null"] },
         "checkpointState": { "type": "string", "enum": ["sealed_tagged", "pushed_untagged", "planned", "superseded"] },
         "package": { "type": "string" },
+        "artifactSourceCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
         "artifact": {
           "type": "object",
           "required": ["url", "sha256"],

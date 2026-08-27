@@ -11,6 +11,7 @@ const root = resolve(__dirname, '..');
 
 const steps = [
   { name: 'validate:json', script: 'scripts/validate-json.mjs' },
+  { name: 'verify:current-candidate', script: 'scripts/verify-current-candidate.mjs' },
   { name: 'verify:lock', script: 'scripts/verify-fates-lock.mjs' },
   { name: 'verify:matrix', script: 'scripts/verify-compatibility-matrix.mjs' },
   { name: 'verify:slices', script: 'scripts/verify-slices.mjs' },
