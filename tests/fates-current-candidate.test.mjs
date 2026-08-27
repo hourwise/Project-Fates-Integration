@@ -68,7 +68,7 @@ test('current pointer selects the exact six-repository candidate without reading
   assert.equal(manifest.repositories.mnemosyne.commit, '24f8541ce0e0a2f56171544a249cff56e7b634d1');
   assert.equal(manifest.repositories.horae.commit, '3a174b3f1bf791b437a22b4cfd41bf9677b9cba9');
   assert.equal(manifest.repositories['moirae-code'].commit, 'b23f723fc5267c95fe9f7eccb2efa32465f8d2f1');
-  assert.equal(manifest.repositories.integration.commit, 'b4ae41185bafa6b6dd80ff7e41b1de7a2915873f');
+  assert.equal(manifest.repositories.integration.commit, '01e975f96993b6a821368c8d0e7390f002db1120');
 });
 
 test('historical lock disagreement cannot influence current candidate resolution', async () => {
