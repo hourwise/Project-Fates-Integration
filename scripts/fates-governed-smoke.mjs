@@ -1,8 +1,8 @@
 // Bounded FATES-005C governed vertical. This is an in-process integration
 // evidence path, not a Firecracker, Qwen, provider, or containment test.
 
-import { createHash, generateKeyPairSync } from 'node:crypto';
-import { existsSync, mkdtempSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { createHash, generateKeyPairSync, randomUUID } from 'node:crypto';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -40,43 +40,89 @@ export function canonicalRequestDigest(binding) {
   return sha256(canonicalize(binding));
 }
 
-function createControlledEffectSink(filePath) {
-  const read = () => {
-    if (!existsSync(filePath)) return { schemaVersion: 1, attempts: 0, successes: 0, effectId: null, digest: null, inFlight: false, completed: {} };
-    const state = JSON.parse(readFileSync(filePath, 'utf8'));
-    if (state?.schemaVersion !== 1 || typeof state.attempts !== 'number' || typeof state.successes !== 'number' || typeof state.completed !== 'object') throw new Error('controlled effect state is malformed');
+const CONTROLLED_EFFECT_SCHEMA_VERSION = 2;
+
+export function createControlledEffectSink(filePath) {
+  const lockPath = `${filePath}.lock`;
+  const checksumFor = (state) => `sha256:${sha256(canonicalize({
+    schemaVersion: state.schemaVersion,
+    storeId: state.storeId,
+    attempts: state.attempts,
+    successes: state.successes,
+    effectId: state.effectId,
+    digest: state.digest,
+    inFlight: state.inFlight,
+    completed: state.completed,
+  }))}`;
+  const validate = (state) => {
+    if (!state || state.schemaVersion !== CONTROLLED_EFFECT_SCHEMA_VERSION || typeof state.storeId !== 'string' || !state.storeId || !Number.isSafeInteger(state.attempts) || state.attempts < 0 || !Number.isSafeInteger(state.successes) || state.successes < 0 || (state.effectId !== null && typeof state.effectId !== 'string') || (state.digest !== null && typeof state.digest !== 'string') || typeof state.inFlight !== 'boolean' || !state.completed || typeof state.completed !== 'object' || Array.isArray(state.completed) || typeof state.checksum !== 'string' || checksumFor(state) !== state.checksum) throw new Error('controlled effect state is malformed or checksum-invalid');
     return state;
   };
+  const read = () => {
+    if (!existsSync(filePath)) return undefined;
+    try {
+      return validate(JSON.parse(readFileSync(filePath, 'utf8')));
+    } catch {
+      return undefined;
+    }
+  };
   const write = (state) => {
-    const temporary = `${filePath}.${process.pid}.${Date.now()}.tmp`;
-    writeFileSync(temporary, JSON.stringify(state), { encoding: 'utf8', flag: 'wx' });
+    const document = { ...state, checksum: checksumFor(state) };
+    const temporary = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
+    writeFileSync(temporary, JSON.stringify(document), { encoding: 'utf8', flag: 'wx' });
     renameSync(temporary, filePath);
   };
+  const create = () => ({ schemaVersion: CONTROLLED_EFFECT_SCHEMA_VERSION, storeId: `controlled-effect:${randomUUID()}`, attempts: 0, successes: 0, effectId: null, digest: null, inFlight: false, completed: {} });
+  const withLock = (operation) => {
+    const release = acquireFileLock(lockPath);
+    try {
+      return operation();
+    } finally {
+      release();
+    }
+  };
+  const ensure = () => withLock(() => {
+    const state = read();
+    if (state) return state;
+    if (existsSync(filePath)) return undefined;
+    const fresh = create();
+    write(fresh);
+    return fresh;
+  });
+  ensure();
   return {
-    get attempts() { return read().attempts; },
-    get successes() { return read().successes; },
-    get effectId() { return read().effectId; },
-    get digest() { return read().digest; },
-    get completedCount() { return Object.keys(read().completed).length; },
+    get authorityId() { return read()?.storeId; },
+    get attempts() { return read()?.attempts ?? 0; },
+    get successes() { return read()?.successes ?? 0; },
+    get effectId() { return read()?.effectId ?? null; },
+    get digest() { return read()?.digest ?? null; },
+    get completedCount() { return Object.keys(read()?.completed ?? {}).length; },
     begin(effectId, digest) {
-      const state = read();
-      if (Object.hasOwn(state.completed, effectId)) throw new Error('duplicate controlled effect invocation');
-      state.attempts += 1;
-      state.effectId = effectId;
-      state.digest = digest;
-      state.inFlight = true;
-      write(state);
+      withLock(() => {
+        const state = read();
+        if (!state) throw new Error('controlled effect ledger unavailable');
+        if (Object.hasOwn(state.completed, effectId) || state.inFlight) throw new Error('duplicate or concurrent controlled effect invocation');
+        state.attempts += 1;
+        state.effectId = effectId;
+        state.digest = digest;
+        state.inFlight = true;
+        write(state);
+      });
     },
     complete(effectId, output) {
-      const state = read();
-      if (Object.hasOwn(state.completed, effectId)) throw new Error('duplicate controlled effect invocation');
-      state.successes += 1;
-      state.completed[effectId] = output;
-      state.inFlight = false;
-      write(state);
+      withLock(() => {
+        const state = read();
+        if (!state) throw new Error('controlled effect ledger unavailable');
+        if (Object.hasOwn(state.completed, effectId) || !state.inFlight || state.effectId !== effectId) throw new Error('controlled effect completion is not bound to its attempt');
+        state.successes += 1;
+        state.completed[effectId] = output;
+        state.inFlight = false;
+        write(state);
+      });
     },
-    reconcile(effectId) {
+    reconcile(effectId, expectedAuthorityId) {
       const state = read();
+      if (!state || (expectedAuthorityId && state.storeId !== expectedAuthorityId)) return { status: 'UNKNOWN' };
       if (state.inFlight) return { status: 'UNKNOWN' };
       const output = state.completed[effectId];
       return output ? { status: 'CONFIRMED', output } : { status: 'ABSENT' };
@@ -86,6 +132,26 @@ function createControlledEffectSink(filePath) {
       this.complete(effectId, { effectId, digest });
     },
   };
+}
+
+function acquireFileLock(lockPath, maxWaitMs = 5_000) {
+  mkdirSync(resolve(lockPath, '..'), { recursive: true });
+  const startedAt = Date.now();
+  const sleeper = new Int32Array(new SharedArrayBuffer(4));
+  while (true) {
+    try {
+      mkdirSync(lockPath);
+      writeFileSync(join(lockPath, 'owner.json'), JSON.stringify({ pid: process.pid }), { encoding: 'utf8', flag: 'wx' });
+      return () => {
+        try { unlinkSync(join(lockPath, 'owner.json')); } catch { /* already released */ }
+        try { rmdirSync(lockPath); } catch { /* another process released it */ }
+      };
+    } catch (error) {
+      if (error?.code !== 'EEXIST') throw error;
+      if (Date.now() - startedAt >= maxWaitMs) throw new Error('timed out waiting for controlled effect ledger lock');
+      Atomics.wait(sleeper, 0, 0, 5);
+    }
+  }
 }
 
 export function createOperationBinding({ requestId, correlationId, callerId, actingAgentId, tenantId, workspaceId, projectId, action, sourceId, memoryId, destination, content }) {
@@ -397,7 +463,8 @@ export async function runGovernedSmoke({ workspaceRoot = resolve(repositoryRoot,
         return output;
       } },
       stateStore: new FileDurableExecutionStateStore({ filePath: join(durableStateRoot, stateFile) }),
-      effectReconciler: effectReconciler ? { reconcile: async ({ effectId }) => effectSink.reconcile(effectId) } : undefined,
+      effectAuthorityId: effectSink.authorityId,
+      effectReconciler: effectReconciler ? { reconcile: async ({ effectId, effectAuthorityId }) => effectSink.reconcile(effectId, effectAuthorityId) } : undefined,
       faultInjector,
       timeoutMs,
       now: () => BASE_NOW,
@@ -494,6 +561,31 @@ export async function runGovernedSmoke({ workspaceRoot = resolve(repositoryRoot,
     history: recoveredCrash.history.map((entry) => entry.state),
   };
   if (!crashObserved || durability.recoveredState !== 'completed' || durability.effectAttempts !== 1 || durability.effectSuccesses !== 1) throw new Error(`durable crash recovery assertion failed: ${JSON.stringify(durability)}`);
+  const unknownRequest = cloneRequest(baseRequest, { idempotencyKey: 'fates-r1-missing-ledger', sessionRequest: { correlation: { requestId: 'req_fates_r1_missing', correlationId: 'cor_fates_r1_missing' } } });
+  const unknownEffectPath = join(durableStateRoot, 'effect-r1-missing.json');
+  const unknownEffect = createControlledEffectSink(unknownEffectPath);
+  const unknownAuthorityId = unknownEffect.authorityId;
+  let unknownCrashObserved = false;
+  try {
+    await makeCoordinator({ effectSink: unknownEffect, stateFile: 'horae-r1-missing.json', faultInjector: (point) => {
+      if (point === 'before_effect_invocation') throw new GovernedExecutionCrash(point);
+    } }).execute(unknownRequest);
+  } catch (error) {
+    unknownCrashObserved = error?.name === 'GovernedExecutionCrash';
+  }
+  unlinkSync(unknownEffectPath);
+  const replacementEffect = createControlledEffectSink(unknownEffectPath);
+  const unknownRecovered = await makeCoordinator({ effectSink: replacementEffect, stateFile: 'horae-r1-missing.json' }).execute(unknownRequest);
+  const unknownLedger = {
+    crashObserved: unknownCrashObserved,
+    originalAuthorityId: unknownAuthorityId,
+    replacementAuthorityId: replacementEffect.authorityId,
+    recoveredState: unknownRecovered.state,
+    effectAttempts: replacementEffect.attempts,
+    effectSuccesses: replacementEffect.successes,
+    effectStatus: unknownRecovered.effectStatus,
+  };
+  if (!unknownCrashObserved || unknownLedger.originalAuthorityId === unknownLedger.replacementAuthorityId || unknownLedger.recoveredState !== 'recovery_required' || unknownLedger.effectStatus !== 'unknown' || unknownLedger.effectAttempts !== 0 || unknownLedger.effectSuccesses !== 0) throw new Error(`R1 missing-ledger assertion failed: ${JSON.stringify(unknownLedger)}`);
   return {
     result: 'passed',
     candidateId: pointer.candidate,
@@ -513,6 +605,7 @@ export async function runGovernedSmoke({ workspaceRoot = resolve(repositoryRoot,
     moirae: { origin: baseRequest.origin, directProviderExecution: false },
     effect: { attempts: effect.attempts, successes: effect.successes, effectId: effect.effectId, digest: effect.digest, completed: effect.completedCount, occursAfter: 'ADMITTED' },
     durability,
+    r1Reconciliation: unknownLedger,
     negatives,
     assertions,
     limitations: ['bounded local vertical with atomic file-backed governance state', 'controlled local effect reconciliation only; no distributed exactly-once claim', 'no Firecracker/KVM or external provider effect'],

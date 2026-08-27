@@ -1,0 +1,113 @@
+{
+  "$schema": "../schemas/fates-lock.schema.json",
+  "_note": "Current provisional FATES-005D-R1 candidate. This is a post-durable-identity/dispatch/reconciliation remediation bounded vertical, not a seal or a claim of general exactly-once execution.",
+  "schemaVersion": "1.1.0",
+  "compatibilitySetId": "fates-durable-candidate-2026-08-27-r6",
+  "snapshotPath": "compatibility-sets/fates-durable-candidate-2026-08-27-r6.json",
+  "previousCompatibilitySet": "fates-durable-candidate-2026-08-27-r5",
+  "updatedAt": "2026-08-27T17:00:00.000Z",
+  "sealStatus": "provisional",
+  "integrationLevel": "partial_runtime",
+  "protocol": {
+    "current": "1.4.0",
+    "minimum": "1.0.0",
+    "maximum": "1.4.0"
+  },
+  "repositories": {
+    "adrasteia": {
+      "url": "https://github.com/hourwise/Project-Adrasteia",
+      "tag": null,
+      "branch": "release/webmcp-runtime-v0.6.2",
+      "commit": "a1c01bf9e6f9d6a126cfdcc1acfacd488b214210",
+      "checkpointState": "pushed_untagged",
+      "package": "project-runtime-contracts@0.6.2",
+      "artifactSourceCommit": "6aba3ef466a16292689d4afaf9f9bc40dc013301",
+      "artifact": {
+        "url": "https://github.com/hourwise/Project-Adrasteia/releases/download/adrasteia-preflight-v0.6.2-protocol-1.4.0/project-runtime-contracts-0.6.2.tgz",
+        "sha256": "44139c4cf1ca05ea684e122a2c4d75ff0f1a77e7020a61317e9569ae643dbd86"
+      },
+      "role": "portable runtime contracts, canonical context, receipt and binding representation"
+    },
+    "ananke": {
+      "url": "https://github.com/hourwise/Project-Ananke",
+      "tag": null,
+      "branch": "main",
+      "commit": "3d76adb162a0ff07b5630700ae30a823f1419cb4",
+      "checkpointState": "pushed_untagged",
+      "role": "authenticated authority, policy, content preflight and signed authority receipt"
+    },
+    "mnemosyne": {
+      "url": "https://github.com/hourwise/Project-Mnemosyne",
+      "tag": null,
+      "branch": "codex/fates-005d-durable-governance",
+      "commit": "f02df61be147d6fe716a98912d37eaaf1fe89f23",
+      "checkpointState": "pushed_untagged",
+      "package": "mnemosyne@0.1.0",
+      "role": "durable authenticated receipt replay and strict source-bound memory admission"
+    },
+    "horae": {
+      "url": "https://github.com/hourwise/Project-Horae",
+      "tag": null,
+      "branch": "codex/fates-005d-r1-durable-dispatch",
+      "commit": "68508f5c37e1cb3b244116d45fa267e689a6e75c",
+      "checkpointState": "pushed_untagged",
+      "package": "horae@0.1.0",
+      "role": "durable governed lifecycle, direct principal binding, single-dispatch ownership and controlled-effect reconciliation"
+    },
+    "moirae-code": {
+      "url": "https://github.com/hourwise/Project-Moirae-Code",
+      "tag": null,
+      "branch": "codex/fates-moirae-scoped-vsock-delivery",
+      "commit": "b23f723fc5267c95fe9f7eccb2efa32465f8d2f1",
+      "checkpointState": "pushed_untagged",
+      "package": "moirae-code@0.1.0",
+      "role": "controlled host/guest-shaped request envelope; no direct provider execution in this vertical"
+    },
+    "integration": {
+      "url": "https://github.com/hourwise/Project-Fates-Integration",
+      "tag": null,
+      "branch": null,
+      "commit": "810b7adfbbb39176cd08fdfca85f454a13bf0124",
+      "checkpointState": "pushed_untagged",
+      "role": "non-recursive control identity; final R1 publication commit is recorded separately from this manifest"
+    }
+  },
+  "candidateOperation": {
+    "name": "governed.memory-admission",
+    "replaySemantics": "IDEMPOTENT_SAME_EFFECT",
+    "contractRuntimeVersion": "0.6.2",
+    "status": "bounded_vertical",
+    "mnemosyneParticipation": "STRICT_ADMISSION",
+    "effectModel": "durable intent plus stable-ID authoritative reconcilable local controlled sink",
+    "freshness": "local fixed-clock receipt validity; expired evidence fails closed"
+  },
+  "securityBinding": {
+    "status": "security_binding_incomplete",
+    "contractRuntimeVersion": "0.6.2",
+    "operationBinding": "canonical SHA-256 over operation ID, correlation, authenticated principal id/kind and acting principal id/kind, tenant, workspace, project, action, source/memory resource, destination and input digest",
+    "integrationIdentity": {
+      "controlCommit": "810b7adfbbb39176cd08fdfca85f454a13bf0124",
+      "identityMode": "non_recursive_control_commit",
+      "finalPublicationCommit": null
+    },
+    "freshnessPolicy": "Ananke/Mnemosyne receipt validation uses issuedAt/expiresAt under the bounded local clock; expired or malformed authority is rejected",
+    "replayPolicy": "IDEMPOTENT_SAME_EFFECT for an identical durable operation binding; changed payload, caller, acting principal or scope is rejected and receipt reuse is rejected after restart",
+    "artifactVerification": "Runtime Contracts artifact is SHA-256 verified when materialized; source and artifact identities are recorded separately",
+    "implementationPaths": [
+      "packages/session-orchestrator/src/durable-state.ts",
+      "packages/session-orchestrator/src/governed-execution.ts",
+      "packages/session-orchestrator/src/durable-dispatch-child.mjs",
+      "scripts/fates-governed-smoke.mjs"
+    ]
+  },
+  "notes": "FATES-005D-R1 provisional candidate r6: the selected governed.memory-admission operation directly binds authenticated and acting principals into Horae durable identity, arbitrates effect dispatch with a durable cross-process claim, and treats stale claims and post-boundary uncertainty as reconciliation-required. The controlled local sink has a stable ledger identity, checksum-protected schema, atomic mutation locking and authoritative CONFIRMED/ABSENT/UNKNOWN semantics; missing, replaced or corrupt evidence cannot authorize redispatch. The candidate remains local and bounded: it is not a distributed exactly-once guarantee, a power-loss proof, a Firecracker/KVM acceptance, a containment proof, a Qwen/model validation, a production readiness claim or a seal. The Integration control commit is intentionally non-recursive and points to the already-published r5 implementation/control checkpoint; the final R1 publication commit containing this manifest is reported separately.",
+  "knownLimits": [
+    "The durable stores use atomic local filesystem state and locks; distributed database, multi-host and arbitrary power-loss guarantees are not claimed.",
+    "The controlled effect is a deterministic local sink with stable identity and reconciliation; arbitrary external providers are not covered.",
+    "The bounded vertical proves one governed operation and the named local crash/concurrency boundaries, not every Fates operation or every restart boundary in production.",
+    "The Moirae path is host/guest-shaped but no Firecracker guest launch, jailer boundary, vsock-only proof or VM escape proof was performed.",
+    "Host credential custody, network isolation and direct-provider impossibility require the future Linux/KVM acceptance environment.",
+    "Ananke metadata still advertises a stale 0.4.0 Runtime Contracts range in one adapter while its actual dependency is 0.6.2; this candidate records the mismatch without changing Ananke.",
+    "No Qwen/model integration, external provider call, release tag, seal or production-readiness claim is made."
+  ]
+}
