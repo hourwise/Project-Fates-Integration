@@ -67,7 +67,7 @@
       "url": "https://github.com/hourwise/Project-Fates-Integration",
       "tag": null,
       "branch": null,
-      "commit": "d0156b2405a21fe32d29e66cd7ccfe75ac7de90e",
+      "commit": "1ef1814ac0f2814d1c070eb91de7b2e63e79d228",
       "checkpointState": "pushed_untagged",
       "role": "non-recursive control identity; final publication commit is recorded separately from this manifest"
     }
@@ -86,7 +86,7 @@
     "contractRuntimeVersion": "0.6.2",
     "operationBinding": "canonical SHA-256 over operation ID, correlation, authenticated caller, acting agent, tenant, workspace, project, action, source/memory resource, destination and input digest",
     "integrationIdentity": {
-      "controlCommit": "d0156b2405a21fe32d29e66cd7ccfe75ac7de90e",
+      "controlCommit": "1ef1814ac0f2814d1c070eb91de7b2e63e79d228",
       "identityMode": "non_recursive_control_commit",
       "finalPublicationCommit": null
     },
