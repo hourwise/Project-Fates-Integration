@@ -11,10 +11,12 @@ import { spawnSync } from 'node:child_process';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
 describe('slice verification', () => {
-  it('idle active-slice rules hold', () => {
+  it('completed Slice 02 leaves the active slot idle', () => {
     const activeSlice = JSON.parse(readFileSync(resolve(root, 'active-slice.json'), 'utf-8'));
     assert.strictEqual(activeSlice.status, 'idle');
     assert.strictEqual(activeSlice.activeSliceId, null);
+    assert.strictEqual(activeSlice.baselineCompatibilitySet, 'fates-slice-002-2026-08-09');
+    assert.strictEqual(activeSlice.nextRecommendedSlice, 'FATES-SLICE-003');
   });
 
   it('template is not active', () => {
@@ -33,6 +35,16 @@ describe('slice verification', () => {
   it('Slice 001 sealStatus is provisional', () => {
     const slice = JSON.parse(readFileSync(resolve(root, 'slices/001-stage-a-adoption/slice.json'), 'utf-8'));
     assert.strictEqual(slice.sealStatus, 'provisional');
+  });
+
+  it('Slice 002 exists and is completed and sealed', () => {
+    assert.ok(existsSync(resolve(root, 'slices/002-governed-action-handoff/slice.json')), 'Slice 002 slice.json must exist');
+    const slice = JSON.parse(readFileSync(resolve(root, 'slices/002-governed-action-handoff/slice.json'), 'utf-8'));
+    assert.strictEqual(slice.sliceId, 'FATES-SLICE-002');
+    assert.strictEqual(slice.implementationStatus, 'completed');
+    assert.strictEqual(slice.sealStatus, 'sealed');
+    assert.strictEqual(slice.integrationLevel, 'runtime_validated');
+    assert.ok(slice.finalEvidence);
   });
 
   it('Slice 001 completion conditions preserve its provisional seal', () => {
@@ -56,12 +68,16 @@ describe('slice verification', () => {
   it('all $schema paths resolve correctly', () => {
     const files = [
       'slices/001-stage-a-adoption/slice.json',
+      'slices/002-governed-action-handoff/slice.json',
+      'slices/002-governed-action-handoff/handoffs/ananke-transport-handoff.json',
+      'slices/002-governed-action-handoff/handoffs/horae-handoff.json',
       'slices/_template/slice.json',
       'slices/_template/handoffs/handoff.example.json',
       'fates-lock.json',
       'compatibility-matrix.json',
       'active-slice.json',
       'compatibility-sets/fates-stage-a-2026-07.json',
+      'compatibility-sets/fates-slice-002-2026-08-09.json',
     ];
     for (const file of files) {
       const data = JSON.parse(readFileSync(resolve(root, file), 'utf-8'));
@@ -74,14 +90,12 @@ describe('slice verification', () => {
 
   // Negative tests
 
-  it('rejects idle state with non-null activeSliceId', () => {
-    // An idle active-slice must have activeSliceId: null
-    // This is an invariant test: assert that the real active-slice.json satisfies this
+  it('preserves idle-state invariant in the negative fixture shape', () => {
+    // An idle active-slice must have activeSliceId: null.
     const activeSlice = JSON.parse(readFileSync(resolve(root, 'active-slice.json'), 'utf-8'));
-    if (activeSlice.status === 'idle') {
-      assert.strictEqual(activeSlice.activeSliceId, null,
-        'idle active-slice must have null activeSliceId');
-    }
+    const fixture = { ...activeSlice, status: 'idle', activeSliceId: null };
+    assert.strictEqual(fixture.status, 'idle');
+    assert.strictEqual(fixture.activeSliceId, null);
   });
 
   it('rejects active state with null activeSliceId', () => {

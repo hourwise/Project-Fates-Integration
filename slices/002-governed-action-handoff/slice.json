@@ -1,0 +1,71 @@
+{
+  "$schema": "../../schemas/slice.schema.json",
+  "sliceId": "FATES-SLICE-002",
+  "title": "Governed action handoff",
+  "implementationStatus": "completed",
+  "sealStatus": "sealed",
+  "integrationLevel": "runtime_validated",
+  "objective": "Authorize the bounded, fail-closed handoff of one harmless fixed-fixture read from a constrained Moirae host through Horae to Ananke, with Ananke as the sole authority and physical reader.",
+  "owners": ["Fates Integration", "Ananke", "Horae", "Moirae Code", "Runtime Contracts"],
+  "repositoriesInvolved": [
+    { "name": "ananke", "url": "https://github.com/hourwise/Project-Ananke", "role": "action-authority and sole physical fixture reader" },
+    { "name": "horae", "url": "https://github.com/hourwise/Project-Horae", "role": "fail-closed handoff and typed result relay" },
+    { "name": "moirae-code", "url": "https://github.com/hourwise/Project-Moirae-Code", "role": "constrained request origin and typed result host" },
+    { "name": "adrasteia", "url": "https://github.com/hourwise/Project-Adrasteia", "role": "portable contract baseline; no change approved" },
+    { "name": "mnemosyne", "url": "https://github.com/hourwise/Project-Mnemosyne", "role": "explicitly excluded; baseline only" }
+  ],
+  "startingCheckpoints": {
+    "adrasteia": { "tag": "adrasteia-adoption-v0.4.0-protocol-1.4.0", "commit": "124b6aee2629a3147739934ad5f1b45b32c8ba46", "checkpointState": "sealed_tagged" },
+    "ananke": { "tag": "ananke-adrasteia-adoption-v0.1.0-protocol-1.4.0", "commit": "dcbb115c5798072221afdd2e4fdd36e786defddf", "checkpointState": "sealed_tagged" },
+    "mnemosyne": { "tag": "mnemosyne-adrasteia-adoption-v0.1.0-protocol-1.4.0", "commit": "f4ab76a9760f856d78908d35facceb068d78c8e5", "checkpointState": "sealed_tagged" },
+    "horae": { "tag": "horae-adrasteia-adoption-v0.1.0-protocol-1.4.0", "commit": "52e14fa574f7427f62747fe84d2789aec25b94e3", "checkpointState": "sealed_tagged" },
+    "moirae-code": { "tag": null, "commit": "a4783db271a61848c66ac4f6652a539bdb515e28", "checkpointState": "pushed_untagged" }
+  },
+  "contractChanges": ["None; no Runtime Contracts package or protocol change is approved for Slice 02."],
+  "repositoryOrder": [
+    "Integration evidence freeze",
+    "Ananke bounded adapter",
+    "Horae handoff/relay",
+    "Moirae constrained host",
+    "Integration real proof"
+  ],
+  "requiredConsumerTests": [
+    "Ananke: strict action/argument/context/policy validity, zero-read denial, one physical read, digest mismatch and audit count.",
+    "Horae: registration/startup race, readiness freshness, compatibility, endpoint/capability drift, dispatch, relay, timeout and indeterminate preservation.",
+    "Moirae Code: unsupported action, no direct Ananke fallback, no local fixture read, typed result presentation and bypass limitations.",
+    "Adrasteia: retain the current contract/protocol baseline without a package or protocol change."
+  ],
+  "integrationTests": [
+    "Positive completed read with exactly one Ananke read.",
+    "Denied zero-read, malformed extra-argument and digest-mismatch cases.",
+    "Principal, scope, purpose and policy mutation cases.",
+    "Stale readiness, startup race, incompatible protocol and identity/endpoint drift cases.",
+    "Schema/origin mutation, timeout and indeterminate post-dispatch-loss cases.",
+    "Correlation and producer-ID preservation.",
+    "No direct Moirae-to-Ananke fallback and no non-Ananke fixture read.",
+    "Explicit bypass-limitation report.",
+    "One real three-process positive and negative proof; mocks cannot satisfy route evidence."
+  ],
+  "breakingChanges": [],
+  "deferredWork": [
+    "Governed execution beyond the fixed fixture.",
+    "Qualified Mnemosyne context retrieval and memory handoff.",
+    "Durable idempotency, persistence, retry, reconciliation and recovery.",
+    "Content preflight, provider fallback, credentials, browser, shell, workflow and global host governance."
+  ],
+  "stopConditions": [
+    "Do not advance any component checkpoint or tag out of order.",
+    "Do not advance fates-lock.json, compatibility-matrix.json, the Stage-A snapshot or any seal claim before all required producer and cross-runtime evidence is accepted.",
+    "Stop if the route requires a mock transport, direct or alternative Ananke path, unbound origin/schema/readiness evidence, or any excluded capability.",
+    "Retain the provisional Moirae checkpoint disclosure until a verified annotated tag exists."
+  ],
+  "finalEvidence": {
+    "acceptance": "FORMALLY ACCEPTED AND SEALED on 2026-08-09 against compatibility set fates-slice-002-2026-08-09. Authoritative live evidence: docs/evidence/FATES-SLICE-002-live-acceptance-2026-08-09.json. Accepted Ananke checkpoint 52b512885edf3fec7ff7ce4b4dcbd3958b170ba4 tagged ananke-fates-slice-002-v0.2.0-protocol-1.4.0; accepted Horae checkpoint 9566eb2764339d6a6fe143c1630eeb009e00a7bd tagged horae-fates-slice-002-v0.1.0-protocol-1.4.0. Runtime Contracts remains project-runtime-contracts@0.4.0, protocol 1.4.0, artifact SHA-256 11ee062b079f74d2a4558af315c9b9b12a6aede291d409c48f038d93c416e2c2. Final Ananke, Horae, and Integration validations passed.",
+    "limitations": [
+      "The live evidence started compiled Ananke and Horae and an independently started Mnemosyne baseline process; Mnemosyne was explicitly excluded from the handoff path and no Moirae process was started.",
+      "Live timeout, post-dispatch indeterminate transport loss, and missing/wrong producer or capability induction were not performed; deterministic owner-local tests cover the timeout, indeterminate, preservation, stale/not-ready, and no-retry semantics.",
+      "The successor compatibility set is runtime_validated but remains globally provisional because the unchanged locked Moirae Code checkpoint is pushed_untagged. The Slice 02 seal is scoped to the accepted Ananke/Horae implementation checkpoints and recorded evidence.",
+      "No Runtime Contracts source or package/protocol version changed; no Slice 03 implementation began."
+    ]
+  }
+}

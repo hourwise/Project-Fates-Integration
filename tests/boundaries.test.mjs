@@ -88,7 +88,7 @@ describe('boundary verification', () => {
 
   it('snapshot matches lock for seal status', () => {
     const lock = JSON.parse(readFileSync(resolve(root, 'fates-lock.json'), 'utf-8'));
-    const snapshot = JSON.parse(readFileSync(resolve(root, 'compatibility-sets/fates-stage-a-2026-07.json'), 'utf-8'));
+    const snapshot = JSON.parse(readFileSync(resolve(root, lock.snapshotPath), 'utf-8'));
     assert.strictEqual(snapshot.sealStatus, lock.sealStatus);
     assert.strictEqual(snapshot.integrationLevel, lock.integrationLevel);
   });

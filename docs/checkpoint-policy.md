@@ -75,7 +75,9 @@ one or more repository checkpoints lack verified annotated tags.
 
 When a new vertical slice is completed:
 
-1. Active slice is approved with explicit scope and acceptance criteria
+1. A separate explicit activation decision records the approved scope,
+   acceptance criteria, exact starting lock, and user authorization; this is
+   the point at which the bounded implementation sequence becomes authorized
 2. Starting lock state is copied as the reference baseline
 3. Owner repository checkpoint is produced (tag, clean worktree, green CI)
 4. Handoff packet is committed to the slice's handoffs directory
@@ -87,6 +89,11 @@ When a new vertical slice is completed:
 10. Matrix and slice evidence are updated
 11. Full validation passes
 12. Integration checkpoint is committed and tagged
+
+Implementation checkpoints, handoff packets, consumer tests, integration proof,
+and acceptance evidence are post-activation requirements. They remain required
+before lock/matrix advancement and sealing; they are not prerequisites to the
+activation decision.
 
 Not every Fate needs a new checkpoint when not involved in the slice.
 

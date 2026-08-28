@@ -2,7 +2,10 @@
 
 ## Purpose and status
 
-This checklist captures explicit decisions required before implementation may begin. It is not a request to activate Slice 02, merge a runtime branch, advance a lock, or merely acknowledge the associated design documents.
+This checklist captures explicit design decisions required before a separate
+activation decision may authorize implementation. It is not a request to
+activate Slice 02, merge a runtime branch, advance a lock, or merely
+acknowledge the associated design documents.
 
 **Design package classification:** READY_FOR_OWNER_APPROVAL.
 **Current Slice state:** inactive.
@@ -25,7 +28,7 @@ An approval below must state that the owner approves the bounded design and acce
 - [ ] Approve canonical binding of arguments, trusted principal pair, bounded scope, purpose, policy version, validity, origin/schema receipt and correlation.
 - [ ] Approve denial before executor invocation, one read maximum, post-read SHA-256 check, typed result/failure and no retry.
 - [ ] Approve Ananke-owned decision/outcome/audit evidence, including zero-read denial and actual/expected digest evidence.
-- [ ] Accept the required Ananke checkpoint and handoff packet before Horae consumption.
+- [ ] Accept the required Ananke checkpoint and handoff packet before Horae consumption after activation.
 
 Approval record: owner ____________________ date __________ reference ____________________
 
@@ -37,7 +40,7 @@ Approval record: owner ____________________ date __________ reference __________
 - [ ] Approve fail-closed refusal on unregistered, unready, stale, unhealthy, incompatible, endpoint/instance-drifted, capability-drifted or malformed origin/schema inputs.
 - [ ] Approve preservation of Moirae origin/correlation and addition of distinct Horae route/event IDs.
 - [ ] Approve typed denied, unavailable, stale, incompatible, malformed, timed_out and indeterminate relay semantics, including no false success/retry.
-- [ ] Accept the required Horae checkpoint and handoff packet before Moirae consumption.
+- [ ] Accept the required Horae checkpoint and handoff packet before Moirae consumption after activation.
 
 Approval record: owner ____________________ date __________ reference ____________________
 
@@ -49,7 +52,7 @@ Approval record: owner ____________________ date __________ reference __________
 - [ ] Approve typed presentation of request, route state, Ananke decision/outcome, digest, correlation, producer IDs and limitations.
 - [ ] Approve harness disabling/no-configuring direct fixture, direct Ananke, provider/network, shell/task/child-process and sibling-import surfaces.
 - [ ] Accept explicit disclosures that terminal, task, debugger, extension host, Git, third-party extension, external CLI and direct-provider paths are outside the Slice claim.
-- [ ] Accept the required Moirae checkpoint and handoff packet before Integration proof.
+- [ ] Accept the required Moirae checkpoint and handoff packet before Integration proof after activation.
 
 Approval record: owner ____________________ date __________ reference ____________________
 
@@ -67,7 +70,7 @@ Approval record: owner ____________________ date __________ reference __________
 - [ ] Approve the repository order: evidence freeze -> Ananke adapter -> Horae handoff/relay -> Moirae constrained host -> Integration real proof.
 - [ ] Approve the cross-runtime positive/negative test matrix and rule that mocks cannot prove the route.
 - [ ] Approve the checkpoint/handoff contents and requirement for clean, pushed, green producer checkpoints.
-- [ ] Approve non-activation, no-lock-advance and no-sealing conditions until implementation proof and later user authorization exist.
+- [ ] Approve non-activation, no-lock-advance and no-sealing conditions until a separate activation decision is recorded; after activation, implementation proof remains required before lock advancement and sealing.
 - [ ] Approve the route-specific bypass claim and exclusions.
 
 Approval record: owner ____________________ date __________ reference ____________________
@@ -76,7 +79,7 @@ Approval record: owner ____________________ date __________ reference __________
 
 - [ ] All five owners have provided explicit design approvals.
 - [ ] Any dissent, requested change, or unresolved topology/contract question is recorded below.
-- [ ] Only after all approvals may an implementation scope be proposed; that later proposal still requires separate user authorization before Slice activation.
+- [ ] All five approvals establish the design baseline only. A separate activation decision must record the exact Stage-A baseline, approved scope and acceptance criteria, and explicit user authorization; that decision is the only authorization to begin implementation.
 
 Unresolved items / owner conditions:
 

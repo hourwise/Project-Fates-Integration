@@ -1,0 +1,46 @@
+{
+  "$schema": "../../../schemas/handoff.schema.json",
+  "_note": "Completed Slice 02 Horae handoff/relay checkpoint. This packet records the bounded owner-local relay implementation and its accepted live evidence boundary.",
+  "sliceId": "FATES-SLICE-002",
+  "repository": "horae",
+  "handoffStatus": "completed",
+  "startingCommit": "b591bc688b64308a28bd958377dfdee2f2441985",
+  "endingCommit": "9566eb2764339d6a6fe143c1630eeb009e00a7bd",
+  "tag": "horae-fates-slice-002-v0.1.0-protocol-1.4.0",
+  "protocol": "1.4.0",
+  "contractsUsed": [
+    "project-runtime-contracts@0.4.0",
+    "protocol 1.4.0; minimum 1.0.0"
+  ],
+  "publicSurfacesAddedOrChanged": [
+    "@horae/slice02-relay bounded action-only relay package.",
+    "POST /slice-02/governed-actions external route shape for the exact fates.slice02.inspect-fixed-fixture.v1 action.",
+    "Fresh Ananke identity, registration, compatibility, health, readiness, endpoint, instance, producer, and reduced capability verification immediately before each single dispatch.",
+    "Typed completed, denied, unavailable, stale, incompatible, malformed, timed_out, and indeterminate relay states with preserved producer evidence and distinct Horae route/event IDs.",
+    "Accepted content scope: package-lock.json, tsconfig.json, packages/slice02-relay/package.json, packages/slice02-relay/tsconfig.json, packages/slice02-relay/src/index.ts, and packages/slice02-relay/src/index.test.ts."
+  ],
+  "explicitlyUnavailableSurfaces": [
+    "No generic proxy, arbitrary action routing, retry, fallback, persistence, durable recovery, credential protocol, approval authority, fixture access, or sibling runtime source import.",
+    "No Moirae implementation or Moirae process is claimed; the live request used the approved origin identity shape and the live artifact records that limitation.",
+    "Live timeout and post-dispatch indeterminate transport loss were not induced; the focused owner-local tests cover those semantics and no-retry behavior."
+  ],
+  "breakingChanges": [],
+  "migrationNotes": "Consumers must call only the bounded Slice 02 route, supply the exact admitted origin/schema/context receipts, configure the Ananke host base without an /api suffix for inspection binding, and preserve the canonical endpoint and pinned producer identity.",
+  "testsRun": [
+    "npm.cmd run validate: baseline verification, build, lint, aggregate 2 files/16 tests, conformance 1 file/10 tests, both peer comparators, bench 2 files/16 tests, CLI smoke, and composition 1 file/10 tests passed.",
+    "Focused packages/slice02-relay/src/index.test.ts: 6/6 tests passed.",
+    "Horae GitHub Actions CI passed for 9566eb2764339d6a6fe143c1630eeb009e00a7bd: https://github.com/hourwise/Project-Horae/actions/runs/31335730747"
+  ],
+  "consumerTestsRequired": [
+    "Integration must use the exact tagged Horae checkpoint, the live acceptance artifact, and the Ananke producer handoff while preserving the live-versus-deterministic evidence boundary.",
+    "Any future constrained host must call Horae only and must not read the fixture or fall back directly to Ananke."
+  ],
+  "knownConstraints": [
+    "The live acceptance observed Ananke and Horae over loopback HTTP and independently started Mnemosyne as an excluded baseline process; it did not start a Moirae process.",
+    "Horae's source contains no filesystem/read API or fixture-byte path; fixture identity and expected digest are carried only as contract data.",
+    "The global compatibility set remains provisional while the unchanged locked Moirae baseline remains pushed_untagged; this Slice 02 row is sealed against the accepted tagged Ananke/Horae checkpoints and evidence."
+  ],
+  "pushStatus": "pushed",
+  "ciStatus": "passing",
+  "worktreeState": "clean"
+}

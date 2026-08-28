@@ -18,18 +18,31 @@ Status: review checklist only. Completing this document does not activate Slice 
 - [ ] **Canonical binding:** action, arguments/digest, principals, scope, purpose, policy/version, origin, schema hash, validity/readiness and correlation are bound before dispatch.
 - [ ] **Pinned origin/schema:** locked checkpoints, contract/protocol versions, route identities and request-shape hash are recorded; material drift fails closed.
 - [ ] **Readiness:** Moirae Code, Horae route and Ananke readiness are fresh before dispatch; startup race and stale/unavailable cases deny.
-- [ ] **Correlation and proof:** one initiating correlation ID joins the route, decision and result while retaining distinct producer IDs; real cross-process/package/runtime positive and negative tests exist.
+- [ ] **Correlation and proof obligation:** the planned evidence joins one initiating correlation ID across route, decision and result while retaining distinct producer IDs; real cross-process/package/runtime positive and negative tests are required after activation.
 
-## Required evidence before activation
+## Evidence required for an activation decision
 
 - [ ] Explicit owner approval identifies Ananke, Horae, Moirae Code and Integration responsibilities.
-- [ ] The actual transport/routing mechanism is identified as implemented at pinned checkpoints or has a separately approved implementation plan.
+- [ ] The actual transport/routing mechanism is identified in the approved implementation plan. It need not be implemented before activation; it must be proven after activation at the stated checkpoints.
 - [ ] Ananke confirms the exact low-risk policy/approval treatment and mutation invalidators.
 - [ ] Horae confirms readiness source, freshness semantics and route identity preservation.
 - [ ] Moirae Code confirms the constrained host surface and explicit remaining bypass limitations.
 - [ ] Runtime Contracts owners confirm either no portable change is needed or approve a reusable, structural, transport-neutral change.
 - [ ] The Integration test plan contains positive read, denial, mutation, stale readiness, origin/schema drift, correlation, and bypass-report cases.
+- [ ] The activation decision records the exact Stage-A baseline `fates-stage-a-2026-07` and starting checkpoints from `fates-lock.json`.
+- [ ] The activation decision records explicit user authorization to begin the bounded implementation sequence.
+
+Completing this section prepares the activation decision; it does not itself
+activate Slice 02. The separate activation decision is the only authorization
+to begin implementation.
+
+## Post-activation evidence before lock advancement or sealing
+
 - [ ] Each changed Fate has a clean, pushed, green checkpoint and a handoff packet before any lock advancement.
+- [ ] The real three-process proof passes at the exact producer and consumer checkpoints; mocks are not accepted as route evidence.
+- [ ] All six gates have their required positive and negative evidence, including physical-read count, readiness/freshness, origin/schema, correlation/producer preservation, and bypass limitations.
+- [ ] The frozen acceptance-evidence matrix is satisfied and producer-owned audit/test/presentation artifacts are retained.
+- [ ] No lock, snapshot, matrix completion claim, or seal status is advanced before consumer and Integration evidence is accepted.
 
 ## Hard stops
 

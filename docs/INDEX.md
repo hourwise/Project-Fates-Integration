@@ -1,0 +1,34 @@
+# The Fates — Knowledge Index
+
+> Routing map only. Integrated state is in [SOURCE_OF_TRUTH.md](SOURCE_OF_TRUTH.md).
+
+## Integrated coordination
+
+- Current integrated state and drift: [SOURCE_OF_TRUTH.md](SOURCE_OF_TRUTH.md)
+- Responsibilities and ownership: [SYSTEM_MAP.md](SYSTEM_MAP.md)
+- Cross-Fate paths, versions, and gates: [INTEGRATION.md](INTEGRATION.md)
+- Research and candidate routing: [RESEARCH.md](RESEARCH.md)
+- Active audit/task record: [tasks/ACTIVE.md](tasks/ACTIVE.md)
+- Architecture laws: [architecture-laws.md](architecture-laws.md)
+- Workflow and checkpoints: [development-workflow.md](development-workflow.md), [checkpoint-policy.md](checkpoint-policy.md), [compatibility-policy.md](compatibility-policy.md)
+- Current compatibility control: [fates-lock.json](../fates-lock.json), [compatibility-matrix.json](../compatibility-matrix.json), [active-slice.json](../active-slice.json)
+- Stage-A evidence: [Slice 001](../slices/001-stage-a-adoption/README.md), [compatibility snapshot](../compatibility-sets/fates-stage-a-2026-07.json)
+- Slice 02 design/evidence: [boundary design](design/FATES-SLICE-002-runtime-boundary-resolution.md), [consistency review](reviews/FATES-SLICE-002-cross-owner-consistency-review.md), [acceptance matrix](reviews/FATES-SLICE-002-acceptance-evidence-matrix.md), [evidence freeze](decisions/FATES-SLICE-002-evidence-freeze.json), [implementation authorization](decisions/FATES-SLICE-002-implementation-authorization.json)
+
+## Component authorities
+
+| Fate | Current/architecture | Decisions | Integration boundary | Important implementation | Tests |
+| --- | --- | --- | --- | --- | --- |
+| Ananke | [README](../../Project%20Ananke/README.md), [architecture](../../Project%20Ananke/docs/ARCHITECTURE.md), [roadmap](../../Project%20Ananke/docs/ROADMAP.md) | [decision index](../../Project%20Ananke/docs/decisions/README.md) | [gateway contract](../../Project%20Ananke/docs/integration/gateway-contract.md), [Stage-A baseline](../../Project%20Ananke/docs/integration/adrasteia-baseline.json) | [`runtime-core`](../../Project%20Ananke/packages/runtime-core/src/index.ts), [`authority-engine`](../../Project%20Ananke/packages/authority-engine/src), [`policy-engine`](../../Project%20Ananke/packages/policy-engine/src), [`mcp-adapter`](../../Project%20Ananke/packages/mcp-adapter/src) | package tests under [`packages`](../../Project%20Ananke/packages) |
+| Mnemosyne | [README](../../Project%20Mnemosyne/README.md), [architecture](../../Project%20Mnemosyne/docs/ARCHITECTURE.md), [roadmap](../../Project%20Mnemosyne/docs/ROADMAP.md) | [decision index](../../Project%20Mnemosyne/docs/decisions/README.md) | [Stage-A memory boundary](../../Project%20Mnemosyne/docs/integration/adrasteia-stage-a.md), [Ananke boundary](../../Project%20Mnemosyne/docs/ANANKE_INTEGRATION.md) | [`runtime-core`](../../Project%20Mnemosyne/packages/runtime-core/src/index.ts), [`memory-boundary`](../../Project%20Mnemosyne/packages/memory-boundary/src/index.ts), [`ananke-adapter`](../../Project%20Mnemosyne/packages/ananke-adapter/src/index.ts), stores/retrieval/vault packages | [`tests`](../../Project%20Mnemosyne/tests) plus package-local tests |
+| Horae | [README](../../Project%20Horae/README.md), [architecture](../../Project%20Horae/docs/architecture.md), [ownership matrix](../../Project%20Horae/docs/architecture/ownership-matrix.md) | [decision index](../../Project%20Horae/docs/decisions/README.md) | [runtime integration](../../Project%20Horae/docs/runtime-integration.md), [Stage-A composition](../../Project%20Horae/docs/integration/stage-a-composition.md) | [`runtime-registry`](../../Project%20Horae/packages/runtime-registry/src/index.ts), [`capability-planner`](../../Project%20Horae/packages/capability-planner/src), [`session-orchestrator`](../../Project%20Horae/packages/session-orchestrator/src/index.ts), inspection bindings | [`adrasteia-adoption.test.ts`](../../Project%20Horae/packages/testbench/src/adrasteia-adoption.test.ts) |
+| Moirae Code | [README](../../Project%20Moirae%20Code/README.md), [product architecture](../../Project%20Moirae%20Code/docs/product-architecture.md), [trust boundaries](../../Project%20Moirae%20Code/docs/trust-boundaries.md) | [decision index](../../Project%20Moirae%20Code/docs/decisions/README.md) | [governed path](../../Project%20Moirae%20Code/docs/governed-path.md), [Stage-A host adoption](../../Project%20Moirae%20Code/docs/integration/stage-a-host-adoption.md) | inspection clients under [`integrations`](../../Project%20Moirae%20Code/integrations), [`moirae-core-extension`](../../Project%20Moirae%20Code/apps/moirae-core-extension/src/extension.ts), [`sandbox-adapter`](../../Project%20Moirae%20Code/packages/sandbox-adapter/src/adapter.ts) | [`tests`](../../Project%20Moirae%20Code/tests) |
+| Runtime Contracts / Project Adrasteia | [README](../../Project%20Runtime%20Contracts/README.md), [protocol](../../Project%20Runtime%20Contracts/docs/protocol-specification.md), [ownership](../../Project%20Runtime%20Contracts/docs/contract-ownership.md) | [decision index](../../Project%20Runtime%20Contracts/docs/decisions/README.md) | [adoption baseline](../../Project%20Runtime%20Contracts/docs/adoption-baseline.md), [version negotiation](../../Project%20Runtime%20Contracts/docs/version-negotiation.md), [conformance](../../Project%20Runtime%20Contracts/docs/conformance.md) | public exports in [`src/index.ts`](../../Project%20Runtime%20Contracts/src/index.ts); schemas under [`src`](../../Project%20Runtime%20Contracts/src) | schema tests under [`src`](../../Project%20Runtime%20Contracts/src), adoption [`fixtures`](../../Project%20Runtime%20Contracts/fixtures) |
+
+## Security and trust routing
+
+- Governed execution, chokepoint, approval, and payload binding: [Ananke threat model](../../Project%20Ananke/docs/threat-model.md), [approval binding](../../Project%20Ananke/docs/APPROVAL_BINDING.md), [deployment assumptions](../../Project%20Ananke/docs/security/deployment-assumptions.md)
+- Memory classification, provenance, credentials, and export: [Mnemosyne security model](../../Project%20Mnemosyne/docs/SECURITY_MODEL.md), [Stage-A memory boundary](../../Project%20Mnemosyne/docs/integration/adrasteia-stage-a.md)
+- Orchestration authority separation and freshness: [Horae ownership matrix](../../Project%20Horae/docs/architecture/ownership-matrix.md), [supervision state machine](../../Project%20Horae/docs/supervision-state-machine.md)
+- Host bypasses, extensions, network, secrets, and sandbox limits: [Moirae trust boundaries](../../Project%20Moirae%20Code/docs/trust-boundaries.md), [extension security](../../Project%20Moirae%20Code/docs/extension-security-model.md)
+- Portable representation versus authority: [contract ownership matrix](../../Project%20Runtime%20Contracts/docs/contract-ownership-matrix.md), [design gates](../../Project%20Runtime%20Contracts/docs/design-gates.md)

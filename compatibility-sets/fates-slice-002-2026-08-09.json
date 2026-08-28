@@ -1,5 +1,6 @@
 {
-  "$schema": "./schemas/fates-lock.schema.json",
+  "$schema": "../schemas/fates-lock.schema.json",
+  "_note": "Immutable historical snapshot of the fates-slice-002-2026-08-09 compatibility set. Slice 02 is sealed at the slice level; the global compatibility set remains provisional because the unchanged Moirae baseline is pushed_untagged. Do not modify except to correct verified recording errors.",
   "schemaVersion": "1.0.0",
   "compatibilitySetId": "fates-slice-002-2026-08-09",
   "snapshotPath": "compatibility-sets/fates-slice-002-2026-08-09.json",
@@ -44,22 +45,21 @@
       "tag": "horae-fates-slice-002-v0.1.0-protocol-1.4.0",
       "commit": "9566eb2764339d6a6fe143c1630eeb009e00a7bd",
       "checkpointState": "sealed_tagged",
-      "role": "discovery-composition"
+      "role": "discovery-composition and Slice 02 handoff/relay"
     },
     "moirae-code": {
       "url": "https://github.com/hourwise/Project-Moirae-Code",
       "tag": null,
       "commit": "a4783db271a61848c66ac4f6652a539bdb515e28",
       "checkpointState": "pushed_untagged",
-      "role": "governed-host"
+      "role": "governed-host; unchanged provisional baseline"
     }
   },
-  "notes": "Runtime-validated FATES-SLICE-002 successor set. Ananke and Horae are pinned to the accepted tagged Slice 02 checkpoints and the live acceptance/evidence record is sealed at the Slice level. The global compatibility set remains provisional because the unchanged locked Moirae Code checkpoint is pushed but untagged. Runtime Contracts remains project-runtime-contracts@0.4.0 at protocol 1.4.0 with the exact Stage-A artifact digest. No global host governance, qualified memory handoff, durable recovery, or content preflight is claimed.",
+  "notes": "FATES-SLICE-002 is formally accepted and sealed at the slice level against the tagged Ananke and Horae implementation checkpoints, live acceptance evidence, and final validations. The live record explicitly distinguishes live verified, owner-local deterministic, and not-live-induced behavior. The global compatibility set remains provisional solely because the unchanged locked Moirae Code baseline is pushed_untagged.",
   "knownLimits": [
     "Moirae Code was not modified or started for Slice 02 and remains pushed_untagged",
-    "Live timeout and post-dispatch indeterminate transport loss were not induced; owner-local deterministic tests cover those semantics",
-    "No qualified memory handoff",
-    "No durable idempotency or recovery",
-    "No content preflight capability"
+    "Mnemosyne was independently started and inspected but is explicitly excluded from the Slice 02 handoff path",
+    "Live timeout, post-dispatch indeterminate transport loss, and missing/wrong producer or capability induction were not performed",
+    "No qualified memory handoff, durable idempotency/recovery, content preflight, or global host governance is claimed"
   ]
 }

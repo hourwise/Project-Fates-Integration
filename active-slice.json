@@ -2,13 +2,13 @@
   "$schema": "./schemas/active-slice.schema.json",
   "status": "idle",
   "activeSliceId": null,
-  "baselineCompatibilitySet": "fates-stage-a-2026-07",
-  "nextRecommendedSlice": "FATES-SLICE-002",
+  "baselineCompatibilitySet": "fates-slice-002-2026-08-09",
+  "nextRecommendedSlice": "FATES-SLICE-003",
   "activationRequirements": {
-    "acceptedScope": "Define the governed action handoff scope before activation.",
-    "ownerOrder": "Obtain explicit owner approval to activate this slice.",
-    "acceptanceCriteria": "Document the acceptance criteria that must be met to seal this slice.",
-    "startingCheckpoints": "Confirm the starting checkpoints from fates-lock.json for all involved repositories.",
-    "userAuthorisation": "Obtain explicit user authorisation to begin implementation."
+    "acceptedScope": "Active for fates.slice02.inspect-fixed-fixture.v1 only; see docs/decisions/FATES-SLICE-002-activation-decision.json.",
+    "ownerOrder": "Integration evidence freeze -> Ananke bounded adapter -> Horae handoff/relay -> Moirae constrained host -> Integration real proof.",
+    "acceptanceCriteria": "Activation criteria and unchanged post-implementation acceptance requirements are recorded in docs/decisions/FATES-SLICE-002-activation-decision.json.",
+    "startingCheckpoints": "Exact fates-lock.json checkpoints for fates-stage-a-2026-07 are copied in the activation decision; the lock remains unchanged.",
+    "userAuthorisation": "Explicit user authorization was recorded for this task at the activation timestamp in docs/decisions/FATES-SLICE-002-activation-decision.json."
   }
 }

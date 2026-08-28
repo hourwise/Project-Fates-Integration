@@ -31,23 +31,23 @@ describe('fates-lock verification', () => {
     assert.strictEqual(result.status, 0, `expected pass, got: ${result.stderr}`);
   });
 
-  it('exact Stage-A checkpoints recorded', () => {
+  it('exact current compatibility checkpoints recorded', () => {
     const lock = JSON.parse(readFileSync(resolve(root, 'fates-lock.json'), 'utf-8'));
 
     assert.strictEqual(lock.repositories.adrasteia.tag, 'adrasteia-adoption-v0.4.0-protocol-1.4.0');
     assert.strictEqual(lock.repositories.adrasteia.commit, '124b6aee2629a3147739934ad5f1b45b32c8ba46');
     assert.strictEqual(lock.repositories.adrasteia.checkpointState, 'sealed_tagged');
 
-    assert.strictEqual(lock.repositories.ananke.tag, 'ananke-adrasteia-adoption-v0.1.0-protocol-1.4.0');
-    assert.strictEqual(lock.repositories.ananke.commit, 'dcbb115c5798072221afdd2e4fdd36e786defddf');
+    assert.strictEqual(lock.repositories.ananke.tag, 'ananke-fates-slice-002-v0.2.0-protocol-1.4.0');
+    assert.strictEqual(lock.repositories.ananke.commit, '52b512885edf3fec7ff7ce4b4dcbd3958b170ba4');
     assert.strictEqual(lock.repositories.ananke.checkpointState, 'sealed_tagged');
 
     assert.strictEqual(lock.repositories.mnemosyne.tag, 'mnemosyne-adrasteia-adoption-v0.1.0-protocol-1.4.0');
     assert.strictEqual(lock.repositories.mnemosyne.commit, 'f4ab76a9760f856d78908d35facceb068d78c8e5');
     assert.strictEqual(lock.repositories.mnemosyne.checkpointState, 'sealed_tagged');
 
-    assert.strictEqual(lock.repositories.horae.tag, 'horae-adrasteia-adoption-v0.1.0-protocol-1.4.0');
-    assert.strictEqual(lock.repositories.horae.commit, '52e14fa574f7427f62747fe84d2789aec25b94e3');
+    assert.strictEqual(lock.repositories.horae.tag, 'horae-fates-slice-002-v0.1.0-protocol-1.4.0');
+    assert.strictEqual(lock.repositories.horae.commit, '9566eb2764339d6a6fe143c1630eeb009e00a7bd');
     assert.strictEqual(lock.repositories.horae.checkpointState, 'sealed_tagged');
   });
 
@@ -126,9 +126,9 @@ describe('fates-lock verification', () => {
     assert.strictEqual(lock.sealStatus, 'provisional');
   });
 
-  it('integrationLevel is inspection_only', () => {
+  it('integrationLevel is runtime_validated', () => {
     const lock = JSON.parse(readFileSync(resolve(root, 'fates-lock.json'), 'utf-8'));
-    assert.strictEqual(lock.integrationLevel, 'inspection_only');
+    assert.strictEqual(lock.integrationLevel, 'runtime_validated');
   });
 
   // --- Negative fixture tests ---

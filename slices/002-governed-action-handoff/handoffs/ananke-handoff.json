@@ -1,0 +1,49 @@
+{
+  "$schema": "../../../schemas/handoff.schema.json",
+  "_note": "Completed Slice 02 Ananke producer handoff. The implementation commit remains pinned as provenance; the sealed repository checkpoint is the exact main commit and annotated tag recorded below.",
+  "sliceId": "FATES-SLICE-002",
+  "repository": "ananke",
+  "handoffStatus": "completed",
+  "startingCommit": "86eb983fbd16cefb3218f438d2f44a246b27c5d0",
+  "endingCommit": "a54cb481958e5711afc1c92c622673f85e7e0178",
+  "tag": "ananke-fates-slice-002-v0.1.0-protocol-1.4.0",
+  "protocol": "1.4.0",
+  "contractsUsed": [
+    "project-runtime-contracts@0.4.0",
+    "protocol 1.4.0; minimum 1.0.0"
+  ],
+  "publicSurfacesAddedOrChanged": [
+    "implementationCommit=552686fe6e01e2c0bf41ccb52591076bfa68bc2c; branch=codex/slice-002-bounded-read-design; parent=86eb983fbd16cefb3218f438d2f44a246b27c5d0; activatedBaseline=dcbb115c5798072221afdd2e4fdd36e786defddf; baseline ancestry verified",
+    "sealedCheckpointCommit=a54cb481958e5711afc1c92c622673f85e7e0178; annotatedTag=ananke-fates-slice-002-v0.1.0-protocol-1.4.0; checkpointState=sealed_tagged; remote main and tag independently verified",
+    "action=fates.slice02.inspect-fixed-fixture.v1; requestSchemaId=urn:fates:slice02:inspect-fixed-fixture-request:v1; requestSchemaSha256=db1864fdc4978d6befb4b6d3913461e4f2d2732dd0ca87e076977ab98cf6049c; acceptedProperties=fixtureId,expectedSha256; additionalProperties=false",
+    "fixtureId=fates.slice02.fixed-fixture.v1; fixturePath=packages/runtime-core/fixtures/fates-slice-002/fates.slice02.fixed-fixture.v1.txt; byteLength=43; sha256=7b28f52d84b07bed8b49650960607e8f8a9809cac299810aba691f7f52fe9ae8",
+    "runtimeSurface=/api/runtime/identity,/api/runtime/registration,/api/runtime/health,/api/runtime/readiness,/api/runtime/compatibility,/api/runtime/negotiate,/api/tools"
+  ],
+  "explicitlyUnavailableSurfaces": [
+    "No Horae handoff/relay, Moirae constrained host, or real three-process route is claimed by this producer handoff.",
+    "Integration, Horae, and Moirae Code are not authorized to read or host the Ananke-owned fixture; Integration retains identity and digest only.",
+    "No retry, persistence, idempotency, reconciliation, memory, content preflight, provider, network, credential, browser, shell, workflow, arbitrary filesystem, or global host-governance capability is included."
+  ],
+  "breakingChanges": [],
+  "migrationNotes": "Horae authority must pin the sealed Ananke checkpoint commit a54cb481958e5711afc1c92c622673f85e7e0178 and annotated tag ananke-fates-slice-002-v0.1.0-protocol-1.4.0, not a mutable branch head. Implementation provenance remains exact commit 552686fe6e01e2c0bf41ccb52591076bfa68bc2c on branch codex/slice-002-bounded-read-design. Horae must preserve the typed Ananke evidence and revalidate the pinned runtime surface before any future dispatch.",
+  "testsRun": [
+    "Task-run at the exact producer commit: npm.cmd test -- packages/runtime-core/src/slice02-fixed-fixture.test.ts — 1 file, 8 tests passed.",
+    "Owner-local Slice 02 coverage: registration/closed schema, one-read completion, policy denial zero-read, extra-argument rejection, invalid authority/origin/schema zero-read, digest mismatch one-read/no-retry, and audit-failure fail-closed behavior.",
+    "Recorded candidate validation from the active task starting facts: full serialized Ananke suite 16 files/129 tests, build, ESLint, changed-file Prettier, and Integration validators 55/55; these are recorded facts, not reclassified as cross-runtime proof.",
+    "GitHub Actions PR CI run #35 succeeded for implementation commit 552686fe6e01e2c0bf41ccb52591076bfa68bc2c, including build-and-test (22.12.0): https://github.com/hourwise/Project-Ananke/actions/runs/31314388339",
+    "GitHub Actions main push CI run #36 succeeded for sealed checkpoint a54cb481958e5711afc1c92c622673f85e7e0178, including build-and-test (22.12.0): https://github.com/hourwise/Project-Ananke/actions/runs/31315240975"
+  ],
+  "consumerTestsRequired": [
+    "Horae must consume the exact Ananke commit and handoff, admit only fresh pinned identity/registration/compatibility/health/readiness evidence, dispatch once without authority or fixture access, and relay typed outcomes without rewriting producer IDs or correlation.",
+    "Future real Integration proof must establish the frozen positive and negative cases, including physical-read separation, timeout/indeterminate semantics, no direct Moirae-to-Ananke fallback, and no non-Ananke fixture read."
+  ],
+  "knownConstraints": [
+    "checkpointState=sealed_tagged: sealed main commit a54cb481958e5711afc1c92c622673f85e7e0178 and annotated tag ananke-fates-slice-002-v0.1.0-protocol-1.4.0 are independently verified; implementation provenance remains 552686fe6e01e2c0bf41ccb52591076bfa68bc2c.",
+    "CI is passing: PR CI run #35 passed against the implementation commit and main push CI run #36 passed against the sealed checkpoint; both completed build-and-test (22.12.0).",
+    "This packet is owner-local evidence only. It does not claim a real process-boundary handoff, Horae relay, Moirae host, OS file-access proof, or Integration acceptance evidence.",
+    "Runtime Contracts, fates-lock.json, compatibility-matrix.json, the Stage-A compatibility snapshot, and Slice 02 completion/seal status remain unchanged."
+  ],
+  "pushStatus": "pushed",
+  "ciStatus": "passing",
+  "worktreeState": "clean"
+}

@@ -1,0 +1,174 @@
+{
+  "sliceId": "FATES-SLICE-002",
+  "decisionKind": "evidence-freeze",
+  "decision": "FROZEN",
+  "frozenAt": "2026-08-08T18:20:34.521Z",
+  "evidenceContractVersion": "1.0.0",
+  "activationRecord": {
+    "path": "docs/decisions/FATES-SLICE-002-activation-decision.json",
+    "sha256": "75a845e2cb6abbf80cdf5629600c79b63aa1823e05c88de57d0211b77ecdb914",
+    "decision": "ACTIVATED",
+    "activationTimestamp": "2026-08-08T16:34:40.527Z"
+  },
+  "baseline": {
+    "compatibilitySetId": "fates-stage-a-2026-07",
+    "lockPath": "fates-lock.json",
+    "lockSha256": "92b4c630c10b3182c76ce89cf5c54ca0bd6eb6e77f4d92a4e2bae64d8737cdff",
+    "snapshotPath": "compatibility-sets/fates-stage-a-2026-07.json",
+    "snapshotSha256": "b05e5beb34610f4b2f706051e2da2346363ccc419e0af5251f8fa2641019cd43",
+    "sealStatus": "provisional",
+    "integrationLevel": "inspection_only",
+    "startingCheckpoints": {
+      "adrasteia": { "commit": "124b6aee2629a3147739934ad5f1b45b32c8ba46", "tag": "adrasteia-adoption-v0.4.0-protocol-1.4.0", "checkpointState": "sealed_tagged" },
+      "ananke": { "commit": "dcbb115c5798072221afdd2e4fdd36e786defddf", "tag": "ananke-adrasteia-adoption-v0.1.0-protocol-1.4.0", "checkpointState": "sealed_tagged" },
+      "mnemosyne": { "commit": "f4ab76a9760f856d78908d35facceb068d78c8e5", "tag": "mnemosyne-adrasteia-adoption-v0.1.0-protocol-1.4.0", "checkpointState": "sealed_tagged" },
+      "horae": { "commit": "52e14fa574f7427f62747fe84d2789aec25b94e3", "tag": "horae-adrasteia-adoption-v0.1.0-protocol-1.4.0", "checkpointState": "sealed_tagged" },
+      "moirae-code": { "commit": "a4783db271a61848c66ac4f6652a539bdb515e28", "tag": null, "checkpointState": "pushed_untagged" }
+    }
+  },
+  "authorityDocuments": [
+    { "path": "docs/design/FATES-SLICE-002-runtime-boundary-resolution.md", "sha256": "1e2a36757e92f9082dedddc6f7752f583616e94fc6ed3d32650263b1d165fa0e" },
+    { "path": "docs/decisions/FATES-SLICE-002-implementation-authorization.json", "sha256": "2310e436d12cec668c9f78adb3d62aefca1e313109cb8536e697a2388c2a12a4" },
+    { "path": "docs/decisions/FATES-SLICE-002-fixture-schema-digest-manifest.json", "sha256": "6e15f4e1398a11da756d29e2aecb81e2c037224a4d1c3c3bdb62e4dd957ab429" },
+    { "path": "docs/decisions/FATES-SLICE-002-process-attestation-decision.json", "sha256": "700f6140da5a9896046e3eac39cd4470fbe75b138a37ac107527ae420c4afcaa" },
+    { "path": "docs/decisions/FATES-SLICE-002-timeout-decision.json", "sha256": "e5042e6f2114b02279702bc6604b4e1c21f99f4d7e9a75f1d377ff050f523847" },
+    { "path": "docs/reviews/FATES-SLICE-002-cross-owner-consistency-review.md", "sha256": "d1d31efb18d7db7946cf1e3ff8bae3091f36abcaaf912cca20dc4a326345bb61" }
+  ],
+  "scope": {
+    "action": "fates.slice02.inspect-fixed-fixture.v1",
+    "requestArguments": ["fixtureId", "expectedSha256"],
+    "fixtureManifest": "docs/decisions/FATES-SLICE-002-fixture-schema-digest-manifest.json",
+    "fixtureSha256": "7b28f52d84b07bed8b49650960607e8f8a9809cac299810aba691f7f52fe9ae8",
+    "requestSchemaId": "urn:fates:slice02:inspect-fixed-fixture-request:v1",
+    "requestSchemaSha256": "db1864fdc4978d6befb4b6d3913461e4f2d2732dd0ca87e076977ab98cf6049c",
+    "route": "Moirae constrained host -> Horae handoff/relay -> Ananke authority and sole physical reader",
+    "transport": "three separate local processes over loopback HTTP",
+    "exclusions": [
+      "direct Moirae-to-Ananke fallback",
+      "non-Ananke fixture reads",
+      "network, provider, browser, shell, child process, arbitrary IPC and credentials",
+      "retry, persistence, workflow, compensation and memory fallback",
+      "content preflight and global Moirae governance",
+      "Runtime Contracts package or protocol changes"
+    ]
+  },
+  "commonEvidenceRecord": {
+    "requiredFields": [
+      "caseId",
+      "initiatingCorrelationId",
+      "distinctProducerIds as applicable for Moirae, Horae and Ananke",
+      "owner checkpoint commit, tag/checkpointState and artifactSha256",
+      "timestamp",
+      "routeState and dispatchState",
+      "evidenceAttachmentDigests"
+    ],
+    "requiredAuthorityFieldsWhenApplicable": [
+      "action",
+      "canonicalRequestDigest",
+      "expectedFixtureDigest",
+      "actualFixtureDigest when a read occurs",
+      "readAttemptCount",
+      "adapterInvocation",
+      "decisionId, outcomeId and audit references"
+    ],
+    "requiredRouteFieldsWhenApplicable": [
+      "Moirae originId",
+      "Horae routeId and eventId",
+      "Ananke requestId, decisionId, outcomeId and auditId",
+      "readiness observedAt and ageMs",
+      "dispatch confirmation or explicit dispatch=false"
+    ],
+    "retentionRoot": "evidence/FATES-SLICE-002/<integration-proof-checkpoint>/<caseId>.json",
+    "secretRule": "Do not retain pair capabilities, authentication headers, credentials or other secret material in case records, attachments, returned content or ordinary logs.",
+    "fixtureRule": "Integration records fixture identity and digests only; it never receives, hosts or reads the fixture bytes."
+  },
+  "proofModeRules": {
+    "realThreeProcess": "Required for any claim about the Moirae-to-Horae-to-Ananke route, dispatch, relay, identity attestation, physical-read count, file-access separation, correlation preservation or cross-runtime result.",
+    "ownerLocal": "Permitted for parsing, canonicalization, rendering and isolated failure-shape tests only; it cannot satisfy a real route, handoff, attestation, physical-read or cross-runtime result claim.",
+    "mockSubstitution": "Mocks cannot substitute for required real-process evidence. A mock may supplement producer-local tests only when the case explicitly says owner-local support is allowed."
+  },
+  "sixGates": [
+    {
+      "gateId": "governed-route",
+      "claim": "The only claimed route is Moirae constrained host -> Horae sole handoff/relay -> Ananke authority -> Ananke-owned fixed fixture, with Ananke as the sole physical reader.",
+      "evidenceProducers": ["Moirae Code", "Horae", "Ananke", "controlled Slice 02 harness", "Integration assertion"],
+      "requiredArtifacts": ["harness pinned process manifest", "Moirae request and presentation", "Horae route/dispatch/relay trace", "Ananke decision/outcome/audit", "OS/file-access report"],
+      "cases": ["positive-completed-read", "no-direct-moirae-ananke-fallback", "no-non-ananke-fixture-read"],
+      "realProcessProof": true,
+      "mockRule": "No mock transport or package shortcut may satisfy this gate."
+    },
+    {
+      "gateId": "bypass-evidence",
+      "claim": "The constrained host has no direct Ananke or fixture fallback and the evidence names the terminal, task, debugger, extension host, Git, third-party extension, external CLI, arbitrary SDK and direct-provider exclusions.",
+      "evidenceProducers": ["Moirae Code", "controlled Slice 02 harness", "Integration assertion"],
+      "requiredArtifacts": ["Moirae constrained-host harness report", "disabled-surface assertion", "OS/file-access report", "Moirae rendered limitation report", "Ananke zero-request evidence for blocked direct attempts"],
+      "cases": ["no-direct-moirae-ananke-fallback", "no-non-ananke-fixture-read", "bypass-limitation-report"],
+      "realProcessProof": true,
+      "mockRule": "Owner-local rendering tests may supplement the limitation report, but cannot prove disabled access or zero direct requests."
+    },
+    {
+      "gateId": "canonical-binding",
+      "claim": "Action, strict arguments, trusted principals, tenant/project/workspace and bounded scope, purpose, policy/version, validity, origin/schema receipt, expected digest and correlation are bound before dispatch.",
+      "evidenceProducers": ["Moirae Code", "Horae", "Ananke"],
+      "requiredArtifacts": ["canonical request bytes and digest", "request-schema identity and digest", "origin and principal receipts", "original/mutated binding digests", "Ananke decision and audit evidence"],
+      "cases": ["positive-completed-read", "denied-zero-read", "malformed-extra-argument", "principal-scope-purpose-policy-mutation", "schema-origin-mutation", "digest-mismatch"],
+      "realProcessProof": true,
+      "mockRule": "Local canonicalization and parsing mocks are allowed only as supplementary tests; acceptance requires the bound request at the real process boundary."
+    },
+    {
+      "gateId": "pinned-origin-schema",
+      "claim": "The run uses the exact locked checkpoints, artifact identities, fixed endpoints, runtime/instance identities, protocol range, declared capability and request-schema digest; drift fails closed.",
+      "evidenceProducers": ["controlled Slice 02 harness", "Moirae Code", "Horae", "Ananke"],
+      "requiredArtifacts": ["per-run pinned manifest", "artifact SHA-256 verification", "challenge-bound process-attestation records", "compatibility/capability receipts", "request-schema digest comparison"],
+      "cases": ["positive-completed-read", "startup-race", "incompatible-protocol", "ananke-identity-endpoint-drift", "schema-origin-mutation"],
+      "realProcessProof": true,
+      "mockRule": "Self-description or loopback reachability alone is not evidence; mocks cannot prove attestation or artifact drift rejection."
+    },
+    {
+      "gateId": "readiness-freshness",
+      "claim": "Horae immediately reinspects Ananke registration, identity, compatibility, health, capability and readiness; observations older than 1,000 ms or incomplete/unhealthy state fail closed before dispatch.",
+      "evidenceProducers": ["Horae", "Ananke inspection surface", "controlled Slice 02 harness"],
+      "requiredArtifacts": ["Horae admission/readiness record", "Ananke inspection response", "observedAt/ageMs timing trace", "dispatch decision with dispatch=false for rejection cases"],
+      "cases": ["stale-readiness", "startup-race", "incompatible-protocol", "ananke-identity-endpoint-drift", "timeout"],
+      "realProcessProof": true,
+      "mockRule": "Fixture or unit readiness stubs may test local logic only; they cannot satisfy freshness or process-boundary admission evidence."
+    },
+    {
+      "gateId": "correlation-and-proof-obligation",
+      "claim": "One initiating correlation is preserved end to end while Moirae, Horae and Ananke retain distinct producer IDs; every positive and negative case preserves route state and never turns timeout/indeterminate into success or retry.",
+      "evidenceProducers": ["Moirae Code", "Horae", "Ananke", "Integration"],
+      "requiredArtifacts": ["case evidence record", "raw typed relay envelopes", "producer audit/test/presentation artifacts", "checkpoint identities", "dispatch/timing trace"],
+      "cases": ["correlation-preservation", "producer-id-preservation", "timeout", "indeterminate-post-dispatch-loss", "all other acceptance cases"],
+      "realProcessProof": true,
+      "mockRule": "Mocks cannot establish cross-process correlation, producer-ID preservation, dispatch state or authoritative-result loss semantics."
+    }
+  ],
+  "caseCatalog": [
+    { "caseId": "positive-completed-read", "claim": "The approved route completes the fixed read with exactly one Ananke read and the expected digest.", "evidenceProducers": ["Ananke", "Horae", "Moirae Code", "Integration"], "requiredArtifacts": ["Ananke decision/outcome/audit with readAttemptCount=1", "Horae relay", "Moirae presentation", "three-process harness and file-access report"], "realProcessProof": true, "mockRule": "No mock route, read count or digest evidence." },
+    { "caseId": "denied-zero-read", "claim": "Ananke denial occurs before adapter invocation and physical read, and Horae relays without rewriting it.", "evidenceProducers": ["Ananke", "Horae", "Integration"], "requiredArtifacts": ["Ananke denial decision/audit with adapterInvocation=false and readAttemptCount=0", "Horae relay", "case record"], "realProcessProof": true, "mockRule": "Local denial tests may supplement but cannot prove the zero-read route result." },
+    { "caseId": "malformed-extra-argument", "claim": "An unknown request property is rejected before dispatch or Ananke invocation.", "evidenceProducers": ["Moirae Code or Horae rejecting producer", "Integration"], "requiredArtifacts": ["rejected canonical-request digest", "producer rejection trace", "Horae dispatch=false", "Ananke no-request/no-read evidence"], "realProcessProof": true, "mockRule": "Local schema tests are supplementary only." },
+    { "caseId": "digest-mismatch", "claim": "A changed fixture digest yields a typed mismatch after one permitted read and never completed.", "evidenceProducers": ["Ananke", "Horae", "Moirae Code", "Integration"], "requiredArtifacts": ["Ananke expected/actual digest and readAttemptCount=1", "decision/outcome/audit", "relay and presentation"], "realProcessProof": true, "mockRule": "No mock read or digest mismatch may satisfy the case." },
+    { "caseId": "principal-scope-purpose-policy-mutation", "claim": "Mutation of authority-relevant context is rejected before adapter invocation and dispatch where Horae owns the rejection.", "evidenceProducers": ["Horae and/or Ananke", "Integration"], "requiredArtifacts": ["original and mutation binding digests", "rejection decision/reference", "dispatch=false or readAttemptCount=0"], "realProcessProof": true, "mockRule": "Local binding tests are supplementary only." },
+    { "caseId": "stale-readiness", "claim": "Readiness older than 1,000 ms is stale and no Ananke dispatch occurs.", "evidenceProducers": ["Horae", "Ananke inspection surface", "Integration"], "requiredArtifacts": ["readiness observedAt", "ageMs > 1000", "Horae stale result and dispatch=false", "Ananke no-read evidence"], "realProcessProof": true, "mockRule": "A local clock test cannot replace process-boundary evidence." },
+    { "caseId": "startup-race", "claim": "Incomplete registration/readiness fails unavailable until the admitted process is ready.", "evidenceProducers": ["Horae", "controlled harness", "Integration"], "requiredArtifacts": ["registration/lifecycle timestamps", "process artifact identity", "unavailable result", "dispatch=false and no Ananke read"], "realProcessProof": true, "mockRule": "No simulated startup state may prove the route case." },
+    { "caseId": "incompatible-protocol", "claim": "Protocol incompatibility is rejected before dispatch.", "evidenceProducers": ["Horae", "Ananke inspection surface", "Integration"], "requiredArtifacts": ["offered/required protocol receipts", "compatibility result", "dispatch=false and no-read evidence"], "realProcessProof": true, "mockRule": "Local negotiation tests are supplementary only." },
+    { "caseId": "ananke-identity-endpoint-drift", "claim": "Runtime, instance, artifact or endpoint drift fails incompatible before admitted dispatch.", "evidenceProducers": ["Horae", "controlled harness", "Integration"], "requiredArtifacts": ["expected/observed attestation receipts", "identity drift rejection", "dispatch=false and no-read evidence"], "realProcessProof": true, "mockRule": "Self-description mocks and loopback reachability cannot substitute for attestation." },
+    { "caseId": "schema-origin-mutation", "claim": "Origin or request-schema mutation is malformed before Ananke dispatch.", "evidenceProducers": ["Moirae Code and/or Horae", "Integration"], "requiredArtifacts": ["original/observed schema-or-origin digests", "rejection ID", "dispatch=false and no-read evidence"], "realProcessProof": true, "mockRule": "Local parser tests are supplementary only." },
+    { "caseId": "timeout", "claim": "A bounded timeout is timed_out, never success and never retried, with dispatch state retained.", "evidenceProducers": ["Horae", "Ananke when dispatch confirmed", "Moirae Code", "Integration"], "requiredArtifacts": ["elapsed timing values", "timeout decision version", "dispatch confirmation/state", "any Ananke audit"], "realProcessProof": true, "mockRule": "Mock timers cannot prove dispatch or authoritative-result semantics." },
+    { "caseId": "indeterminate-post-dispatch-loss", "claim": "Transport loss after confirmed dispatch is indeterminate, never success or retry, with later audit reconciliation when available.", "evidenceProducers": ["Horae", "Ananke", "Moirae Code", "Integration"], "requiredArtifacts": ["confirmed-dispatch marker", "transport-loss trace", "producer IDs", "eventual Ananke audit when produced"], "realProcessProof": true, "mockRule": "No mock transport loss may satisfy the case." },
+    { "caseId": "correlation-preservation", "claim": "The initiating correlation is unchanged end to end and all producer-specific identifiers remain available.", "evidenceProducers": ["Moirae Code", "Horae", "Ananke", "Integration"], "requiredArtifacts": ["origin, route/event, request/decision/outcome/audit IDs", "raw envelopes", "checkpoint identities"], "realProcessProof": true, "mockRule": "Cross-process preservation cannot be shown with owner-local mocks." },
+    { "caseId": "producer-id-preservation", "claim": "Horae relay adds its identifiers without overwriting Moirae or Ananke producer IDs.", "evidenceProducers": ["Moirae Code", "Horae", "Ananke", "Integration"], "requiredArtifacts": ["raw typed relay envelopes", "producer IDs", "relay log", "case record"], "realProcessProof": true, "mockRule": "Mock envelope tests are supplementary only." },
+    { "caseId": "no-direct-moirae-ananke-fallback", "claim": "The constrained host has no direct Ananke client path and does not fallback when Horae is unavailable or a direct attempt is blocked.", "evidenceProducers": ["Moirae Code", "controlled harness", "Integration"], "requiredArtifacts": ["host attempt trace", "disabled-surface assertion", "Ananke zero-request evidence", "case correlation or harness attempt ID"], "realProcessProof": true, "mockRule": "A static absence check cannot prove no fallback in the harness." },
+    { "caseId": "no-non-ananke-fixture-read", "claim": "Moirae, Horae and Integration harness processes perform no fixture read; Ananke is the sole reader.", "evidenceProducers": ["controlled harness", "Moirae Code", "Horae", "Integration", "Ananke"], "requiredArtifacts": ["OS/harness file-access report", "process IDs", "fixture identity", "Ananke read audit"], "realProcessProof": true, "mockRule": "No mock filesystem or source inspection can prove physical-read separation." },
+    { "caseId": "bypass-limitation-report", "claim": "The presented evidence explicitly discloses all out-of-scope host bypasses and does not claim global Moirae governance.", "evidenceProducers": ["Moirae Code", "Integration"], "requiredArtifacts": ["Moirae rendered presentation", "host checkpoint", "route correlation"], "realProcessProof": true, "mockRule": "Owner-local rendering tests may supplement; the retained report must come from the constrained host evidence set." }
+  ],
+  "positiveCases": ["positive-completed-read", "correlation-preservation", "producer-id-preservation"],
+  "negativeCases": ["denied-zero-read", "malformed-extra-argument", "digest-mismatch", "principal-scope-purpose-policy-mutation", "stale-readiness", "startup-race", "incompatible-protocol", "ananke-identity-endpoint-drift", "schema-origin-mutation", "timeout", "indeterminate-post-dispatch-loss", "no-direct-moirae-ananke-fallback", "no-non-ananke-fixture-read", "bypass-limitation-report"],
+  "freezeRule": "This contract and the linked acceptance matrix are pre-implementation evidence requirements. They cannot be edited to fit an implementation; a change requires a separately recorded, scope-preserving decision before implementation evidence claims conformance.",
+  "acceptanceMatrix": {
+    "path": "docs/reviews/FATES-SLICE-002-acceptance-evidence-matrix.md",
+    "sha256": "a0515b6ad2b281dc359ed96147ff60303646651416e081a3c742a247b9de9efb"
+  },
+  "unresolvedEvidenceQuestions": [],
+  "nextAuthorizedStep": "Ananke bounded adapter implementation after this evidence freeze; do not begin it in this task."
+}
