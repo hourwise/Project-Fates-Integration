@@ -53,12 +53,23 @@ async function main() {
     const root = join(stage, 'root');
     await mkdir(root, { recursive: true, mode: 0o755 });
     await copyFile(binary, join(root, 'init'));
-    const archived = spawnSync('cpio', ['-o', '-H', 'newc'], {
-      cwd: root,
-      input: 'init\n',
-      encoding: 'buffer',
-      shell: false,
-    });
+    const archiveArgs = ['-o', '-H', 'newc'];
+    let cpioCommand = 'cpio -o -H newc';
+    let archived = spawnSync('cpio', archiveArgs, {
+        cwd: root,
+        input: 'init\n',
+        encoding: 'buffer',
+        shell: false,
+      });
+    if (archived.error?.code === 'ENOENT') {
+      archived = spawnSync('busybox', ['cpio', ...archiveArgs], {
+        cwd: root,
+        input: 'init\n',
+        encoding: 'buffer',
+        shell: false,
+      });
+      cpioCommand = 'busybox cpio -o -H newc';
+    }
     if (archived.error) fail(`cpio initrd build failed: ${archived.error.message}`);
     if (archived.status !== 0) fail(`cpio initrd build failed: ${(archived.stderr?.toString('utf8') ?? '').trim() || `exit ${archived.status}`}`);
     await mkdir(dirname(output), { recursive: true, mode: 0o700 });
@@ -72,7 +83,7 @@ async function main() {
       initrdSha256: sha256(initrdBytes),
       initrdFormat: 'newc-cpio-uncompressed',
       compiler,
-      cpio: 'cpio -o -H newc',
+      cpio: cpioCommand,
     }, null, 2)}\n`);
   } finally {
     await rm(stage, { recursive: true, force: true });
