@@ -74,9 +74,11 @@ test('governed listener readiness is a bound UDS and the shared stop path closes
 });
 
 test('shared stop path forces a stubborn child and waits for close', { skip: process.platform === 'win32' ? 'signal semantics differ on Windows' : false }, async () => {
-  const child = spawn(process.execPath, ['--input-type=module', '-e', "process.on('SIGTERM', () => {}); setInterval(() => {}, 1000);"], { cwd: integrationRoot, env: fixedEnvironment(), shell: false, stdio: ['ignore', 'pipe', 'pipe'] });
+  const child = spawn(process.execPath, ['--input-type=module', '-e', "process.on('SIGTERM', () => {}); process.stdout.write('ready\\n'); setInterval(() => {}, 1000);"], { cwd: integrationRoot, env: fixedEnvironment(), shell: false, stdio: ['ignore', 'pipe', 'pipe'] });
   const capture = captureChild(child);
   try {
+    for (let attempt = 0; attempt < 100 && !capture.output.stdout.includes('ready'); attempt++) await new Promise((resolveWait) => setTimeout(resolveWait, 10));
+    assert.match(capture.output.stdout, /ready/);
     assert.equal(await stopChild(child, capture, 50), true);
     const result = await capture.completion;
     assert.equal(result.signal, 'SIGKILL');
