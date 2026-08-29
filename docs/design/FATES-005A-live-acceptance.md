@@ -140,7 +140,7 @@ src=/home/fatesadmin/fates-005a/host-control-build/fates-005a-host-control-r5
 dst=/usr/local/libexec/fates-005a-host-control
 tmp=/usr/local/libexec/.fates-005a-host-control.r5.new
 backup=/usr/local/libexec/.fates-005a-host-control.r4.backup
-expected='2cffa968ef2f528d258f381ab54cf205f0e0d9a6236301e51bdda01e8cd43355'
+expected='687267398c8fe4c33442bf3f1ce88222f40bb480da2cdcf1f221d8931face0a7'
 old='a52d7c27dd1f9c3e55a95283ccf11dda844b3cd6529e862437d86020ee228e34'
 test "$(sha256sum "$src" | awk '{print $1}')" = "$expected"
 test ! -e "$tmp"
