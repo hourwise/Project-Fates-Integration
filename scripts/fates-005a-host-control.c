@@ -1020,7 +1020,6 @@ static int launch(const char *attempt) {
         return -1;
     }
     process_metadata firecracker_metadata;
-    char firecracker_executable[PATH_MAX];
     (void)read_process_metadata(record.firecracker_pid, &firecracker_metadata);
     printf("{\"operation\":\"launch\",\"attemptId\":\"%s\",\"firecrackerPid\":%ld,\"firecrackerNamespacePid\":%ld,\"launcherPid\":%ld,\"launcherReaped\":%s,\"guestVsockSocket\":\"%s\"}\n",
            attempt, (long)record.firecracker_pid,
