@@ -112,7 +112,7 @@ sequence on `fates-kvm`:
 set -eu
 src=/home/fatesadmin/fates-005a/host-control-build/fates-005a-host-control
 dst=/usr/local/libexec/fates-005a-host-control
-expected='<INSERT-REPORTED-HELPER-BINARY-SHA256>'
+expected='4e6ef924f6ca70854c175a5ea925577ce7658845ac4d6a3a60ddf40a4158f871'
 test "$(sha256sum "$src" | awk '{print $1}')" = "$expected"
 sudo install -o root -g root -m 0755 "$src" "$dst"
 printf '%s\n' 'fatesadmin ALL=(root) NOPASSWD: /usr/local/libexec/fates-005a-host-control' | sudo tee /etc/sudoers.d/fates-005a-host-control >/dev/null
