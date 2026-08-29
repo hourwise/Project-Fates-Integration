@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { writeFileSync } from 'node:fs';
-import { access } from 'node:fs/promises';
+import { access, lstat, unlink } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { runGovernedSmoke } from './fates-governed-smoke.mjs';
@@ -32,6 +32,25 @@ async function waitForPath(path, timeoutMs) {
   return false;
 }
 
+async function waitForSocket(path, timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      const info = await lstat(path);
+      if (info.isSocket()) return info;
+    } catch { /* the jail root or listener endpoint may not exist yet */ }
+    await new Promise((resolveWait) => setTimeout(resolveWait, 50));
+  }
+  return undefined;
+}
+
+async function unlinkBoundSocket(path, boundSocket) {
+  if (!boundSocket) return;
+  const current = await lstat(path);
+  if (!current.isSocket() || current.dev !== boundSocket.dev || current.ino !== boundSocket.ino) throw new Error('governed host listener socket identity changed before cleanup');
+  await unlink(path);
+}
+
 async function main() {
   if (process.platform !== 'linux' || process.arch !== 'x64') throw new Error('FATES-005A host requires Linux x86_64');
   const listenerUid = process.getuid?.();
@@ -48,10 +67,22 @@ async function main() {
   if (runtimeContractsArtifact) process.env.FATES_RUNTIME_CONTRACTS_ARTIFACT = resolve(runtimeContractsArtifact);
   const { FirecrackerVsockTransport, parseFatesGuestProposal, fatesProposalResultEnvelope } = await import(pathToFileURL(join(moiraeRoot, 'packages', 'sandbox-adapter', 'dist', 'index.js')).href);
   const transport = new FirecrackerVsockTransport({ socketPath, maxFrameBytes: 64 * 1024, connectTimeoutMs: 60_000 });
+  let shutdownRequested = false;
+  let closePromise;
+  let boundSocket;
+  const requestShutdown = () => {
+    shutdownRequested = true;
+    closePromise ??= transport.close().catch(() => undefined);
+  };
+  process.once('SIGTERM', requestShutdown);
+  process.once('SIGINT', requestShutdown);
   let proposal;
   try {
     if (!await waitForPath(dirname(socketPath), 60_000)) throw new Error(`Firecracker jail root did not become available: ${dirname(socketPath)}`);
+    if (shutdownRequested) return;
     await transport.listen();
+    boundSocket = await waitForSocket(socketPath, 5_000);
+    if (!boundSocket) throw new Error(`governed host listener did not bind a Unix socket: ${socketPath}`);
     if (readyFile) writeFileSync(readyFile, `${socketPath}\n`, { encoding: 'utf8', flag: 'wx', mode: 0o600 });
     const frame = await transport.receive();
     proposal = parseFatesGuestProposal(frame, sessionId);
@@ -94,13 +125,23 @@ async function main() {
       listenerGid,
     })}\n`);
   } catch (error) {
-    process.stderr.write(`FATES-005A HOST: FAIL ${error instanceof Error ? error.message : 'unknown error'}\n`);
-    if (proposal) {
-      try { await transport.send(fatesProposalResultEnvelope(sessionId, proposal.requestId, { action: 'DENY', reasonCode: 'FATES_GOVERNED_PATH_FAILED' })); } catch { /* the guest may have already disconnected */ }
+    if (!shutdownRequested) {
+      process.stderr.write(`FATES-005A HOST: FAIL ${error instanceof Error ? error.message : 'unknown error'}\n`);
+      if (proposal) {
+        try { await transport.send(fatesProposalResultEnvelope(sessionId, proposal.requestId, { action: 'DENY', reasonCode: 'FATES_GOVERNED_PATH_FAILED' })); } catch { /* the guest may have already disconnected */ }
+      }
+      process.exitCode = 1;
     }
-    process.exitCode = 1;
   } finally {
-    await transport.close();
+    process.off('SIGTERM', requestShutdown);
+    process.off('SIGINT', requestShutdown);
+    await (closePromise ?? transport.close());
+    try { await unlinkBoundSocket(socketPath, boundSocket); } catch (error) {
+      if (error?.code !== 'ENOENT') {
+        process.stderr.write(`FATES-005A HOST: listener cleanup failed ${error instanceof Error ? error.message : 'unknown error'}\n`);
+        process.exitCode = 1;
+      }
+    }
   }
 }
 

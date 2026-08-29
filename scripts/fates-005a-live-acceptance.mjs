@@ -93,6 +93,7 @@ const ALLOWED_DIRTY_PATHS = {
     'docs/evidence/FATES-005A-live-acceptance-attempt-002.json',
     'scripts/verify-boundaries.mjs',
     'tests/fates-005a-host-control.test.mjs',
+    'tests/fates-005a-r5-lifecycle.test.mjs',
     'tests/boundaries.test.mjs',
   ]),
 };
@@ -133,26 +134,34 @@ function captureChild(child) {
   const capture = (target) => (chunk) => { output[target] = `${output[target]}${chunk.toString('utf8')}`.slice(-MAX_OUTPUT_BYTES); };
   child.stdout?.on('data', capture('stdout'));
   child.stderr?.on('data', capture('stderr'));
+  let closed = false;
   const completion = new Promise((resolveCompletion, rejectCompletion) => {
     child.once('error', rejectCompletion);
-    child.once('close', (exitCode, signal) => { output.exitCode = exitCode; output.signal = signal; resolveCompletion(output); });
+    child.once('close', (exitCode, signal) => { closed = true; output.exitCode = exitCode; output.signal = signal; resolveCompletion(output); });
   });
-  return { output, completion };
+  return { output, completion, isClosed: () => closed };
+}
+
+async function waitForChildClose(capture, timeoutMs) {
+  let timer;
+  await Promise.race([capture.completion.catch(() => undefined), new Promise((resolveTimeout) => { timer = setTimeout(resolveTimeout, timeoutMs); })]);
+  clearTimeout(timer);
 }
 
 async function stopChild(child, capture, graceMs = 2_000) {
-  if (!child || child.exitCode !== null) return true;
-  try { child.kill('SIGTERM'); } catch { /* process may have exited between the check and signal */ }
-  let timer;
-  await Promise.race([capture.completion.catch(() => undefined), new Promise((resolveTimeout) => { timer = setTimeout(resolveTimeout, graceMs); })]);
-  clearTimeout(timer);
-  if (child.exitCode === null) {
-    try { child.kill('SIGKILL'); } catch { /* process may have exited between signals */ }
-    let killTimer;
-    await Promise.race([capture.completion.catch(() => undefined), new Promise((resolveTimeout) => { killTimer = setTimeout(resolveTimeout, 1_000); })]);
-    clearTimeout(killTimer);
+  if (!child) return true;
+  if (!capture) return child.exitCode !== null;
+  if (capture.isClosed() || child.exitCode !== null) {
+    await waitForChildClose(capture, 1_000);
+    return capture.isClosed() || child.exitCode !== null;
   }
-  return child.exitCode !== null;
+  try { child.kill('SIGTERM'); } catch { /* process may have exited between the check and signal */ }
+  await waitForChildClose(capture, graceMs);
+  if (!capture.isClosed() && child.exitCode === null) {
+    try { child.kill('SIGKILL'); } catch { /* process may have exited between signals */ }
+    await waitForChildClose(capture, 1_000);
+  }
+  return capture.isClosed() || child.exitCode !== null;
 }
 
 function run(command, commandArgs, options = {}) {
@@ -224,7 +233,7 @@ async function plan() {
   const reposRoot = resolve(arg('--repos-root', defaultReposRoot));
   const checks = repoChecks(reposRoot);
   const candidate = currentCandidateCheck();
-  process.stdout.write(`${JSON.stringify({ mode: 'plan', result: 'NOT_EXECUTED', acceptance: 'FATES-005A', candidate, attemptId, profileId: FATES_005A_PROPOSAL_PROFILE_ID, platform: { platform: process.platform, architecture: process.arch, supported: process.platform === 'linux' && process.arch === 'x64' }, repositories: checks, namespace: { required: `/run/netns/fates-005a-${attemptId}`, createDuringExecute: true, expectedLinks: ['lo'], networkInterfacesAllowed: false }, transport: { guest: 'AF_VSOCK -> CID 2:7000', host: 'host AF_UNIX listener at jail-root uds_path_7000', tcpFallback: false }, governance: { route: 'guest proposal -> host Fates governed.memory-admission -> Ananke/Horae/Mnemosyne smoke', guestSupplies: ['bounded proposal identity and source digest'], guestDoesNotSupply: ['authority', 'credentials', 'provider endpoint', 'host state'] }, actions: ['verify exact r7 materialisations', 'build a fresh static proposal-agent initrd', 'prepare and inspect one empty network namespace through the fixed host-control helper', 'launch the pinned Firecracker+jailer profile through the helper', 'connect over the real Firecracker UDS/vsock bridge', 'prove the governed host response and VMM namespace/no-NIC facts', 'stop the VMM and remove only the fresh namespace/session artifacts'], workload: { included: false, reason: 'not part of the documented 005A proposal-channel contract' }, evidenceCreated: false, priorJailEvidenceTouched: false }, null, 2)}\n`);
+  process.stdout.write(`${JSON.stringify({ mode: 'plan', result: 'NOT_EXECUTED', acceptance: 'FATES-005A', candidate, attemptId, profileId: FATES_005A_PROPOSAL_PROFILE_ID, platform: { platform: process.platform, architecture: process.arch, supported: process.platform === 'linux' && process.arch === 'x64' }, repositories: checks, namespace: { required: `/run/netns/fates-005a-${attemptId}`, createDuringExecute: true, identityCheck: 'kernel namespace object identity (st_dev/st_ino)', linksCheck: 'actual getifaddrs enumeration with loopback-only flags', networkInterfacesAllowed: false }, transport: { guest: 'AF_VSOCK -> CID 2:7000', host: 'host AF_UNIX listener at jail-root uds_path_7000', tcpFallback: false }, governance: { route: 'guest proposal -> host Fates governed.memory-admission -> Ananke/Horae/Mnemosyne smoke', guestSupplies: ['bounded proposal identity and source digest'], guestDoesNotSupply: ['authority', 'credentials', 'provider endpoint', 'host state'] }, actions: ['verify exact r7 materialisations', 'build a fresh static proposal-agent initrd', 'prepare and inspect one empty network namespace through the fixed host-control helper', 'launch the pinned Firecracker+jailer profile through the helper', 'connect over the real Firecracker UDS/vsock bridge', 'prove the governed host response and VMM namespace/no-NIC facts', 'stop the VMM and remove only the fresh namespace/session artifacts'], workload: { included: false, reason: 'not part of the documented 005A proposal-channel contract' }, evidenceCreated: false, priorJailEvidenceTouched: false }, null, 2)}\n`);
 }
 
 async function execute() {
@@ -286,18 +295,21 @@ async function execute() {
     hostChild = spawn(process.execPath, hostArguments, { cwd: integrationRoot, env: { PATH: '/usr/bin:/bin', LANG: 'C', LC_ALL: 'C' }, shell: false, stdio: ['ignore', 'pipe', 'pipe'] });
     hostCapture = captureChild(hostChild);
     if (!await waitForPath(join(inputDir, 'host-ready'), 60_000)) throw new Error('unprivileged governed host listener did not become ready');
+    if (readFileSync(join(inputDir, 'host-ready'), 'utf8').trim() !== expectedSocket || !existsSync(expectedSocket)) throw new Error('governed host listener readiness was not backed by the fixed guest-vsock UDS');
+    const socketExistsBeforeGuestConnect = existsSync(expectedSocket);
     const launchResult = launchHostControl(sessionId);
     launched = true;
     if (launchResult.guestVsockSocket !== expectedSocket) throw new Error('host-control launch socket response drifted');
     if (!await waitForPath(expectedSocket, 60_000)) throw new Error(`host did not bind the Firecracker guest-vsock UDS: ${expectedSocket}`);
     const runtimeFacts = inspectHostControl(sessionId);
     evidence.runtime = {
-      pid: runtimeFacts.pid, jailerPid: runtimeFacts.pid, jailRoot: 'srv/jailer/firecracker/<attempt-id>/root', profileDigest: preflight.profileDigest,
-      effectiveConfigSha256: runtimeFacts.effectiveConfigSha256, guestVsockSocket: 'srv/jailer/firecracker/<attempt-id>/root/run/fates/vsock.sock_<guest-port>', socketExistsBeforeGuestConnect: existsSync(expectedSocket), noGuestNic: runtimeFacts.noGuestNic,
-      networkNamespace: { process: runtimeFacts.processNetns, named: runtimeFacts.namedNetns, match: runtimeFacts.netnsMatch, linksBeforeLaunch: { names: ['lo'], empty: runtimeFacts.linksOnlyLoopback }, linksAfterLaunch: { names: ['lo'], empty: runtimeFacts.linksOnlyLoopback } },
-      jailerIdentity: { uid: String(runtimeFacts.uid), gid: String(runtimeFacts.gid), expectedUid: String(runtimeFacts.expectedUid), expectedGid: String(runtimeFacts.expectedGid) }, executableIdentity: runtimeFacts.exe,
+      firecrackerPid: runtimeFacts.firecrackerPid, firecrackerPidAlive: runtimeFacts.firecrackerPidAlive, firecrackerStartTime: runtimeFacts.firecrackerStartTime, firecrackerNamespacePid: runtimeFacts.firecrackerNamespacePid, firecrackerExe: runtimeFacts.firecrackerExe ? runtimeFacts.firecrackerExe.split('/').at(-1) : runtimeFacts.firecrackerExe, firecrackerUid: runtimeFacts.firecrackerUid, firecrackerGid: runtimeFacts.firecrackerGid,
+      launcherPid: runtimeFacts.launcherPid, launcherAlive: runtimeFacts.launcherAlive, jailRoot: 'srv/jailer/firecracker/<attempt-id>/root', profileDigest: preflight.profileDigest,
+      effectiveConfigSha256: runtimeFacts.effectiveConfigSha256, guestVsockSocket: 'srv/jailer/firecracker/<attempt-id>/root/run/fates/vsock.sock_<guest-port>', socketExistsBeforeGuestConnect, noGuestNic: runtimeFacts.noGuestNic,
+      networkNamespace: { processIdentity: runtimeFacts.processNetnsIdentity, namedIdentity: runtimeFacts.namedNetnsIdentity, match: runtimeFacts.netnsMatch, linksOnlyLoopback: runtimeFacts.linksOnlyLoopback },
+      identityError: runtimeFacts.identityError,
     };
-    if (!runtimeFacts.pidAlive || !runtimeFacts.noGuestNic || !runtimeFacts.netnsMatch || !runtimeFacts.linksOnlyLoopback || !runtimeFacts.effectiveConfigSha256 || runtimeFacts.uid !== runtimeFacts.expectedUid || runtimeFacts.gid !== runtimeFacts.expectedGid) throw new Error(`runtime containment facts failed: ${JSON.stringify(evidence.runtime)}`);
+    if (!runtimeFacts.firecrackerPidAlive || !Number.isSafeInteger(runtimeFacts.firecrackerPid) || !runtimeFacts.firecrackerStartTime || !runtimeFacts.firecrackerExe || runtimeFacts.firecrackerUid !== runtimeFacts.expectedUid || runtimeFacts.firecrackerGid !== runtimeFacts.expectedGid || !runtimeFacts.noGuestNic || !runtimeFacts.netnsMatch || !runtimeFacts.linksOnlyLoopback || typeof runtimeFacts.effectiveConfigSha256 !== 'string' || !runtimeFacts.guestVsockSocket || !socketExistsBeforeGuestConnect) throw new Error(`runtime containment facts failed: ${JSON.stringify(evidence.runtime)}`);
     const hostResult = await withTimeout(hostCapture.completion, 60_000, 'host governed process timed out');
     let hostMarker;
     try { hostMarker = hostResult.stdout.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).map((line) => JSON.parse(line)).find((value) => value.marker === 'FATES_005A_HOST_RESULT'); } catch { hostMarker = undefined; }
@@ -308,25 +320,30 @@ async function execute() {
     terminalError = error instanceof Error ? error.message : String(error);
     evidence.error = sanitizeDiagnostic(terminalError);
   } finally {
-    const hostStopped = await stopChild(hostChild, hostCapture);
+    const governedHostListenerStopped = await stopChild(hostChild, hostCapture);
     let cleanupResult;
     if (prepared) {
       try { cleanupResult = cleanupHostControl(sessionId); } catch (error) { evidence.cleanupError = sanitizeDiagnostic(error instanceof Error ? error.message : String(error)); }
     }
     let inputRemoved = false;
     try { await rm(inputDir, { recursive: true, force: true }); inputRemoved = true; } catch (error) { evidence.cleanupError = sanitizeDiagnostic(error instanceof Error ? error.message : String(error)); }
-    evidence.cleanup = { hostStopped, helperCleanup: cleanupResult ?? null, namespaceDeleted: cleanupResult?.namespaceRemoved === true, vmmStopped: launched ? cleanupResult?.jailRemoved === true : true, stagingRemoved: cleanupResult?.jailRemoved === true, inputRemoved };
-    if (!hostStopped || (prepared && (!cleanupResult?.namespaceRemoved || !cleanupResult?.jailRemoved || !inputRemoved))) evidence.classification = 'INCOMPLETE / NOT ACCEPTED';
+    evidence.cleanup = { governedHostListenerStopped, firecrackerStopped: launched ? cleanupResult?.firecrackerStopped === true : false, namespaceRemoved: cleanupResult?.namespaceRemoved === true, jailRemoved: cleanupResult?.jailRemoved === true, inputRemoved, helperCleanup: cleanupResult ?? null };
+    if (!governedHostListenerStopped || (prepared && (!cleanupResult?.firecrackerStopped || !cleanupResult?.namespaceRemoved || !cleanupResult?.jailRemoved || !inputRemoved))) evidence.classification = 'INCOMPLETE / NOT ACCEPTED';
     writeFileSync(evidencePath, `${JSON.stringify(evidence, null, 2)}\n`, { encoding: 'utf8', flag: 'wx', mode: 0o600 });
   }
   if (terminalError) throw new Error(`${evidence.classification}: ${terminalError}`);
   process.stdout.write(`${JSON.stringify(evidence, null, 2)}\n`);
 }
 
-const mode = has('--execute') ? 'execute' : has('--plan') ? 'plan' : '';
-if (!mode) {
-  process.stderr.write('usage: fates-005a-live-acceptance.mjs --plan|--execute --attempt-id NNN [implementation checkpoints]\n');
-  process.exitCode = 2;
-} else {
-  (mode === 'plan' ? plan : execute)().catch((error) => { process.stderr.write(`${error.message}\n`); process.exitCode = 1; });
+export { captureChild, stopChild, waitForPath };
+
+const isMainModule = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isMainModule) {
+  const mode = has('--execute') ? 'execute' : has('--plan') ? 'plan' : '';
+  if (!mode) {
+    process.stderr.write('usage: fates-005a-live-acceptance.mjs --plan|--execute --attempt-id NNN [implementation checkpoints]\n');
+    process.exitCode = 2;
+  } else {
+    (mode === 'plan' ? plan : execute)().catch((error) => { process.stderr.write(`${error.message}\n`); process.exitCode = 1; });
+  }
 }

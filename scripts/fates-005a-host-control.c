@@ -13,8 +13,10 @@
 #include <fcntl.h>
 #include <ftw.h>
 #include <ifaddrs.h>
+#include <inttypes.h>
 #include <linux/if_link.h>
 #include <linux/limits.h>
+#include <net/if.h>
 #include <pwd.h>
 #include <sched.h>
 #include <signal.h>
@@ -54,6 +56,15 @@
 #define GUEST_VSOCK_PORT 7000
 #define VCPU_COUNT 1
 #define MEMORY_MIB 256
+#define PID_MAX_VALUE 4194304ULL
+#define MAX_PID_FILE_BYTES 32U
+#define MAX_PROCESS_RECORD_BYTES 160U
+#define FIRECRACKER_DISCOVERY_TIMEOUT_MS 10000U
+#define LAUNCHER_REAP_TIMEOUT_MS 2000U
+#define PROCESS_STOP_TIMEOUT_MS 5000U
+#define LIFECYCLE_TEST_ID "fates-r5-lifecycle-test"
+#define LIFECYCLE_TEST_INITRD "/home/fatesadmin/fates-005a/diagnostics/r4/guest-initrd.cpio"
+#define LIFECYCLE_TEST_INITRD_SHA256 "67336c2dfa415fd347878d68c386cb2c5cc52be089345fa5b303e4933b4922a6"
 
 static char g_session_dir[PATH_MAX];
 static char g_jail_root[PATH_MAX];
@@ -61,6 +72,7 @@ static char g_netns_path[PATH_MAX];
 static char g_attempt_input_dir[PATH_MAX];
 static char g_initrd_source[PATH_MAX];
 static char g_pid_path[PATH_MAX];
+static char g_firecracker_pid_path[PATH_MAX];
 static char g_config_path[PATH_MAX];
 static char g_run_dir[PATH_MAX];
 static char g_listener_dir[PATH_MAX];
@@ -108,6 +120,7 @@ static int format_paths(const char *attempt) {
     if (snprintf(g_attempt_input_dir, sizeof(g_attempt_input_dir), "%s/%s", ATTEMPT_INPUT_BASE, attempt) >= (int)sizeof(g_attempt_input_dir)) return -1;
     if (snprintf(g_initrd_source, sizeof(g_initrd_source), "%s/guest-initrd.cpio", g_attempt_input_dir) >= (int)sizeof(g_initrd_source)) return -1;
     if (snprintf(g_pid_path, sizeof(g_pid_path), "%s/fates-005a.pid", g_session_dir) >= (int)sizeof(g_pid_path)) return -1;
+    if (snprintf(g_firecracker_pid_path, sizeof(g_firecracker_pid_path), "%s/firecracker.pid", g_jail_root) >= (int)sizeof(g_firecracker_pid_path)) return -1;
     if (snprintf(g_config_path, sizeof(g_config_path), "%s/firecracker-config.json", g_jail_root) >= (int)sizeof(g_config_path)) return -1;
     if (snprintf(g_run_dir, sizeof(g_run_dir), "%s/run", g_jail_root) >= (int)sizeof(g_run_dir)) return -1;
     if (snprintf(g_listener_dir, sizeof(g_listener_dir), "%s/fates", g_run_dir) >= (int)sizeof(g_listener_dir)) return -1;
@@ -446,11 +459,14 @@ static int namespace_has_only_loopback(void) {
     struct ifaddrs *interfaces = NULL;
     if (getifaddrs(&interfaces) != 0) return 0;
     int ok = 1;
+    int saw_interface = 0;
     for (struct ifaddrs *item = interfaces; item != NULL; item = item->ifa_next) {
-        if (item->ifa_name != NULL && strcmp(item->ifa_name, "lo") != 0) { ok = 0; break; }
+        if (item->ifa_name == NULL) { ok = 0; break; }
+        saw_interface = 1;
+        if ((item->ifa_flags & IFF_LOOPBACK) == 0) { ok = 0; break; }
     }
     freeifaddrs(interfaces);
-    return ok;
+    return ok && saw_interface;
 }
 
 static int create_netns(void) {
@@ -471,15 +487,145 @@ static int remove_tree_callback(const char *path, const struct stat *info, int t
 }
 
 static int remove_exact_jail(void) {
-    if (strncmp(g_session_dir, JAIL_BASE "/fates-005a-", strlen(JAIL_BASE "/fates-005a-")) != 0) return -1;
+    char lifecycle_session[PATH_MAX];
+    if (snprintf(lifecycle_session, sizeof(lifecycle_session), "%s/%s", JAIL_BASE, LIFECYCLE_TEST_ID) >= (int)sizeof(lifecycle_session) ||
+        (strncmp(g_session_dir, JAIL_BASE "/fates-005a-", strlen(JAIL_BASE "/fates-005a-")) != 0 && strcmp(g_session_dir, lifecycle_session) != 0)) return -1;
     if (!path_exists(g_session_dir)) return 0;
     return nftw(g_session_dir, remove_tree_callback, 32, FTW_DEPTH | FTW_PHYS);
 }
 
 static int remove_exact_netns(void) {
+    char lifecycle_netns[PATH_MAX];
+    if (snprintf(lifecycle_netns, sizeof(lifecycle_netns), "%s/%s", NETNS_BASE, LIFECYCLE_TEST_ID) >= (int)sizeof(lifecycle_netns) ||
+        (strncmp(g_netns_path, NETNS_BASE "/fates-005a-", strlen(NETNS_BASE "/fates-005a-")) != 0 && strcmp(g_netns_path, lifecycle_netns) != 0)) return -1;
     if (!path_exists(g_netns_path)) return 0;
     if (umount2(g_netns_path, MNT_DETACH) != 0 && errno != EINVAL) return -1;
     return unlink(g_netns_path);
+}
+
+typedef struct {
+    pid_t firecracker_pid;
+    unsigned long long firecracker_start_time;
+    pid_t launcher_pid;
+    unsigned long long launcher_start_time;
+} process_record;
+
+typedef struct {
+    uid_t uid;
+    gid_t gid;
+    pid_t namespace_pid;
+    int uid_valid;
+    int gid_valid;
+    int namespace_pid_valid;
+} process_metadata;
+
+typedef enum {
+    PROCESS_ABSENT = 0,
+    PROCESS_MATCH,
+    PROCESS_MISMATCH,
+} process_state;
+
+typedef struct {
+    dev_t device;
+    ino_t inode;
+} namespace_identity;
+
+static int read_bounded_file(const char *path, char *buffer, size_t capacity, size_t *length) {
+    struct stat info;
+    int fd = open(path, O_RDONLY | O_CLOEXEC | O_NOFOLLOW);
+    if (fd < 0) return -1;
+    if (fstat(fd, &info) != 0 || !S_ISREG(info.st_mode) || info.st_size < 0 || (uintmax_t)info.st_size > capacity) {
+        int saved_errno = errno == 0 ? EINVAL : errno;
+        close(fd);
+        errno = saved_errno;
+        return -1;
+    }
+    size_t total = 0;
+    int ok = 1;
+    while (total < capacity) {
+        ssize_t count = read(fd, buffer + total, capacity - total);
+        if (count < 0 && errno == EINTR) continue;
+        if (count < 0) { ok = 0; break; }
+        if (count == 0) break;
+        total += (size_t)count;
+    }
+    if (ok && total == capacity) {
+        char extra;
+        ssize_t count;
+        do { count = read(fd, &extra, 1); } while (count < 0 && errno == EINTR);
+        if (count > 0) { errno = EOVERFLOW; ok = 0; }
+        else if (count < 0) ok = 0;
+    }
+    int saved_errno = errno;
+    if (close(fd) != 0 && ok) { ok = 0; saved_errno = errno; }
+    if (!ok) { errno = saved_errno == 0 ? EIO : saved_errno; return -1; }
+    *length = total;
+    return 0;
+}
+
+static int parse_decimal_u64(const char *text, size_t length, unsigned long long *value) {
+    if (text == NULL || value == NULL || length == 0) return -1;
+    unsigned long long parsed = 0;
+    for (size_t i = 0; i < length; i++) {
+        if (text[i] < '0' || text[i] > '9') return -1;
+        unsigned int digit = (unsigned int)(text[i] - '0');
+        if (parsed > (UINT64_MAX - digit) / 10U) return -1;
+        parsed = parsed * 10U + digit;
+    }
+    *value = parsed;
+    return 0;
+}
+
+static int parse_pid_decimal(const char *text, size_t length, pid_t *pid) {
+    unsigned long long value;
+    if (parse_decimal_u64(text, length, &value) != 0 || value <= 1 || value > PID_MAX_VALUE) return -1;
+    *pid = (pid_t)value;
+    return 0;
+}
+
+static int parse_identity_line(const char *line, size_t length, const char *label, pid_t *pid, unsigned long long *start_time) {
+    size_t label_length = strlen(label);
+    if (length <= label_length + 3 || memcmp(line, label, label_length) != 0 || line[label_length] != ' ') return -1;
+    const char *pid_text = line + label_length + 1;
+    const char *separator = memchr(pid_text, ' ', line + length - pid_text);
+    if (separator == NULL || separator == pid_text) return -1;
+    if (parse_pid_decimal(pid_text, (size_t)(separator - pid_text), pid) != 0) return -1;
+    const char *start_text = separator + 1;
+    if (start_text >= line + length || memchr(start_text, ' ', line + length - start_text) != NULL) return -1;
+    if (parse_decimal_u64(start_text, (size_t)(line + length - start_text), start_time) != 0 || *start_time == 0) return -1;
+    return 0;
+}
+
+static int read_process_record(process_record *record) {
+    char content[MAX_PROCESS_RECORD_BYTES];
+    size_t length;
+    if (read_bounded_file(g_pid_path, content, sizeof(content), &length) != 0) return -1;
+    if (length < 4 || content[length - 1] != '\n') return -1;
+    const char *first_end = memchr(content, '\n', length - 1);
+    if (first_end == NULL || first_end == content) return -1;
+    const char *second = first_end + 1;
+    const char *second_end = memchr(second, '\n', (size_t)(content + length - second));
+    if (second_end == NULL || second_end != content + length - 1 || memchr(second_end + 1, '\n', 0) != NULL) return -1;
+    if (parse_identity_line(content, (size_t)(first_end - content), "firecracker", &record->firecracker_pid, &record->firecracker_start_time) != 0) return -1;
+    if (parse_identity_line(second, (size_t)(second_end - second), "launcher", &record->launcher_pid, &record->launcher_start_time) != 0) return -1;
+    return 0;
+}
+
+static int write_process_record(const process_record *record) {
+    char content[MAX_PROCESS_RECORD_BYTES];
+    int length = snprintf(content, sizeof(content), "firecracker %ld %llu\nlauncher %ld %llu\n",
+                          (long)record->firecracker_pid, record->firecracker_start_time,
+                          (long)record->launcher_pid, record->launcher_start_time);
+    if (length <= 0 || (size_t)length >= sizeof(content)) { errno = EOVERFLOW; return -1; }
+    return write_exact_file(g_pid_path, content, (size_t)length, 0600);
+}
+
+static int read_firecracker_pidfile(pid_t *pid) {
+    char content[MAX_PID_FILE_BYTES];
+    size_t length;
+    if (read_bounded_file(g_firecracker_pid_path, content, sizeof(content), &length) != 0) return -1;
+    if (length > 0 && content[length - 1] == '\n') length--;
+    return parse_pid_decimal(content, length, pid);
 }
 
 static int process_start_time(pid_t pid, unsigned long long *start_time) {
@@ -489,8 +635,9 @@ static int process_start_time(pid_t pid, unsigned long long *start_time) {
     int fd = open(path, O_RDONLY | O_CLOEXEC | O_NOFOLLOW);
     if (fd < 0) return -1;
     ssize_t length = read(fd, content, sizeof(content) - 1);
+    int saved_errno = errno;
     close(fd);
-    if (length <= 0) return -1;
+    if (length <= 0) { errno = length < 0 ? saved_errno : EIO; return -1; }
     content[length] = '\0';
     char *close_comm = strrchr(content, ')');
     if (close_comm == NULL || close_comm[1] != ' ') return -1;
@@ -499,9 +646,8 @@ static int process_start_time(pid_t pid, unsigned long long *start_time) {
     char *save = NULL;
     for (char *token = strtok_r(cursor, " ", &save); token != NULL; token = strtok_r(NULL, " ", &save), field++) {
         if (field == 22) {
-            char *end = NULL;
-            unsigned long long value = strtoull(token, &end, 10);
-            if (end == token || *end != '\0') return -1;
+            unsigned long long value;
+            if (parse_decimal_u64(token, strlen(token), &value) != 0 || value == 0) return -1;
             *start_time = value;
             return 0;
         }
@@ -509,47 +655,140 @@ static int process_start_time(pid_t pid, unsigned long long *start_time) {
     return -1;
 }
 
-static int process_identity_matches(pid_t pid, unsigned long long expected_start_time) {
-    unsigned long long actual_start_time;
-    if (process_start_time(pid, &actual_start_time) != 0 || actual_start_time != expected_start_time) return 0;
+static int read_process_executable(pid_t pid, char *executable, size_t capacity) {
     char path[PATH_MAX];
-    char executable[PATH_MAX] = "";
-    if (snprintf(path, sizeof(path), "/proc/%ld/exe", (long)pid) >= (int)sizeof(path)) return 0;
-    ssize_t length = readlink(path, executable, sizeof(executable) - 1);
-    if (length <= 0) return 0;
+    if (snprintf(path, sizeof(path), "/proc/%ld/exe", (long)pid) >= (int)sizeof(path)) return -1;
+    ssize_t length = readlink(path, executable, capacity - 1);
+    if (length <= 0 || (size_t)length >= capacity) return -1;
     executable[length] = '\0';
-    return strstr(executable, "firecracker") != NULL || strstr(executable, "jailer") != NULL;
-}
-
-static int read_pid(pid_t *pid, unsigned long long *start_time) {
-    FILE *file = fopen(g_pid_path, "r");
-    long value;
-    unsigned long long stored_start_time;
-    if (file == NULL || fscanf(file, "%ld %llu", &value, &stored_start_time) != 2) { if (file) fclose(file); return -1; }
-    fclose(file);
-    if (value <= 1 || value > 4194304) return -1;
-    *pid = (pid_t)value;
-    *start_time = stored_start_time;
     return 0;
 }
 
-static int process_exists(pid_t pid, unsigned long long start_time) { return process_identity_matches(pid, start_time) && (kill(pid, 0) == 0 || errno == EPERM); }
+static int executable_basename_matches(const char *executable, const char *expected) {
+    const char *basename = strrchr(executable, '/');
+    basename = basename == NULL ? executable : basename + 1;
+    if (strcmp(basename, expected) == 0) return 1;
+    char deleted[64];
+    if (snprintf(deleted, sizeof(deleted), "%s (deleted)", expected) >= (int)sizeof(deleted)) return 0;
+    return strcmp(basename, deleted) == 0;
+}
 
-static int stop_process(pid_t pid, unsigned long long start_time) {
-    if (!process_exists(pid, start_time)) return 0;
+static int parse_last_status_pid(const char *text, pid_t *pid) {
+    const char *cursor = text;
+    int found = 0;
+    while (*cursor != '\0') {
+        while (*cursor == ' ' || *cursor == '\t') cursor++;
+        if (*cursor == '\0') break;
+        char *end = NULL;
+        errno = 0;
+        unsigned long value = strtoul(cursor, &end, 10);
+        if (errno != 0 || end == cursor || value <= 1 || value > PID_MAX_VALUE) return -1;
+        *pid = (pid_t)value;
+        found = 1;
+        cursor = end;
+    }
+    return found ? 0 : -1;
+}
+
+static int read_process_metadata(pid_t pid, process_metadata *metadata) {
+    char path[PATH_MAX];
+    char content[16384];
+    size_t length;
+    if (snprintf(path, sizeof(path), "/proc/%ld/status", (long)pid) >= (int)sizeof(path)) return -1;
+    if (read_bounded_file(path, content, sizeof(content) - 1, &length) != 0) return -1;
+    content[length] = '\0';
+    memset(metadata, 0, sizeof(*metadata));
+    char *save = NULL;
+    for (char *line = strtok_r(content, "\n", &save); line != NULL; line = strtok_r(NULL, "\n", &save)) {
+        unsigned int value;
+        if (sscanf(line, "Uid:\t%u", &value) == 1) { metadata->uid = (uid_t)value; metadata->uid_valid = 1; continue; }
+        if (sscanf(line, "Gid:\t%u", &value) == 1) { metadata->gid = (gid_t)value; metadata->gid_valid = 1; continue; }
+        if (strncmp(line, "NSpid:", 6) == 0) {
+            if (parse_last_status_pid(line + 6, &metadata->namespace_pid) == 0) metadata->namespace_pid_valid = 1;
+        }
+    }
+    return metadata->uid_valid && metadata->gid_valid ? 0 : -1;
+}
+
+static process_state process_state_for(pid_t pid, unsigned long long expected_start_time,
+                                       const char *expected_executable, int require_jailer_uid,
+                                       char *executable, size_t executable_capacity,
+                                       process_metadata *metadata) {
+    unsigned long long actual_start_time;
+    if (process_start_time(pid, &actual_start_time) != 0) return (errno == ENOENT || errno == ESRCH) ? PROCESS_ABSENT : PROCESS_MISMATCH;
+    if (actual_start_time != expected_start_time) return PROCESS_MISMATCH;
+    if (read_process_executable(pid, executable, executable_capacity) != 0) return (errno == ENOENT || errno == ESRCH) ? PROCESS_ABSENT : PROCESS_MISMATCH;
+    if (!executable_basename_matches(executable, expected_executable)) return PROCESS_MISMATCH;
+    if (require_jailer_uid) {
+        if (read_process_metadata(pid, metadata) != 0) return (errno == ENOENT || errno == ESRCH) ? PROCESS_ABSENT : PROCESS_MISMATCH;
+        if (metadata->uid != JAILER_UID || metadata->gid != JAILER_GID) return PROCESS_MISMATCH;
+    }
+    if (kill(pid, 0) != 0) return errno == ESRCH ? PROCESS_ABSENT : PROCESS_MISMATCH;
+    return PROCESS_MATCH;
+}
+
+static void sleep_milliseconds(unsigned int milliseconds) {
+    struct timespec delay = { .tv_sec = (time_t)(milliseconds / 1000U), .tv_nsec = (long)(milliseconds % 1000U) * 1000000L };
+    while (nanosleep(&delay, &delay) != 0 && errno == EINTR) { }
+}
+
+static int stop_verified_process(pid_t pid, unsigned long long start_time, const char *expected_executable, int require_jailer_uid) {
+    char executable[PATH_MAX];
+    process_metadata metadata;
+    process_state state = process_state_for(pid, start_time, expected_executable, require_jailer_uid, executable, sizeof(executable), &metadata);
+    if (state == PROCESS_ABSENT) return 0;
+    if (state != PROCESS_MATCH) { errno = EOWNERDEAD; return -1; }
     if (kill(pid, SIGTERM) != 0 && errno != ESRCH) return -1;
-    for (unsigned int i = 0; i < 100; i++) {
-        if (!process_exists(pid, start_time)) return 0;
-        struct timespec delay = { .tv_sec = 0, .tv_nsec = 50 * 1000 * 1000 };
-        nanosleep(&delay, NULL);
+    for (unsigned int elapsed = 0; elapsed < PROCESS_STOP_TIMEOUT_MS; elapsed += 50U) {
+        state = process_state_for(pid, start_time, expected_executable, require_jailer_uid, executable, sizeof(executable), &metadata);
+        if (state == PROCESS_ABSENT) return 0;
+        if (state == PROCESS_MISMATCH) { errno = EOWNERDEAD; return -1; }
+        sleep_milliseconds(50U);
     }
     if (kill(pid, SIGKILL) != 0 && errno != ESRCH) return -1;
-    for (unsigned int i = 0; i < 100; i++) {
-        if (!process_exists(pid, start_time)) return 0;
-        struct timespec delay = { .tv_sec = 0, .tv_nsec = 50 * 1000 * 1000 };
-        nanosleep(&delay, NULL);
+    for (unsigned int elapsed = 0; elapsed < PROCESS_STOP_TIMEOUT_MS; elapsed += 50U) {
+        state = process_state_for(pid, start_time, expected_executable, require_jailer_uid, executable, sizeof(executable), &metadata);
+        if (state == PROCESS_ABSENT) return 0;
+        if (state == PROCESS_MISMATCH) { errno = EOWNERDEAD; return -1; }
+        sleep_milliseconds(50U);
     }
-    return process_exists(pid, start_time) ? -1 : 0;
+    errno = ETIMEDOUT;
+    return -1;
+}
+
+static int namespace_identity_from_fd(int fd, namespace_identity *identity) {
+    struct stat info;
+    if (fstat(fd, &info) != 0) return -1;
+    identity->device = info.st_dev;
+    identity->inode = info.st_ino;
+    return 0;
+}
+
+static int process_namespace_identity(pid_t pid, namespace_identity *identity) {
+    char path[PATH_MAX];
+    if (snprintf(path, sizeof(path), "/proc/%ld/ns/net", (long)pid) >= (int)sizeof(path)) return -1;
+    int fd = open(path, O_RDONLY | O_CLOEXEC | O_NOFOLLOW);
+    if (fd < 0) return -1;
+    int result = namespace_identity_from_fd(fd, identity);
+    close(fd);
+    return result;
+}
+
+static int named_namespace_identity(namespace_identity *identity) {
+    int fd = open(g_netns_path, O_RDONLY | O_CLOEXEC | O_NOFOLLOW);
+    if (fd < 0) return -1;
+    int result = namespace_identity_from_fd(fd, identity);
+    close(fd);
+    return result;
+}
+
+static int namespace_identities_equal(const namespace_identity *left, const namespace_identity *right) {
+    return left->device == right->device && left->inode == right->inode;
+}
+
+static int format_namespace_identity(const namespace_identity *identity, char *output, size_t capacity) {
+    int length = snprintf(output, capacity, "dev:%ju:ino:%ju", (uintmax_t)identity->device, (uintmax_t)identity->inode);
+    return length > 0 && (size_t)length < capacity ? 0 : -1;
 }
 
 static int create_config(const char *attempt, const char *request_id, const char *correlation_id, const char *source_id, const char *source_hash, const char *memory_id, const char *idempotency_key) {
@@ -560,6 +799,68 @@ static int create_config(const char *attempt, const char *request_id, const char
         MEMORY_MIB, VCPU_COUNT, GUEST_CID);
     if (length <= 0 || (size_t)length >= sizeof(config)) return -1;
     return write_exact_file(g_config_path, config, (size_t)length, 0644);
+}
+
+static int poll_launcher(pid_t launcher_pid, int *reaped) {
+    if (*reaped) return 1;
+    int status;
+    pid_t result = waitpid(launcher_pid, &status, WNOHANG);
+    if (result == launcher_pid) { *reaped = 1; return 1; }
+    if (result < 0) {
+        if (errno == EINTR) return 0;
+        return -1;
+    }
+    return 0;
+}
+
+static int reap_launcher_bounded(pid_t launcher_pid, int *reaped) {
+    for (unsigned int elapsed = 0; elapsed < LAUNCHER_REAP_TIMEOUT_MS; elapsed += 50U) {
+        int result = poll_launcher(launcher_pid, reaped);
+        if (result < 0) return -1;
+        if (*reaped) return 0;
+        sleep_milliseconds(50U);
+    }
+    return 0;
+}
+
+static int discover_firecracker(pid_t launcher_pid, unsigned long long launcher_start_time,
+                                process_record *record, int *launcher_reaped) {
+    int valid_pidfile_seen = 0;
+    for (unsigned int elapsed = 0; elapsed <= FIRECRACKER_DISCOVERY_TIMEOUT_MS; elapsed += 50U) {
+        pid_t firecracker_pid;
+        if (read_firecracker_pidfile(&firecracker_pid) == 0) {
+            valid_pidfile_seen = 1;
+            unsigned long long firecracker_start_time;
+            char executable[PATH_MAX];
+            process_metadata metadata;
+            if (process_start_time(firecracker_pid, &firecracker_start_time) == 0 &&
+                process_state_for(firecracker_pid, firecracker_start_time, "firecracker", 1,
+                                  executable, sizeof(executable), &metadata) == PROCESS_MATCH) {
+                record->firecracker_pid = firecracker_pid;
+                record->firecracker_start_time = firecracker_start_time;
+                record->launcher_pid = launcher_pid;
+                record->launcher_start_time = launcher_start_time;
+                if (reap_launcher_bounded(launcher_pid, launcher_reaped) != 0) return -1;
+                return 0;
+            }
+        }
+        int launcher_result = poll_launcher(launcher_pid, launcher_reaped);
+        if (launcher_result < 0) return -1;
+        if (launcher_result > 0 && !valid_pidfile_seen) { errno = EIO; return -1; }
+        if (elapsed == FIRECRACKER_DISCOVERY_TIMEOUT_MS) break;
+        sleep_milliseconds(50U);
+    }
+    errno = valid_pidfile_seen ? EOWNERDEAD : ETIMEDOUT;
+    return -1;
+}
+
+static void abort_launch_processes(const process_record *record, int launcher_reaped) {
+    (void)stop_verified_process(record->firecracker_pid, record->firecracker_start_time, "firecracker", 1);
+    if (!launcher_reaped) {
+        (void)stop_verified_process(record->launcher_pid, record->launcher_start_time, "jailer", 0);
+        int status;
+        while (waitpid(record->launcher_pid, &status, WNOHANG) == record->launcher_pid) { }
+    }
 }
 
 static int failure_errno_or_fallback(int failure_errno) {
@@ -664,7 +965,7 @@ fail:
 static int launch(const char *attempt) {
     (void)attempt;
     struct stat initrd_info;
-    if (!path_is_directory(g_session_dir) || !path_is_directory(g_jail_root) || stat(g_config_path, &initrd_info) != 0 || !path_exists(g_netns_path)) return -1;
+    if (!path_is_directory(g_session_dir) || !path_is_directory(g_jail_root) || lstat(g_config_path, &initrd_info) != 0 || !S_ISREG(initrd_info.st_mode) || !path_exists(g_netns_path)) return -1;
     int namespace_fd = open(g_netns_path, O_RDONLY | O_CLOEXEC | O_NOFOLLOW);
     if (namespace_fd < 0 || setns(namespace_fd, CLONE_NEWNET) != 0 || !namespace_has_only_loopback()) {
         if (namespace_fd >= 0) close(namespace_fd);
@@ -697,75 +998,124 @@ static int launch(const char *attempt) {
         _exit(127);
     }
     close(log_fd);
-    unsigned long long start_time;
-    if (process_start_time(child, &start_time) != 0) { kill(child, SIGKILL); return -1; }
-    char pid_text[64];
-    int length = snprintf(pid_text, sizeof(pid_text), "%ld %llu\n", (long)child, start_time);
-    if (length <= 0 || write_exact_file(g_pid_path, pid_text, (size_t)length, 0600) != 0) {
-        kill(child, SIGKILL); return -1;
+    unsigned long long launcher_start_time;
+    if (process_start_time(child, &launcher_start_time) != 0) {
+        (void)kill(child, SIGKILL);
+        (void)waitpid(child, NULL, 0);
+        return -1;
     }
-    printf("{\"operation\":\"launch\",\"attemptId\":\"%s\",\"pid\":%ld,\"guestVsockSocket\":\"%s\"}\n", attempt, (long)child, g_guest_socket);
+    process_record record;
+    int launcher_reaped = 0;
+    if (discover_firecracker(child, launcher_start_time, &record, &launcher_reaped) != 0) {
+        int saved_errno = errno == 0 ? EIO : errno;
+        (void)stop_verified_process(child, launcher_start_time, "jailer", 0);
+        if (!launcher_reaped) (void)waitpid(child, NULL, WNOHANG);
+        errno = saved_errno;
+        return -1;
+    }
+    if (write_process_record(&record) != 0) {
+        int saved_errno = errno == 0 ? EIO : errno;
+        abort_launch_processes(&record, launcher_reaped);
+        errno = saved_errno;
+        return -1;
+    }
+    process_metadata firecracker_metadata;
+    char firecracker_executable[PATH_MAX];
+    (void)read_process_metadata(record.firecracker_pid, &firecracker_metadata);
+    printf("{\"operation\":\"launch\",\"attemptId\":\"%s\",\"firecrackerPid\":%ld,\"firecrackerNamespacePid\":%ld,\"launcherPid\":%ld,\"launcherReaped\":%s,\"guestVsockSocket\":\"%s\"}\n",
+           attempt, (long)record.firecracker_pid,
+           firecracker_metadata.namespace_pid_valid ? (long)firecracker_metadata.namespace_pid : 0L,
+           (long)record.launcher_pid, launcher_reaped ? "true" : "false", g_guest_socket);
     return 0;
 }
 
 static int inspect(const char *attempt) {
-    pid_t pid;
-    unsigned long long start_time;
-    char process_net[128] = "unavailable";
-    char named_net[128] = "unavailable";
-    char proc_path[PATH_MAX];
-    char process_exe[PATH_MAX] = "unavailable";
-    unsigned int uid = 0, gid = 0;
-    int alive = read_pid(&pid, &start_time) == 0 && process_exists(pid, start_time);
-    if (alive) {
-        if (snprintf(proc_path, sizeof(proc_path), "/proc/%ld/ns/net", (long)pid) < (int)sizeof(proc_path)) {
-            ssize_t length = readlink(proc_path, process_net, sizeof(process_net) - 1);
-            if (length >= 0) process_net[length] = '\0';
-        }
-        if (snprintf(proc_path, sizeof(proc_path), "/proc/%ld/exe", (long)pid) < (int)sizeof(proc_path)) {
-            ssize_t length = readlink(proc_path, process_exe, sizeof(process_exe) - 1);
-            if (length >= 0) process_exe[length] = '\0';
-        }
-        if (snprintf(proc_path, sizeof(proc_path), "/proc/%ld/status", (long)pid) < (int)sizeof(proc_path)) {
-            FILE *status = fopen(proc_path, "r");
-            char line[256];
-            if (status) while (fgets(line, sizeof(line), status)) {
-                if (sscanf(line, "Uid:\t%u", &uid) == 1) continue;
-                (void)sscanf(line, "Gid:\t%u", &gid);
-            }
-            if (status) fclose(status);
-        }
-    }
-    ssize_t named_length = readlink(g_netns_path, named_net, sizeof(named_net) - 1);
-    if (named_length >= 0) named_net[named_length] = '\0'; else strcpy(named_net, "unavailable");
+    process_record record;
+    int record_valid = read_process_record(&record) == 0;
+    char firecracker_executable[PATH_MAX] = "";
+    process_metadata firecracker_metadata;
+    memset(&firecracker_metadata, 0, sizeof(firecracker_metadata));
+    process_state firecracker_state = PROCESS_ABSENT;
+    if (record_valid) firecracker_state = process_state_for(record.firecracker_pid, record.firecracker_start_time, "firecracker", 1, firecracker_executable, sizeof(firecracker_executable), &firecracker_metadata);
+    int firecracker_alive = record_valid && firecracker_state == PROCESS_MATCH;
+    char launcher_executable[PATH_MAX] = "";
+    process_metadata launcher_metadata;
+    memset(&launcher_metadata, 0, sizeof(launcher_metadata));
+    process_state launcher_state = PROCESS_ABSENT;
+    if (record_valid) launcher_state = process_state_for(record.launcher_pid, record.launcher_start_time, "jailer", 0, launcher_executable, sizeof(launcher_executable), &launcher_metadata);
+    int launcher_alive = record_valid && launcher_state == PROCESS_MATCH;
+    namespace_identity process_namespace;
+    namespace_identity named_namespace;
+    int process_namespace_valid = firecracker_alive && process_namespace_identity(record.firecracker_pid, &process_namespace) == 0;
+    int named_namespace_valid = named_namespace_identity(&named_namespace) == 0;
+    int netns_match = process_namespace_valid && named_namespace_valid && namespace_identities_equal(&process_namespace, &named_namespace);
+    char process_namespace_text[128] = "";
+    char named_namespace_text[128] = "";
+    if (process_namespace_valid && format_namespace_identity(&process_namespace, process_namespace_text, sizeof(process_namespace_text)) != 0) process_namespace_valid = 0;
+    if (named_namespace_valid && format_namespace_identity(&named_namespace, named_namespace_text, sizeof(named_namespace_text)) != 0) named_namespace_valid = 0;
     int links_only_loopback = 0;
-    if (alive) {
-        int fd = open(g_netns_path, O_RDONLY | O_CLOEXEC);
+    if (netns_match) {
+        int fd = open(g_netns_path, O_RDONLY | O_CLOEXEC | O_NOFOLLOW);
         if (fd >= 0 && setns(fd, CLONE_NEWNET) == 0) links_only_loopback = namespace_has_only_loopback();
         if (fd >= 0) close(fd);
     }
     char config_sha[SHA256_LENGTH + 1] = "unavailable";
-    if (file_sha256(g_config_path, config_sha) != 0) strcpy(config_sha, "unavailable");
+    int config_valid = file_sha256(g_config_path, config_sha) == 0;
     int no_nic = 1;
-    FILE *config = fopen(g_config_path, "r");
-    if (config) {
-        char content[MAX_CONFIG_BYTES]; size_t count = fread(content, 1, sizeof(content) - 1, config); content[count] = '\0';
-        no_nic = strstr(content, "network-interfaces") == NULL;
-        fclose(config);
+    char config_content[MAX_CONFIG_BYTES];
+    size_t config_length;
+    if (config_valid && read_bounded_file(g_config_path, config_content, sizeof(config_content) - 1, &config_length) == 0) {
+        config_content[config_length] = '\0';
+        no_nic = strstr(config_content, "network-interfaces") == NULL;
     } else no_nic = 0;
-    printf("{\"operation\":\"inspect\",\"attemptId\":\"%s\",\"pid\":%ld,\"pidAlive\":%s,\"processNetns\":\"%s\",\"namedNetns\":\"%s\",\"netnsMatch\":%s,\"linksOnlyLoopback\":%s,\"uid\":%u,\"gid\":%u,\"expectedUid\":%u,\"expectedGid\":%u,\"exe\":\"%s\",\"noGuestNic\":%s,\"effectiveConfigSha256\":\"%s\",\"guestVsockSocket\":\"%s\"}\n",
-        attempt, alive ? (long)pid : 0L, alive ? "true" : "false", process_net, named_net,
-        alive && strcmp(process_net, named_net) == 0 ? "true" : "false", links_only_loopback ? "true" : "false",
-        uid, gid, JAILER_UID, JAILER_GID, process_exe, no_nic ? "true" : "false", config_sha, g_guest_socket);
+    char firecracker_pid_json[32] = "null";
+    char firecracker_start_json[32] = "null";
+    char firecracker_uid_json[32] = "null";
+    char firecracker_gid_json[32] = "null";
+    char firecracker_namespace_pid_json[32] = "null";
+    char launcher_pid_json[32] = "null";
+    char launcher_start_json[32] = "null";
+    if (record_valid && firecracker_state != PROCESS_MISMATCH) {
+        (void)snprintf(firecracker_pid_json, sizeof(firecracker_pid_json), "%ld", (long)record.firecracker_pid);
+        (void)snprintf(firecracker_start_json, sizeof(firecracker_start_json), "%llu", record.firecracker_start_time);
+    }
+    if (firecracker_alive) {
+        (void)snprintf(firecracker_uid_json, sizeof(firecracker_uid_json), "%u", (unsigned int)firecracker_metadata.uid);
+        (void)snprintf(firecracker_gid_json, sizeof(firecracker_gid_json), "%u", (unsigned int)firecracker_metadata.gid);
+        if (firecracker_metadata.namespace_pid_valid) (void)snprintf(firecracker_namespace_pid_json, sizeof(firecracker_namespace_pid_json), "%ld", (long)firecracker_metadata.namespace_pid);
+    }
+    if (record_valid) {
+        (void)snprintf(launcher_pid_json, sizeof(launcher_pid_json), "%ld", (long)record.launcher_pid);
+        (void)snprintf(launcher_start_json, sizeof(launcher_start_json), "%llu", record.launcher_start_time);
+    }
+    char process_namespace_json[160] = "null";
+    char named_namespace_json[160] = "null";
+    char firecracker_executable_json[PATH_MAX + 4] = "null";
+    char config_sha_json[SHA256_LENGTH + 4] = "null";
+    if (process_namespace_valid) (void)snprintf(process_namespace_json, sizeof(process_namespace_json), "\"%s\"", process_namespace_text);
+    if (named_namespace_valid) (void)snprintf(named_namespace_json, sizeof(named_namespace_json), "\"%s\"", named_namespace_text);
+    if (firecracker_alive && firecracker_executable[0] != '\0') (void)snprintf(firecracker_executable_json, sizeof(firecracker_executable_json), "\"%s\"", firecracker_executable);
+    if (config_valid) (void)snprintf(config_sha_json, sizeof(config_sha_json), "\"%s\"", config_sha);
+    const char *identity_error = !record_valid ? "process-record-unavailable" : firecracker_state == PROCESS_MISMATCH ? "firecracker-identity-mismatch" : firecracker_state == PROCESS_ABSENT ? "firecracker-not-alive" : NULL;
+    char identity_error_json[96] = "null";
+    if (identity_error != NULL) (void)snprintf(identity_error_json, sizeof(identity_error_json), "\"%s\"", identity_error);
+    printf("{\"operation\":\"inspect\",\"attemptId\":\"%s\",\"firecrackerPid\":%s,\"firecrackerPidAlive\":%s,\"firecrackerStartTime\":%s,\"firecrackerExe\":%s,\"firecrackerUid\":%s,\"firecrackerGid\":%s,\"firecrackerNamespacePid\":%s,\"launcherPid\":%s,\"launcherAlive\":%s,\"launcherStartTime\":%s,\"processNetnsIdentity\":%s,\"namedNetnsIdentity\":%s,\"netnsMatch\":%s,\"linksOnlyLoopback\":%s,\"expectedUid\":%u,\"expectedGid\":%u,\"noGuestNic\":%s,\"effectiveConfigSha256\":%s,\"guestVsockSocket\":\"%s\",\"identityError\":%s}\n",
+           attempt, firecracker_pid_json, firecracker_alive ? "true" : "false", firecracker_start_json,
+           firecracker_executable_json, firecracker_uid_json, firecracker_gid_json, firecracker_namespace_pid_json,
+           launcher_pid_json, launcher_alive ? "true" : "false", launcher_start_json,
+           process_namespace_json, named_namespace_json, netns_match ? "true" : "false", links_only_loopback ? "true" : "false",
+           JAILER_UID, JAILER_GID, no_nic ? "true" : "false", config_sha_json, g_guest_socket,
+           identity_error_json);
     return 0;
 }
 
 static int cleanup(const char *attempt) {
-    pid_t pid;
-    unsigned long long start_time;
-    if (read_pid(&pid, &start_time) == 0 && stop_process(pid, start_time) != 0) return -1;
+    process_record record;
+    if (read_process_record(&record) != 0) { errno = EACCES; return -1; }
+    if (stop_verified_process(record.firecracker_pid, record.firecracker_start_time, "firecracker", 1) != 0) return -1;
+    if (stop_verified_process(record.launcher_pid, record.launcher_start_time, "jailer", 0) != 0) return -1;
     if (remove_exact_netns() != 0 || remove_exact_jail() != 0) return -1;
-    printf("{\"operation\":\"cleanup\",\"attemptId\":\"%s\",\"namespaceRemoved\":true,\"jailRemoved\":true}\n", attempt);
+    printf("{\"operation\":\"cleanup\",\"attemptId\":\"%s\",\"firecrackerStopped\":true,\"launcherReaped\":true,\"governedHostListenerStopped\":null,\"namespaceRemoved\":true,\"jailRemoved\":true,\"inputRemoved\":null}\n", attempt);
     return 0;
 }
 
@@ -874,6 +1224,138 @@ static int self_test_input_metadata(void) {
     return ok;
 }
 
+static int self_test_process_fixtures(void) {
+    char directory_template[] = "/tmp/fates-005a-process-self-test-XXXXXX";
+    char record_path[PATH_MAX] = "";
+    char pidfile_path[PATH_MAX] = "";
+    char symlink_path[PATH_MAX] = "";
+    char *directory = mkdtemp(directory_template);
+    int ok = directory != NULL;
+    if (!ok) return 0;
+    if (snprintf(record_path, sizeof(record_path), "%s/record", directory) >= (int)sizeof(record_path) ||
+        snprintf(pidfile_path, sizeof(pidfile_path), "%s/firecracker.pid", directory) >= (int)sizeof(pidfile_path) ||
+        snprintf(symlink_path, sizeof(symlink_path), "%s/firecracker.pid.symlink", directory) >= (int)sizeof(symlink_path)) ok = 0;
+    unsigned long long self_start_time = 0;
+    char self_executable[PATH_MAX] = "";
+    if (ok && (process_start_time(getpid(), &self_start_time) != 0 || read_process_executable(getpid(), self_executable, sizeof(self_executable)) != 0)) ok = 0;
+    const char *self_basename = strrchr(self_executable, '/');
+    self_basename = self_basename == NULL ? self_executable : self_basename + 1;
+    process_record record = { .firecracker_pid = getpid(), .firecracker_start_time = self_start_time, .launcher_pid = getpid(), .launcher_start_time = self_start_time };
+    if (ok && (snprintf(g_pid_path, sizeof(g_pid_path), "%s", record_path) >= (int)sizeof(g_pid_path) ||
+               snprintf(g_firecracker_pid_path, sizeof(g_firecracker_pid_path), "%s", pidfile_path) >= (int)sizeof(g_firecracker_pid_path) ||
+               write_process_record(&record) != 0)) ok = 0;
+    process_record round_trip;
+    if (ok && (read_process_record(&round_trip) != 0 || round_trip.firecracker_pid != record.firecracker_pid || round_trip.launcher_pid != record.launcher_pid ||
+               round_trip.firecracker_start_time != record.firecracker_start_time || round_trip.launcher_start_time != record.launcher_start_time)) ok = 0;
+    if (ok && (write_exact_file(pidfile_path, "123\n", 4, 0600) != 0)) ok = 0;
+    pid_t parsed_pid = 0;
+    if (ok && (read_firecracker_pidfile(&parsed_pid) != 0 || parsed_pid != (pid_t)123)) ok = 0;
+    unlink(pidfile_path);
+    if (ok && (write_exact_file(pidfile_path, "123 trailing\n", 13, 0600) != 0 || read_firecracker_pidfile(&parsed_pid) == 0)) ok = 0;
+    unlink(pidfile_path);
+    if (ok && (write_exact_file(pidfile_path, "1\n", 2, 0600) != 0 || read_firecracker_pidfile(&parsed_pid) == 0)) ok = 0;
+    unlink(pidfile_path);
+    if (ok && (symlink("firecracker.pid", symlink_path) != 0 || snprintf(g_firecracker_pid_path, sizeof(g_firecracker_pid_path), "%s", symlink_path) >= (int)sizeof(g_firecracker_pid_path) || read_firecracker_pidfile(&parsed_pid) == 0)) ok = 0;
+    unlink(symlink_path);
+    process_metadata metadata;
+    char executable[PATH_MAX] = "";
+    if (ok && process_state_for(getpid(), self_start_time, self_basename, 0, executable, sizeof(executable), &metadata) != PROCESS_MATCH) ok = 0;
+    if (ok && process_state_for(getpid(), self_start_time + 1U, self_basename, 0, executable, sizeof(executable), &metadata) != PROCESS_MISMATCH) ok = 0;
+    if (ok && process_state_for(getpid(), self_start_time, "firecracker", 0, executable, sizeof(executable), &metadata) != PROCESS_MISMATCH) ok = 0;
+    if (ok && process_state_for(getpid(), self_start_time, self_basename, 1, executable, sizeof(executable), &metadata) != PROCESS_MISMATCH) ok = 0;
+    namespace_identity process_namespace;
+    namespace_identity named_namespace;
+    char saved_netns_path[PATH_MAX];
+    if (snprintf(saved_netns_path, sizeof(saved_netns_path), "%s", g_netns_path) >= (int)sizeof(saved_netns_path) ||
+        snprintf(g_netns_path, sizeof(g_netns_path), "/proc/self/ns/net") >= (int)sizeof(g_netns_path) ||
+        process_namespace_identity(getpid(), &process_namespace) != 0 || named_namespace_identity(&named_namespace) != 0 ||
+        !namespace_identities_equal(&process_namespace, &named_namespace)) ok = 0;
+    namespace_identity different_namespace = named_namespace;
+    different_namespace.inode++;
+    if (ok && namespace_identities_equal(&process_namespace, &different_namespace)) ok = 0;
+    (void)snprintf(g_netns_path, sizeof(g_netns_path), "%s", saved_netns_path);
+    pid_t child = -1;
+    unsigned long long child_start_time = 0;
+    if (ok) {
+        child = fork();
+        if (child == 0) { execl("/bin/sleep", "sleep", "30", (char *)NULL); _exit(127); }
+        if (child < 0) ok = 0;
+    }
+    if (ok) {
+        int found_sleep = 0;
+        for (unsigned int attempt = 0; attempt < 100U; attempt++) {
+            if (process_start_time(child, &child_start_time) == 0) {
+                char child_executable[PATH_MAX] = "";
+                if (read_process_executable(child, child_executable, sizeof(child_executable)) == 0 && executable_basename_matches(child_executable, "sleep")) { found_sleep = 1; break; }
+            }
+            sleep_milliseconds(10U);
+        }
+        if (!found_sleep || stop_verified_process(child, child_start_time, "not-sleep", 0) == 0 || kill(child, 0) != 0) ok = 0;
+        if (ok && stop_verified_process(child, child_start_time, "sleep", 0) != 0) ok = 0;
+        (void)waitpid(child, NULL, 0);
+    }
+    unlink(record_path);
+    unlink(pidfile_path);
+    rmdir(directory);
+    if (ok) printf("FATES-005A self-test process identity: pidfile=PASS malformed=PASS symlink=PASS start-time=PASS executable=PASS uid-gid=PASS namespace-object=PASS different-namespace=PASS verified-stop=PASS\n");
+    return ok;
+}
+
+static int self_test_live_lifecycle(void) {
+    if (geteuid() != 0) {
+        printf("FATES-005A self-test live lifecycle: NOT_RUN requires-root-for-real-KVM-jailer\n");
+        return 1;
+    }
+    int ok = 1;
+    int prepared = 0;
+    int cleaned = 0;
+    struct passwd *fates_user = getpwnam("fatesadmin");
+    if (fates_user == NULL || format_paths(LIFECYCLE_TEST_ID) != 0) ok = 0;
+    if (ok && (path_exists(g_session_dir) || path_exists(g_netns_path) || path_exists(g_attempt_input_dir))) ok = 0;
+    if (ok && (mkdir(g_attempt_input_dir, 0700) != 0 || chown(g_attempt_input_dir, fates_user->pw_uid, fates_user->pw_gid) != 0 || chmod(g_attempt_input_dir, 0700) != 0 ||
+               copy_exact_file(LIFECYCLE_TEST_INITRD, g_initrd_source, 0600) != 0 || chown(g_initrd_source, fates_user->pw_uid, fates_user->pw_gid) != 0 || chmod(g_initrd_source, 0600) != 0)) ok = 0;
+    if (ok && prepare(LIFECYCLE_TEST_ID, "req_fates_r5_lifecycle", "cor_fates_r5_lifecycle", "file:docs/fates-005c.md", FIRECRACKER_SHA256, "memory_fates_r5_lifecycle", "fates-r5-lifecycle-key", LIFECYCLE_TEST_INITRD_SHA256) != 0) ok = 0;
+    else if (ok) prepared = 1;
+    if (ok && launch(LIFECYCLE_TEST_ID) != 0) ok = 0;
+    if (ok) {
+        process_record record;
+        char executable[PATH_MAX] = "";
+        process_metadata metadata;
+        namespace_identity process_namespace;
+        namespace_identity named_namespace;
+        pid_t pidfile_pid = 0;
+        if (read_process_record(&record) != 0 || record.firecracker_pid == record.launcher_pid || read_firecracker_pidfile(&pidfile_pid) != 0 || pidfile_pid != record.firecracker_pid ||
+            process_state_for(record.firecracker_pid, record.firecracker_start_time, "firecracker", 1, executable, sizeof(executable), &metadata) != PROCESS_MATCH ||
+            metadata.uid != JAILER_UID || metadata.gid != JAILER_GID || process_namespace_identity(record.firecracker_pid, &process_namespace) != 0 || named_namespace_identity(&named_namespace) != 0 ||
+            !namespace_identities_equal(&process_namespace, &named_namespace)) ok = 0;
+        if (ok) {
+            int fd = open(g_netns_path, O_RDONLY | O_CLOEXEC | O_NOFOLLOW);
+            if (fd < 0 || setns(fd, CLONE_NEWNET) != 0 || !namespace_has_only_loopback()) ok = 0;
+            if (fd >= 0) close(fd);
+        }
+        char config_content[MAX_CONFIG_BYTES];
+        size_t config_length;
+        if (ok && (read_bounded_file(g_config_path, config_content, sizeof(config_content) - 1, &config_length) != 0)) ok = 0;
+        if (ok) { config_content[config_length] = '\0'; if (strstr(config_content, "network-interfaces") != NULL) ok = 0; }
+        if (ok && inspect(LIFECYCLE_TEST_ID) != 0) ok = 0;
+    }
+    if (prepared) {
+        if (read_process_record(&((process_record){0})) == 0) {
+            if (cleanup(LIFECYCLE_TEST_ID) != 0) ok = 0;
+            else cleaned = 1;
+        } else if (cleanup(LIFECYCLE_TEST_ID) == 0) {
+            ok = 0;
+        }
+    }
+    if (prepared && !cleaned) ok = 0;
+    if (path_exists(g_initrd_source) && unlink(g_initrd_source) != 0) ok = 0;
+    if (path_exists(g_attempt_input_dir) && rmdir(g_attempt_input_dir) != 0) ok = 0;
+    if (path_exists(g_session_dir) || path_exists(g_netns_path) || path_exists(g_attempt_input_dir)) ok = 0;
+    (void)format_paths("fates-005a-001");
+    if (ok) printf("FATES-005A self-test live lifecycle: PASS identity=PASS launcher-distinct=PASS pidfile=PASS namespace-object=PASS loopback-only=PASS no-guest-nic=PASS inspect=PASS cleanup=PASS no-survivor=PASS\n");
+    return ok;
+}
+
 static int self_test(void) {
     char temporary_template[] = "/tmp/fates-005a-helper-self-test-XXXXXX";
     int fd = mkstemp(temporary_template);
@@ -895,6 +1377,8 @@ static int self_test(void) {
     ok = ok && rollback_prepare_failure_with_cleanup("self-test rollback", ENOENT, self_test_clobber_errno, self_test_clobber_errno) == -1 && errno == ENOENT;
     ok = ok && self_test_digest_fixtures();
     ok = ok && self_test_input_metadata();
+    ok = ok && self_test_process_fixtures();
+    ok = ok && self_test_live_lifecycle();
     ok = ok && path_exists(temporary_template) && !secure_parent_directory("/tmp");
     unlink(temporary_template);
     ok = ok && !path_exists(temporary_template);
