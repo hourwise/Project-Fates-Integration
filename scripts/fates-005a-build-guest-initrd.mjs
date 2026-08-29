@@ -58,14 +58,14 @@ async function main() {
     let archived = spawnSync('cpio', archiveArgs, {
         cwd: root,
         input: 'init\n',
-        encoding: 'buffer',
+        encoding: null,
         shell: false,
       });
     if (archived.error?.code === 'ENOENT') {
       archived = spawnSync('busybox', ['cpio', ...archiveArgs], {
         cwd: root,
         input: 'init\n',
-        encoding: 'buffer',
+        encoding: null,
         shell: false,
       });
       cpioCommand = 'busybox cpio -o -H newc';
