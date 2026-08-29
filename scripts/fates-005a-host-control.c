@@ -443,20 +443,26 @@ static int fail_with_phase(const char *phase, int failure_errno) {
     return -1;
 }
 
-static int rollback_prepare_failure(const char *phase, int failure_errno) {
-    int saved_errno = failure_errno_or_fallback(failure_errno);
-    g_failure_phase = phase;
-    (void)remove_exact_netns();
-    (void)remove_exact_jail();
-    errno = saved_errno;
-    return -1;
-}
-
 static int report_failure(const char *operation) {
     int failure_errno = failure_errno_or_fallback(errno);
     const char *phase = g_failure_phase == NULL ? "operation failed" : g_failure_phase;
     fprintf(stderr, "FATES-005A %s: %s: %s\n", operation, phase, strerror(failure_errno));
     return 1;
+}
+
+typedef int (*cleanup_operation)(void);
+
+static int rollback_prepare_failure_with_cleanup(const char *phase, int failure_errno, cleanup_operation remove_netns, cleanup_operation remove_jail) {
+    int saved_errno = failure_errno_or_fallback(failure_errno);
+    g_failure_phase = phase;
+    if (remove_netns != NULL) (void)remove_netns();
+    if (remove_jail != NULL) (void)remove_jail();
+    errno = saved_errno;
+    return -1;
+}
+
+static int rollback_prepare_failure(const char *phase, int failure_errno) {
+    return rollback_prepare_failure_with_cleanup(phase, failure_errno, remove_exact_netns, remove_exact_jail);
 }
 
 static int prepare(const char *attempt, const char *request_id, const char *correlation_id, const char *source_id, const char *source_hash, const char *memory_id, const char *idempotency_key, const char *initrd_sha256) {
@@ -609,6 +615,11 @@ static int self_test_record_mkdir(const char *path, mode_t mode) {
     return 0;
 }
 
+static int self_test_clobber_errno(void) {
+    errno = 0;
+    return 0;
+}
+
 static int self_test(void) {
     char temporary_template[] = "/tmp/fates-005a-helper-self-test-XXXXXX";
     int fd = mkstemp(temporary_template);
@@ -627,6 +638,7 @@ static int self_test(void) {
          strcmp(self_test_mkdir_paths[3], g_listener_dir) == 0 && self_test_mkdir_modes[3] == 01733 &&
          strstr(self_test_mkdir_paths[2], "/root/run") != NULL && strstr(self_test_mkdir_paths[3], "/root/run/fates") != NULL;
     ok = ok && failure_errno_or_fallback(0) == EIO && strcmp(strerror(failure_errno_or_fallback(0)), "Success") != 0;
+    ok = ok && rollback_prepare_failure_with_cleanup("self-test rollback", ENOENT, self_test_clobber_errno, self_test_clobber_errno) == -1 && errno == ENOENT;
     ok = ok && path_exists(temporary_template) && !secure_parent_directory("/tmp");
     unlink(temporary_template);
     ok = ok && !path_exists(temporary_template);
