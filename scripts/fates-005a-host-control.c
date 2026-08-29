@@ -1230,7 +1230,9 @@ static int self_test_process_fixtures(void) {
     char symlink_path[PATH_MAX] = "";
     char *directory = mkdtemp(directory_template);
     int ok = directory != NULL;
+    int failed_stage = 0;
     if (!ok) return 0;
+    failed_stage = 1;
     if (snprintf(record_path, sizeof(record_path), "%s/record", directory) >= (int)sizeof(record_path) ||
         snprintf(pidfile_path, sizeof(pidfile_path), "%s/firecracker.pid", directory) >= (int)sizeof(pidfile_path) ||
         snprintf(symlink_path, sizeof(symlink_path), "%s/firecracker.pid.symlink", directory) >= (int)sizeof(symlink_path)) ok = 0;
@@ -1240,6 +1242,7 @@ static int self_test_process_fixtures(void) {
     const char *self_basename = strrchr(self_executable, '/');
     self_basename = self_basename == NULL ? self_executable : self_basename + 1;
     process_record record = { .firecracker_pid = getpid(), .firecracker_start_time = self_start_time, .launcher_pid = getpid(), .launcher_start_time = self_start_time };
+    failed_stage = 2;
     if (ok && (snprintf(g_pid_path, sizeof(g_pid_path), "%s", record_path) >= (int)sizeof(g_pid_path) ||
                snprintf(g_firecracker_pid_path, sizeof(g_firecracker_pid_path), "%s", pidfile_path) >= (int)sizeof(g_firecracker_pid_path) ||
                write_process_record(&record) != 0)) ok = 0;
@@ -1247,14 +1250,17 @@ static int self_test_process_fixtures(void) {
     if (ok && (read_process_record(&round_trip) != 0 || round_trip.firecracker_pid != record.firecracker_pid || round_trip.launcher_pid != record.launcher_pid ||
                round_trip.firecracker_start_time != record.firecracker_start_time || round_trip.launcher_start_time != record.launcher_start_time)) ok = 0;
     if (ok && (write_exact_file(pidfile_path, "123\n", 4, 0600) != 0)) ok = 0;
+    failed_stage = 3;
     pid_t parsed_pid = 0;
     if (ok && (read_firecracker_pidfile(&parsed_pid) != 0 || parsed_pid != (pid_t)123)) ok = 0;
     unlink(pidfile_path);
     if (ok && (write_exact_file(pidfile_path, "123 trailing\n", 13, 0600) != 0 || read_firecracker_pidfile(&parsed_pid) == 0)) ok = 0;
+    failed_stage = 4;
     unlink(pidfile_path);
     if (ok && (write_exact_file(pidfile_path, "1\n", 2, 0600) != 0 || read_firecracker_pidfile(&parsed_pid) == 0)) ok = 0;
     unlink(pidfile_path);
     if (ok && (symlink("firecracker.pid", symlink_path) != 0 || snprintf(g_firecracker_pid_path, sizeof(g_firecracker_pid_path), "%s", symlink_path) >= (int)sizeof(g_firecracker_pid_path) || read_firecracker_pidfile(&parsed_pid) == 0)) ok = 0;
+    failed_stage = 5;
     unlink(symlink_path);
     process_metadata metadata;
     char executable[PATH_MAX] = "";
@@ -1262,6 +1268,7 @@ static int self_test_process_fixtures(void) {
     if (ok && process_state_for(getpid(), self_start_time + 1U, self_basename, 0, executable, sizeof(executable), &metadata) != PROCESS_MISMATCH) ok = 0;
     if (ok && process_state_for(getpid(), self_start_time, "firecracker", 0, executable, sizeof(executable), &metadata) != PROCESS_MISMATCH) ok = 0;
     if (ok && process_state_for(getpid(), self_start_time, self_basename, 1, executable, sizeof(executable), &metadata) != PROCESS_MISMATCH) ok = 0;
+    failed_stage = 6;
     namespace_identity process_namespace;
     namespace_identity named_namespace;
     char saved_netns_path[PATH_MAX];
@@ -1272,6 +1279,7 @@ static int self_test_process_fixtures(void) {
     namespace_identity different_namespace = named_namespace;
     different_namespace.inode++;
     if (ok && namespace_identities_equal(&process_namespace, &different_namespace)) ok = 0;
+    failed_stage = 7;
     (void)snprintf(g_netns_path, sizeof(g_netns_path), "%s", saved_netns_path);
     pid_t child = -1;
     unsigned long long child_start_time = 0;
@@ -1281,6 +1289,7 @@ static int self_test_process_fixtures(void) {
         if (child < 0) ok = 0;
     }
     if (ok) {
+        failed_stage = 8;
         int found_sleep = 0;
         for (unsigned int attempt = 0; attempt < 100U; attempt++) {
             if (process_start_time(child, &child_start_time) == 0) {
@@ -1297,6 +1306,7 @@ static int self_test_process_fixtures(void) {
     unlink(pidfile_path);
     rmdir(directory);
     if (ok) printf("FATES-005A self-test process identity: pidfile=PASS malformed=PASS symlink=PASS start-time=PASS executable=PASS uid-gid=PASS namespace-object=PASS different-namespace=PASS verified-stop=PASS\n");
+    else fprintf(stderr, "FATES-005A self-test process identity failed at stage %d\n", failed_stage);
     return ok;
 }
 
