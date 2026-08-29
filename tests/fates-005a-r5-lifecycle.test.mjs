@@ -60,7 +60,7 @@ test('governed listener readiness is a bound UDS and the shared stop path closes
   const child = spawn(process.execPath, [hostListenerScript, '--socket', socketPath, '--session-id', 'fates-r5-listener-lifecycle', '--moirae-implementation-commit', 'b23f723fc5267c95fe9f7eccb2efa32465f8d2f1', '--workspace-root', reposRoot, '--moirae-root', moiraeRoot, '--durable-state-root', join(directory, 'state'), '--ready-file', readyFile], { cwd: integrationRoot, env: fixedEnvironment(), shell: false, stdio: ['ignore', 'pipe', 'pipe'] });
   const capture = captureChild(child);
   try {
-    assert.equal(await waitForPath(readyFile, 5_000), true, (await capture.completion.catch(() => capture.output)).stderr);
+    assert.equal(await waitForPath(readyFile, 5_000), true, capture.output.stderr);
     const readySocket = await lstat(socketPath);
     assert.equal(readySocket.isSocket(), true);
     assert.equal((await lstat(readyFile)).isFile(), true);
