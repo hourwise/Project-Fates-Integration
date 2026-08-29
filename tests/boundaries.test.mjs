@@ -3,8 +3,9 @@
 
 import { describe, it } from 'node:test';
 import { strict as assert } from 'node:assert';
-import { readFileSync, existsSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
+import { readFileSync, existsSync, copyFileSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { resolve, dirname, join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 
@@ -15,6 +16,28 @@ function runBoundaries() {
     cwd: root,
     encoding: 'utf-8',
   });
+}
+
+function runFixture({ evidence = {}, packageJson = {}, packageLock = null }) {
+  const fixtureRoot = mkdtempSync(join(tmpdir(), 'fates-boundaries-'));
+  const scriptPath = join(fixtureRoot, 'scripts', 'verify-boundaries.mjs');
+  const evidencePath = join(fixtureRoot, 'docs', 'evidence', 'fixture.json');
+  try {
+    mkdirSync(dirname(scriptPath), { recursive: true });
+    mkdirSync(dirname(evidencePath), { recursive: true });
+    copyFileSync(resolve(root, 'scripts/verify-boundaries.mjs'), scriptPath);
+    writeFileSync(join(fixtureRoot, 'package.json'), JSON.stringify(packageJson));
+    if (packageLock !== null) {
+      writeFileSync(join(fixtureRoot, 'package-lock.json'), JSON.stringify(packageLock));
+    }
+    writeFileSync(evidencePath, JSON.stringify(evidence));
+    return spawnSync(process.execPath, [scriptPath], {
+      cwd: fixtureRoot,
+      encoding: 'utf-8',
+    });
+  } finally {
+    rmSync(fixtureRoot, { recursive: true, force: true });
+  }
 }
 
 describe('boundary verification', () => {
@@ -140,5 +163,50 @@ describe('boundary verification', () => {
     };
     assert.strictEqual(fixture.ciStatus, 'failing',
       'failing CI is problematic for sealed checkpoints');
+  });
+
+  it('allows a bounded logical file sourceId in evidence', () => {
+    const result = runFixture({ evidence: { sourceId: 'file:docs/fates-005c.md' } });
+    assert.strictEqual(result.status, 0, result.stderr);
+  });
+
+  it('does not allow the logical file sourceId exception by string prefix alone', () => {
+    const result = runFixture({ evidence: { note: 'file:docs/fates-005c.md' } });
+    assert.notStrictEqual(result.status, 0);
+  });
+
+  it('rejects absolute and traversal sourceIds', () => {
+    for (const sourceId of [
+      'file:/etc/passwd',
+      'file://etc/passwd',
+      'file:../secret',
+      'file:docs/../../secret',
+      'file:C:\\secret',
+      'file:C:/secret',
+    ]) {
+      const result = runFixture({ evidence: { sourceId } });
+      assert.notStrictEqual(result.status, 0, sourceId);
+    }
+  });
+
+  it('continues to reject local dependency prefixes in package metadata', () => {
+    for (const version of ['file:../peer', 'link:../peer', 'workspace:*']) {
+      const result = runFixture({ packageJson: { dependencies: { peer: version } } });
+      assert.notStrictEqual(result.status, 0, version);
+    }
+    const result = runFixture({ packageLock: { packages: { 'node_modules/peer': { version: 'git+file:../peer' } } } });
+    assert.notStrictEqual(result.status, 0, 'git+file:../peer');
+  });
+
+  it('rejects absolute paths elsewhere in evidence', () => {
+    for (const location of ['/etc/passwd', 'C:\\secret', 'C:/secret']) {
+      const result = runFixture({ evidence: { location } });
+      assert.notStrictEqual(result.status, 0, location);
+    }
+  });
+
+  it('rejects mutable Fate GitHub references in evidence', () => {
+    const result = runFixture({ evidence: { source: 'https://github.com/hourwise/Project-Adrasteia#main' } });
+    assert.notStrictEqual(result.status, 0);
   });
 });

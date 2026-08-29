@@ -89,7 +89,10 @@ const ALLOWED_DIRTY_PATHS = {
     'scripts/fates-005a-vsock-host.mjs',
     'scripts/fates-governed-smoke.mjs',
     'docs/design/FATES-005A-live-acceptance.md',
+    'docs/evidence/FATES-005A-live-acceptance-attempt-001.json',
+    'scripts/verify-boundaries.mjs',
     'tests/fates-005a-host-control.test.mjs',
+    'tests/boundaries.test.mjs',
   ]),
 };
 

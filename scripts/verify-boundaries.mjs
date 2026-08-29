@@ -20,6 +20,7 @@ const fateRepos = [
   'Project-Adrasteia', 'Project-Ananke', 'Project-Mnemosyne',
   'Project-Horae', 'Project-Moirae-Code',
 ];
+const logicalSourceIdPattern = /^[A-Za-z0-9._:-]+(?:\/[A-Za-z0-9._:-]+)*$/;
 
 // 1. Check .gitmodules
 if (existsSync(resolve(root, '.gitmodules'))) {
@@ -84,7 +85,7 @@ scanForArchives(root, '.');
 
 // --- Helper functions ---
 
-function checkForLocalPathsObj(obj, filePath) {
+function checkForLocalPathsObj(obj, filePath, propertyName = null) {
   if (typeof obj === 'string') {
     // Windows absolute paths
     if (/^[A-Za-z]:[/\\]/.test(obj)) {
@@ -96,7 +97,11 @@ function checkForLocalPathsObj(obj, filePath) {
     }
     // Forbidden dependency patterns in any string
     for (const prefix of forbiddenPrefixes) {
-      if (obj.startsWith(prefix)) {
+      const isBoundedEvidenceSourceId = prefix === 'file:' &&
+        propertyName === 'sourceId' &&
+        filePath.startsWith('docs/evidence/') &&
+        isLogicalSourceId(obj);
+      if (obj.startsWith(prefix) && !isBoundedEvidenceSourceId) {
         errors.push(`${filePath}: contains forbidden "${prefix}" reference`);
       }
     }
@@ -115,14 +120,20 @@ function checkForLocalPathsObj(obj, filePath) {
     }
   } else if (typeof obj === 'object' && obj !== null) {
     for (const [key, value] of Object.entries(obj)) {
-      // Check for Fate repo keys as dependency names
-      if (key === 'resolved' || key === 'version') {
-        checkForLocalPathsObj(value, filePath);
-      } else {
-        checkForLocalPathsObj(value, filePath);
-      }
+      checkForLocalPathsObj(value, filePath, key);
     }
   }
+}
+
+function isLogicalSourceId(value) {
+  if (typeof value !== 'string' || !value.startsWith('file:')) return false;
+
+  const logicalPath = value.slice('file:'.length);
+  if (!logicalPath || logicalPath.startsWith('/') || logicalPath.startsWith('\\')) return false;
+  if (/^[A-Za-z]:/.test(logicalPath) || logicalPath.includes('\\') || logicalPath.includes('..')) return false;
+  if (!logicalSourceIdPattern.test(logicalPath)) return false;
+
+  return logicalPath.split('/').every((segment) => segment !== '.');
 }
 
 function findAllJsonFiles(dir, excludeDirs) {
