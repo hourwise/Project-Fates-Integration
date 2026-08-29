@@ -68,6 +68,39 @@ static char g_guest_socket[PATH_MAX];
 static char g_jailer_log[PATH_MAX];
 static const char *g_failure_phase;
 
+typedef enum {
+    FRESH_INPUT_OK = 0,
+    FRESH_INPUT_FATES_ACCOUNT_UNAVAILABLE,
+    FRESH_INPUT_TRUST_ROOT_UNAVAILABLE,
+    FRESH_INPUT_TRUST_ROOT_NOT_DIRECTORY,
+    FRESH_INPUT_TRUST_ROOT_SYMLINK,
+    FRESH_INPUT_TRUST_ROOT_WRONG_OWNER,
+    FRESH_INPUT_TRUST_ROOT_UNSAFE_MODE,
+    FRESH_INPUT_BASE_UNAVAILABLE,
+    FRESH_INPUT_BASE_NOT_DIRECTORY,
+    FRESH_INPUT_BASE_SYMLINK,
+    FRESH_INPUT_BASE_WRONG_OWNER,
+    FRESH_INPUT_BASE_UNSAFE_MODE,
+    FRESH_INPUT_ATTEMPT_UNAVAILABLE,
+    FRESH_INPUT_ATTEMPT_NOT_DIRECTORY,
+    FRESH_INPUT_ATTEMPT_SYMLINK,
+    FRESH_INPUT_ATTEMPT_WRONG_OWNER,
+    FRESH_INPUT_ATTEMPT_UNSAFE_MODE,
+    FRESH_INPUT_INITRD_UNAVAILABLE,
+    FRESH_INPUT_INITRD_NOT_REGULAR,
+    FRESH_INPUT_INITRD_SYMLINK,
+    FRESH_INPUT_INITRD_WRONG_OWNER,
+    FRESH_INPUT_INITRD_UNSAFE_MODE,
+    FRESH_INPUT_INITRD_EMPTY,
+} fresh_input_result;
+
+typedef enum {
+    DIGEST_OK = 0,
+    DIGEST_EXPECTED_INVALID,
+    DIGEST_SOURCE_IO,
+    DIGEST_MISMATCH,
+} digest_result;
+
 static int format_paths(const char *attempt) {
     if (snprintf(g_session_dir, sizeof(g_session_dir), "%s/%s", JAIL_BASE, attempt) >= (int)sizeof(g_session_dir)) return -1;
     if (snprintf(g_jail_root, sizeof(g_jail_root), "%s/root", g_session_dir) >= (int)sizeof(g_jail_root)) return -1;
@@ -208,10 +241,12 @@ static int file_sha256(const char *path, char output[SHA256_LENGTH + 1]) {
     sha256_ctx ctx;
     uint8_t buffer[1024 * 1024];
     ssize_t count;
+    int saved_errno = 0;
     sha256_init(&ctx);
     while ((count = read(fd, buffer, sizeof(buffer))) > 0) sha256_update(&ctx, buffer, (size_t)count);
-    close(fd);
-    if (count < 0) return -1;
+    if (count < 0) saved_errno = errno;
+    if (close(fd) != 0 && saved_errno == 0) saved_errno = errno;
+    if (saved_errno != 0) { errno = saved_errno; return -1; }
     uint8_t digest[32];
     sha256_final(&ctx, digest);
     for (size_t i = 0; i < 32; i++) snprintf(output + i * 2, 3, "%02x", digest[i]);
@@ -219,9 +254,12 @@ static int file_sha256(const char *path, char output[SHA256_LENGTH + 1]) {
     return 0;
 }
 
-static int fixed_digest_ok(const char *path, const char *expected) {
+static digest_result check_digest(const char *path, const char *expected) {
     char actual[SHA256_LENGTH + 1];
-    return valid_sha256(expected) && file_sha256(path, actual) == 0 && strcmp(actual, expected) == 0;
+    if (!valid_sha256(expected)) { errno = EINVAL; return DIGEST_EXPECTED_INVALID; }
+    if (file_sha256(path, actual) != 0) return DIGEST_SOURCE_IO;
+    if (strcmp(actual, expected) != 0) { errno = EBADMSG; return DIGEST_MISMATCH; }
+    return DIGEST_OK;
 }
 
 static int path_exists(const char *path) {
@@ -234,20 +272,111 @@ static int path_is_directory(const char *path) {
     return stat(path, &info) == 0 && S_ISDIR(info.st_mode);
 }
 
-static int safe_fates_input_path(void) {
-    struct passwd *fates_user = getpwnam("fatesadmin");
-    struct stat parent_info;
-    struct stat input_info;
-    struct stat initrd_info;
-    if (fates_user == NULL || lstat("/home/fatesadmin/fates-005a", &parent_info) != 0 ||
-        !S_ISDIR(parent_info.st_mode) || parent_info.st_uid != fates_user->pw_uid || (parent_info.st_mode & 0077) != 0 ||
-        lstat(ATTEMPT_INPUT_BASE, &input_info) != 0 || !S_ISDIR(input_info.st_mode) ||
-        input_info.st_uid != fates_user->pw_uid || (input_info.st_mode & 0077) != 0 ||
-        lstat(g_attempt_input_dir, &initrd_info) != 0 || !S_ISDIR(initrd_info.st_mode) ||
-        initrd_info.st_uid != fates_user->pw_uid || (initrd_info.st_mode & 0077) != 0) return 0;
-    if (lstat(g_initrd_source, &initrd_info) != 0 || !S_ISREG(initrd_info.st_mode) ||
-        initrd_info.st_uid != fates_user->pw_uid || (initrd_info.st_mode & 0022) != 0 || initrd_info.st_size <= 0) return 0;
-    return 1;
+static fresh_input_result check_directory_metadata(const char *path, uid_t expected_uid,
+                                                    fresh_input_result unavailable,
+                                                    fresh_input_result not_directory,
+                                                    fresh_input_result symlink,
+                                                    fresh_input_result wrong_owner,
+                                                    fresh_input_result unsafe_mode) {
+    struct stat info;
+    if (lstat(path, &info) != 0) return unavailable;
+    if (S_ISLNK(info.st_mode)) return symlink;
+    if (!S_ISDIR(info.st_mode)) return not_directory;
+    if (info.st_uid != expected_uid) return wrong_owner;
+    if ((info.st_mode & 0077) != 0) return unsafe_mode;
+    return FRESH_INPUT_OK;
+}
+
+static fresh_input_result validate_initrd_metadata(const char *path, uid_t expected_uid) {
+    struct stat info;
+    if (lstat(path, &info) != 0) return FRESH_INPUT_INITRD_UNAVAILABLE;
+    if (S_ISLNK(info.st_mode)) return FRESH_INPUT_INITRD_SYMLINK;
+    if (!S_ISREG(info.st_mode)) return FRESH_INPUT_INITRD_NOT_REGULAR;
+    if (info.st_uid != expected_uid) return FRESH_INPUT_INITRD_WRONG_OWNER;
+    if ((info.st_mode & 0022) != 0) return FRESH_INPUT_INITRD_UNSAFE_MODE;
+    if (info.st_size <= 0) return FRESH_INPUT_INITRD_EMPTY;
+    return FRESH_INPUT_OK;
+}
+
+static fresh_input_result validate_fresh_input_metadata(const char *trust_root,
+                                                        const char *input_base,
+                                                        const char *attempt_input_dir,
+                                                        const char *initrd_path,
+                                                        uid_t expected_uid) {
+    fresh_input_result result = check_directory_metadata(
+        trust_root, expected_uid, FRESH_INPUT_TRUST_ROOT_UNAVAILABLE,
+        FRESH_INPUT_TRUST_ROOT_NOT_DIRECTORY, FRESH_INPUT_TRUST_ROOT_SYMLINK,
+        FRESH_INPUT_TRUST_ROOT_WRONG_OWNER, FRESH_INPUT_TRUST_ROOT_UNSAFE_MODE);
+    if (result != FRESH_INPUT_OK) return result;
+    result = check_directory_metadata(
+        input_base, expected_uid, FRESH_INPUT_BASE_UNAVAILABLE,
+        FRESH_INPUT_BASE_NOT_DIRECTORY, FRESH_INPUT_BASE_SYMLINK,
+        FRESH_INPUT_BASE_WRONG_OWNER, FRESH_INPUT_BASE_UNSAFE_MODE);
+    if (result != FRESH_INPUT_OK) return result;
+    result = check_directory_metadata(
+        attempt_input_dir, expected_uid, FRESH_INPUT_ATTEMPT_UNAVAILABLE,
+        FRESH_INPUT_ATTEMPT_NOT_DIRECTORY, FRESH_INPUT_ATTEMPT_SYMLINK,
+        FRESH_INPUT_ATTEMPT_WRONG_OWNER, FRESH_INPUT_ATTEMPT_UNSAFE_MODE);
+    if (result != FRESH_INPUT_OK) return result;
+    return validate_initrd_metadata(initrd_path, expected_uid);
+}
+
+static const char *fresh_input_phase(fresh_input_result result) {
+    switch (result) {
+        case FRESH_INPUT_FATES_ACCOUNT_UNAVAILABLE: return "verify fresh initrd fatesadmin account";
+        case FRESH_INPUT_TRUST_ROOT_UNAVAILABLE: return "verify fresh initrd trust root";
+        case FRESH_INPUT_TRUST_ROOT_NOT_DIRECTORY: return "verify fresh initrd trust root type";
+        case FRESH_INPUT_TRUST_ROOT_SYMLINK: return "verify fresh initrd trust root symlink";
+        case FRESH_INPUT_TRUST_ROOT_WRONG_OWNER: return "verify fresh initrd trust root owner";
+        case FRESH_INPUT_TRUST_ROOT_UNSAFE_MODE: return "verify fresh initrd trust root mode";
+        case FRESH_INPUT_BASE_UNAVAILABLE: return "verify fresh initrd input base";
+        case FRESH_INPUT_BASE_NOT_DIRECTORY: return "verify fresh initrd input base type";
+        case FRESH_INPUT_BASE_SYMLINK: return "verify fresh initrd input base symlink";
+        case FRESH_INPUT_BASE_WRONG_OWNER: return "verify fresh initrd input base owner";
+        case FRESH_INPUT_BASE_UNSAFE_MODE: return "verify fresh initrd input base mode";
+        case FRESH_INPUT_ATTEMPT_UNAVAILABLE: return "verify fresh initrd attempt directory";
+        case FRESH_INPUT_ATTEMPT_NOT_DIRECTORY: return "verify fresh initrd attempt directory type";
+        case FRESH_INPUT_ATTEMPT_SYMLINK: return "verify fresh initrd attempt directory symlink";
+        case FRESH_INPUT_ATTEMPT_WRONG_OWNER: return "verify fresh initrd attempt directory owner";
+        case FRESH_INPUT_ATTEMPT_UNSAFE_MODE: return "verify fresh initrd attempt directory mode";
+        case FRESH_INPUT_INITRD_UNAVAILABLE: return "verify fresh initrd file";
+        case FRESH_INPUT_INITRD_NOT_REGULAR: return "verify fresh initrd file type";
+        case FRESH_INPUT_INITRD_SYMLINK: return "verify fresh initrd file symlink";
+        case FRESH_INPUT_INITRD_WRONG_OWNER: return "verify fresh initrd file owner";
+        case FRESH_INPUT_INITRD_UNSAFE_MODE: return "verify fresh initrd file mode";
+        case FRESH_INPUT_INITRD_EMPTY: return "verify fresh initrd file size";
+        case FRESH_INPUT_OK: return "verify fresh initrd";
+    }
+    return "verify fresh initrd";
+}
+
+static int fresh_input_errno(fresh_input_result result) {
+    switch (result) {
+        case FRESH_INPUT_FATES_ACCOUNT_UNAVAILABLE:
+        case FRESH_INPUT_TRUST_ROOT_UNAVAILABLE:
+        case FRESH_INPUT_BASE_UNAVAILABLE:
+        case FRESH_INPUT_ATTEMPT_UNAVAILABLE:
+        case FRESH_INPUT_INITRD_UNAVAILABLE: return ENOENT;
+        case FRESH_INPUT_TRUST_ROOT_SYMLINK:
+        case FRESH_INPUT_BASE_SYMLINK:
+        case FRESH_INPUT_ATTEMPT_SYMLINK:
+        case FRESH_INPUT_INITRD_SYMLINK: return ELOOP;
+        case FRESH_INPUT_TRUST_ROOT_WRONG_OWNER:
+        case FRESH_INPUT_TRUST_ROOT_UNSAFE_MODE:
+        case FRESH_INPUT_BASE_WRONG_OWNER:
+        case FRESH_INPUT_BASE_UNSAFE_MODE:
+        case FRESH_INPUT_ATTEMPT_WRONG_OWNER:
+        case FRESH_INPUT_ATTEMPT_UNSAFE_MODE:
+        case FRESH_INPUT_INITRD_WRONG_OWNER:
+        case FRESH_INPUT_INITRD_UNSAFE_MODE: return EACCES;
+        case FRESH_INPUT_TRUST_ROOT_NOT_DIRECTORY:
+        case FRESH_INPUT_BASE_NOT_DIRECTORY:
+        case FRESH_INPUT_ATTEMPT_NOT_DIRECTORY:
+        case FRESH_INPUT_INITRD_NOT_REGULAR:
+        case FRESH_INPUT_INITRD_EMPTY: return EINVAL;
+        case FRESH_INPUT_OK: return 0;
+    }
+    return EIO;
 }
 
 static int secure_parent_directory(const char *path) {
@@ -443,6 +572,45 @@ static int fail_with_phase(const char *phase, int failure_errno) {
     return -1;
 }
 
+static int digest_failure_errno(digest_result result) {
+    if (result == DIGEST_EXPECTED_INVALID) return EINVAL;
+    if (result == DIGEST_MISMATCH) return EBADMSG;
+    return failure_errno_or_fallback(errno);
+}
+
+static int verify_fixed_artifacts(void) {
+    static const char *const paths[] = {
+        FIRECRACKER_PATH, JAILER_PATH, GUEST_KERNEL_PATH, GUEST_ROOTFS_PATH,
+    };
+    static const char *const expected[] = {
+        FIRECRACKER_SHA256, JAILER_SHA256, GUEST_KERNEL_SHA256, GUEST_ROOTFS_SHA256,
+    };
+    static const char *const phases[] = {
+        "verify fixed Firecracker digest", "verify fixed jailer digest",
+        "verify fixed guest kernel digest", "verify fixed guest rootfs digest",
+    };
+    for (size_t i = 0; i < sizeof(paths) / sizeof(paths[0]); i++) {
+        digest_result result = check_digest(paths[i], expected[i]);
+        if (result != DIGEST_OK) return fail_with_phase(phases[i], digest_failure_errno(result));
+    }
+    return 0;
+}
+
+static int verify_fresh_initrd(const char *expected_digest) {
+    struct passwd *fates_user = getpwnam("fatesadmin");
+    if (fates_user == NULL) return fail_with_phase(fresh_input_phase(FRESH_INPUT_FATES_ACCOUNT_UNAVAILABLE), ENOENT);
+    fresh_input_result metadata = validate_fresh_input_metadata(
+        "/home/fatesadmin/fates-005a", ATTEMPT_INPUT_BASE, g_attempt_input_dir,
+        g_initrd_source, fates_user->pw_uid);
+    if (metadata != FRESH_INPUT_OK) return fail_with_phase(fresh_input_phase(metadata), fresh_input_errno(metadata));
+    digest_result digest = check_digest(g_initrd_source, expected_digest);
+    if (digest != DIGEST_OK) {
+        const char *phase = digest == DIGEST_MISMATCH ? "verify fresh initrd digest" : "verify fresh initrd digest source";
+        return fail_with_phase(phase, digest_failure_errno(digest));
+    }
+    return 0;
+}
+
 static int report_failure(const char *operation) {
     int failure_errno = failure_errno_or_fallback(errno);
     const char *phase = g_failure_phase == NULL ? "operation failed" : g_failure_phase;
@@ -472,10 +640,8 @@ static int prepare(const char *attempt, const char *request_id, const char *corr
         !valid_sha256(initrd_sha256)) return fail_with_phase("validate proposal", EINVAL);
     if (!secure_parent_directory(JAIL_BASE)) return fail_with_phase("validate jail parent", errno);
     if (path_exists(g_session_dir) || path_exists(g_netns_path)) return fail_with_phase("validate unused attempt", EEXIST);
-    errno = 0;
-    if (!fixed_digest_ok(FIRECRACKER_PATH, FIRECRACKER_SHA256) || !fixed_digest_ok(JAILER_PATH, JAILER_SHA256) ||
-        !fixed_digest_ok(GUEST_KERNEL_PATH, GUEST_KERNEL_SHA256) || !fixed_digest_ok(GUEST_ROOTFS_PATH, GUEST_ROOTFS_SHA256)) return fail_with_phase("verify fixed artifacts", errno);
-    if (!safe_fates_input_path() || !fixed_digest_ok(g_initrd_source, initrd_sha256)) return fail_with_phase("verify fresh initrd", errno);
+    if (verify_fixed_artifacts() != 0) return -1;
+    if (verify_fresh_initrd(initrd_sha256) != 0) return -1;
     if (create_netns() != 0) return fail_with_phase("create network namespace", errno);
     if (create_jail_tree(mkdir_exact) != 0) return rollback_prepare_failure("create jail runtime directory", errno);
     char target[PATH_MAX];
@@ -620,6 +786,94 @@ static int self_test_clobber_errno(void) {
     return 0;
 }
 
+static int self_test_digest_fixtures(void) {
+    static const size_t large_fixture_bytes = 743936;
+    static const char *const expected_empty = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+    static const char *const expected_small = "8cfa2742ff6e056d2bfe57595e9ad2fae9eddc3bdbc864ea5bb71a1f258e75e1";
+    static const char *const expected_multiple64 = "fdeab9acf3710362bd2658cdc9a29e8f9c757fcf9811603a8c447cd1d9151108";
+    static const char *const expected_large = "0237d6a70c8308fc6e421ad68ef081a1dcb3d3fccc3531dc5c55afe5e87083f6";
+    char directory_template[] = "/tmp/fates-005a-digest-self-test-XXXXXX";
+    char empty_path[PATH_MAX] = "";
+    char small_path[PATH_MAX] = "";
+    char multiple64_path[PATH_MAX] = "";
+    char large_path[PATH_MAX] = "";
+    char empty_digest[SHA256_LENGTH + 1] = "";
+    char small_digest[SHA256_LENGTH + 1] = "";
+    char multiple64_digest[SHA256_LENGTH + 1] = "";
+    char large_digest[SHA256_LENGTH + 1] = "";
+    const char *small_data = "fates-005a-r4-small\n";
+    uint8_t multiple64_data[64];
+    uint8_t *large_data = NULL;
+    char *directory = mkdtemp(directory_template);
+    int ok = directory != NULL;
+    if (!ok) return 0;
+    if (snprintf(empty_path, sizeof(empty_path), "%s/empty", directory) >= (int)sizeof(empty_path) ||
+        snprintf(small_path, sizeof(small_path), "%s/small", directory) >= (int)sizeof(small_path) ||
+        snprintf(multiple64_path, sizeof(multiple64_path), "%s/multiple64", directory) >= (int)sizeof(multiple64_path) ||
+        snprintf(large_path, sizeof(large_path), "%s/large", directory) >= (int)sizeof(large_path)) ok = 0;
+    for (size_t i = 0; i < sizeof(multiple64_data); i++) multiple64_data[i] = (uint8_t)i;
+    large_data = malloc(large_fixture_bytes);
+    if (large_data == NULL) ok = 0;
+    if (ok && write_exact_file(empty_path, "", 0, 0600) != 0) ok = 0;
+    if (ok && write_exact_file(small_path, small_data, strlen(small_data), 0600) != 0) ok = 0;
+    if (ok && write_exact_file(multiple64_path, (const char *)multiple64_data, sizeof(multiple64_data), 0600) != 0) ok = 0;
+    if (ok) {
+        for (size_t i = 0; i < large_fixture_bytes; i++) large_data[i] = (uint8_t)((i * 31U + 7U) & 0xffU);
+        if (write_exact_file(large_path, (const char *)large_data, large_fixture_bytes, 0600) != 0) ok = 0;
+    }
+    free(large_data);
+    large_data = NULL;
+    if (ok && (file_sha256(empty_path, empty_digest) != 0 || file_sha256(small_path, small_digest) != 0 ||
+               file_sha256(multiple64_path, multiple64_digest) != 0 || file_sha256(large_path, large_digest) != 0)) ok = 0;
+    if (ok && (strcmp(empty_digest, expected_empty) != 0 || strcmp(small_digest, expected_small) != 0 ||
+               strcmp(multiple64_digest, expected_multiple64) != 0 || strcmp(large_digest, expected_large) != 0)) ok = 0;
+    if (ok && check_digest(small_path, expected_small) != DIGEST_OK) ok = 0;
+    if (ok && check_digest(small_path, "0000000000000000000000000000000000000000000000000000000000000000") != DIGEST_MISMATCH) ok = 0;
+    if (ok) printf("FATES-005A self-test digest: empty=%s small=%s multiple64=%s large=%s\n", empty_digest, small_digest, multiple64_digest, large_digest);
+    unlink(empty_path);
+    unlink(small_path);
+    unlink(multiple64_path);
+    unlink(large_path);
+    rmdir(directory);
+    return ok;
+}
+
+static int self_test_input_metadata(void) {
+    char directory_template[] = "/tmp/fates-005a-input-self-test-XXXXXX";
+    char trust_root[PATH_MAX] = "";
+    char input_base[PATH_MAX] = "";
+    char attempt_directory[PATH_MAX] = "";
+    char initrd_path[PATH_MAX] = "";
+    char *directory = mkdtemp(directory_template);
+    uid_t owner = getuid();
+    uid_t wrong_owner = owner == 0 ? 1 : 0;
+    int ok = directory != NULL;
+    if (!ok) return 0;
+    if (snprintf(trust_root, sizeof(trust_root), "%s/trust", directory) >= (int)sizeof(trust_root) ||
+        snprintf(input_base, sizeof(input_base), "%s/attempts", trust_root) >= (int)sizeof(input_base) ||
+        snprintf(attempt_directory, sizeof(attempt_directory), "%s/fates-005a-test", input_base) >= (int)sizeof(attempt_directory) ||
+        snprintf(initrd_path, sizeof(initrd_path), "%s/guest-initrd.cpio", attempt_directory) >= (int)sizeof(initrd_path)) ok = 0;
+    if (ok && (mkdir(trust_root, 0700) != 0 || mkdir(input_base, 0700) != 0 || mkdir(attempt_directory, 0700) != 0 ||
+               write_exact_file(initrd_path, "fixture", 7, 0600) != 0)) ok = 0;
+    if (ok && validate_fresh_input_metadata(trust_root, input_base, attempt_directory, initrd_path, owner) != FRESH_INPUT_OK) ok = 0;
+    if (ok && validate_initrd_metadata(initrd_path, wrong_owner) != FRESH_INPUT_INITRD_WRONG_OWNER) ok = 0;
+    if (ok && (chmod(trust_root, 0701) != 0 || validate_fresh_input_metadata(trust_root, input_base, attempt_directory, initrd_path, owner) != FRESH_INPUT_TRUST_ROOT_UNSAFE_MODE || chmod(trust_root, 0700) != 0)) ok = 0;
+    if (ok && (unlink(initrd_path) != 0 || symlink("missing", initrd_path) != 0 || validate_initrd_metadata(initrd_path, owner) != FRESH_INPUT_INITRD_SYMLINK || unlink(initrd_path) != 0)) ok = 0;
+    if (ok && (mkdir(initrd_path, 0700) != 0 || validate_initrd_metadata(initrd_path, owner) != FRESH_INPUT_INITRD_NOT_REGULAR || rmdir(initrd_path) != 0)) ok = 0;
+    if (ok && (write_exact_file(initrd_path, "fixture", 7, 0600) != 0 || chmod(initrd_path, 0666) != 0 || validate_initrd_metadata(initrd_path, owner) != FRESH_INPUT_INITRD_UNSAFE_MODE || chmod(initrd_path, 0600) != 0)) ok = 0;
+    if (ok && (unlink(initrd_path) != 0 || write_exact_file(initrd_path, "", 0, 0600) != 0 || validate_initrd_metadata(initrd_path, owner) != FRESH_INPUT_INITRD_EMPTY || unlink(initrd_path) != 0 || write_exact_file(initrd_path, "fixture", 7, 0600) != 0)) ok = 0;
+    if (ok && (chmod(attempt_directory, 0701) != 0 || validate_fresh_input_metadata(trust_root, input_base, attempt_directory, initrd_path, owner) != FRESH_INPUT_ATTEMPT_UNSAFE_MODE || chmod(attempt_directory, 0700) != 0)) ok = 0;
+    if (ok && strcmp(fresh_input_phase(FRESH_INPUT_TRUST_ROOT_UNSAFE_MODE), "verify fresh initrd trust root mode") != 0) ok = 0;
+    if (ok && strcmp(fresh_input_phase(FRESH_INPUT_INITRD_UNSAFE_MODE), "verify fresh initrd file mode") != 0) ok = 0;
+    if (ok) printf("FATES-005A self-test trust-check: metadata=PASS wrong-owner=PASS unsafe-directory=PASS symlink=PASS non-regular=PASS writable=PASS empty=PASS\n");
+    unlink(initrd_path);
+    rmdir(attempt_directory);
+    rmdir(input_base);
+    rmdir(trust_root);
+    rmdir(directory);
+    return ok;
+}
+
 static int self_test(void) {
     char temporary_template[] = "/tmp/fates-005a-helper-self-test-XXXXXX";
     int fd = mkstemp(temporary_template);
@@ -627,7 +881,7 @@ static int self_test(void) {
     if (fd >= 0) close(fd);
     ok = ok && valid_attempt("fates-005a-001") && !valid_attempt("001") && !valid_attempt("fates-005a-01") && !valid_attempt("fates-005a-../") && !valid_attempt("fates-005a-001/../x");
     ok = ok && valid_field("req_fates_005a_001", 0, MAX_PROPOSAL_VALUE) && valid_source_id("file:docs/fates-005c.md") && !valid_source_id("/etc/passwd") && !valid_source_id("file:../secret") && !valid_field("req;rm", 0, MAX_PROPOSAL_VALUE);
-    ok = ok && valid_sha256(FIRECRACKER_SHA256) && !valid_sha256("0") && !fixed_digest_ok("/dev/null", FIRECRACKER_SHA256);
+    ok = ok && valid_sha256(FIRECRACKER_SHA256) && !valid_sha256("0") && check_digest("/dev/null", FIRECRACKER_SHA256) == DIGEST_MISMATCH && check_digest("/dev/null", "0") == DIGEST_EXPECTED_INVALID;
     ok = ok && format_paths("fates-005a-001") == 0;
     self_test_mkdir_count = 0;
     ok = ok && create_jail_tree(self_test_record_mkdir) == 0;
@@ -639,6 +893,8 @@ static int self_test(void) {
          strstr(self_test_mkdir_paths[2], "/root/run") != NULL && strstr(self_test_mkdir_paths[3], "/root/run/fates") != NULL;
     ok = ok && failure_errno_or_fallback(0) == EIO && strcmp(strerror(failure_errno_or_fallback(0)), "Success") != 0;
     ok = ok && rollback_prepare_failure_with_cleanup("self-test rollback", ENOENT, self_test_clobber_errno, self_test_clobber_errno) == -1 && errno == ENOENT;
+    ok = ok && self_test_digest_fixtures();
+    ok = ok && self_test_input_metadata();
     ok = ok && path_exists(temporary_template) && !secure_parent_directory("/tmp");
     unlink(temporary_template);
     ok = ok && !path_exists(temporary_template);

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -61,6 +62,19 @@ test('compiled helper self-test covers jail tree order, bounded modes, malformed
     assert.equal(version.stdout.trim(), 'fates-005a-host-control-v1');
     const selfTest = spawnSync(binary, ['--self-test'], { encoding: 'utf8', shell: false });
     assert.equal(selfTest.status, 0, selfTest.stderr);
+    const largeFixture = Buffer.alloc(743936);
+    for (let i = 0; i < largeFixture.length; i++) largeFixture[i] = (i * 31 + 7) & 0xff;
+    const digestFixtures = {
+      empty: Buffer.alloc(0),
+      small: Buffer.from('fates-005a-r4-small\n'),
+      multiple64: Buffer.from(Array.from({ length: 64 }, (_, i) => i)),
+      large: largeFixture,
+    };
+    for (const [name, fixture] of Object.entries(digestFixtures)) {
+      const digest = createHash('sha256').update(fixture).digest('hex');
+      assert.match(selfTest.stdout, new RegExp(`${name}=${digest}`));
+    }
+    assert.match(selfTest.stdout, /trust-check: metadata=PASS wrong-owner=PASS unsafe-directory=PASS symlink=PASS non-regular=PASS writable=PASS empty=PASS/);
     const failedPrepare = spawnSync(binary, [
       'prepare', '--attempt', 'fates-005a-001',
       '--request-id', 'req_1', '--correlation-id', 'cor_1',
@@ -68,7 +82,8 @@ test('compiled helper self-test covers jail tree order, bounded modes, malformed
       '--memory-id', 'memory_1', '--idempotency-key', 'key_1', '--initrd-sha256', 'b'.repeat(64),
     ], { encoding: 'utf8', shell: false });
     assert.notEqual(failedPrepare.status, 0);
-    assert.match(failedPrepare.stderr, /FATES-005A prepare: (verify fixed artifacts|verify fresh initrd):/);
+    assert.match(failedPrepare.stderr, /FATES-005A prepare: verify (fixed|fresh initrd) [^:]+:/);
+    assert.doesNotMatch(failedPrepare.stderr, /FATES-005A prepare: verify fresh initrd: Input\/output error/);
     assert.doesNotMatch(failedPrepare.stderr, /Success/);
     for (const args of [
       ['launch', '--attempt', '001'],
