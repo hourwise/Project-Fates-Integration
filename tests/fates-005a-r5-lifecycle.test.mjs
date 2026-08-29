@@ -82,7 +82,7 @@ test('shared stop path forces a stubborn child and waits for close', { skip: pro
     assert.equal(await stopChild(child, capture, 50), true);
     const result = await capture.completion;
     assert.equal(result.signal, 'SIGKILL');
-    assert.notEqual(child.exitCode, null);
+    assert.equal(capture.isClosed(), true);
   } finally {
     await stopChild(child, capture, 50);
   }
