@@ -767,7 +767,7 @@ static int namespace_identity_from_fd(int fd, namespace_identity *identity) {
 static int process_namespace_identity(pid_t pid, namespace_identity *identity) {
     char path[PATH_MAX];
     if (snprintf(path, sizeof(path), "/proc/%ld/ns/net", (long)pid) >= (int)sizeof(path)) return -1;
-    int fd = open(path, O_RDONLY | O_CLOEXEC | O_NOFOLLOW);
+    int fd = open(path, O_RDONLY | O_CLOEXEC);
     if (fd < 0) return -1;
     int result = namespace_identity_from_fd(fd, identity);
     close(fd);
