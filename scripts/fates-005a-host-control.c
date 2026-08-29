@@ -605,7 +605,7 @@ static int read_process_record(process_record *record) {
     if (first_end == NULL || first_end == content) return -1;
     const char *second = first_end + 1;
     const char *second_end = memchr(second, '\n', (size_t)(content + length - second));
-    if (second_end == NULL || second_end != content + length - 1 || memchr(second_end + 1, '\n', 0) != NULL) return -1;
+    if (second_end == NULL || second_end != content + length - 1) return -1;
     if (parse_identity_line(content, (size_t)(first_end - content), "firecracker", &record->firecracker_pid, &record->firecracker_start_time) != 0) return -1;
     if (parse_identity_line(second, (size_t)(second_end - second), "launcher", &record->launcher_pid, &record->launcher_start_time) != 0) return -1;
     return 0;
@@ -1355,7 +1355,8 @@ static int self_test_live_lifecycle(void) {
         if (ok && inspect(LIFECYCLE_TEST_ID) != 0) ok = 0;
     }
     if (prepared) {
-        if (read_process_record(&((process_record){0})) == 0) {
+        process_record cleanup_record;
+        if (read_process_record(&cleanup_record) == 0) {
             if (cleanup(LIFECYCLE_TEST_ID) != 0) ok = 0;
             else cleaned = 1;
         } else if (cleanup(LIFECYCLE_TEST_ID) == 0) {
