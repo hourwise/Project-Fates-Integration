@@ -101,45 +101,66 @@ attempt initrd is freshly built at the exact derived path
 `/home/fatesadmin/fates-005a/attempts/fates-005a-NNN/guest-initrd.cpio`; the
 helper verifies its digest before copying it into the exact jail.
 
-## Bootstrap (manual root action only)
+## R2 helper replacement (manual root action only)
 
-The remediation prepares the source and tests but does not install a sudoers
-rule or ask for a password. After reviewing the implementation commit and the
-compiled helper digest, the host administrator can run this small interactive
-sequence on `fates-kvm`:
+R2 prepares and tests a replacement for the already-installed R1 helper. It
+does not alter the existing narrow sudoers rule or ask Codex to capture a
+password. After reviewing the R2 implementation commit and compiled helper
+digest, the host administrator can run this bounded sequence on `fates-kvm`.
+The temporary and backup paths are fixed, remain in the helper directory, and
+are not caller-controlled:
 
 ```sh
 set -eu
 src=/home/fatesadmin/fates-005a/host-control-build/fates-005a-host-control
 dst=/usr/local/libexec/fates-005a-host-control
-expected='4e6ef924f6ca70854c175a5ea925577ce7658845ac4d6a3a60ddf40a4158f871'
+tmp=/usr/local/libexec/.fates-005a-host-control.r2.new
+backup=/usr/local/libexec/.fates-005a-host-control.r1.backup
+expected='0fb1df9ba9253bb6ef7892b8bfbd29b889223ea5b5cbc82b7e35fa4d48076bb2'
+old='4e6ef924f6ca70854c175a5ea925577ce7658845ac4d6a3a60ddf40a4158f871'
 test "$(sha256sum "$src" | awk '{print $1}')" = "$expected"
-sudo install -o root -g root -m 0755 "$src" "$dst"
-printf '%s\n' 'fatesadmin ALL=(root) NOPASSWD: /usr/local/libexec/fates-005a-host-control' | sudo tee /etc/sudoers.d/fates-005a-host-control >/dev/null
-sudo chmod 0440 /etc/sudoers.d/fates-005a-host-control
+test ! -e "$tmp"
+test ! -e "$backup"
+test "$(sudo sha256sum "$dst" | awk '{print $1}')" = "$old"
+sudo install -o root -g root -m 0755 "$dst" "$backup"
+test "$(sudo sha256sum "$backup" | awk '{print $1}')" = "$old"
+sudo install -o root -g root -m 0755 "$src" "$tmp"
+test "$(sudo sha256sum "$tmp" | awk '{print $1}')" = "$expected"
+sudo mv -f -- "$tmp" "$dst"
 sudo visudo -cf /etc/sudoers
 sudo stat -c '%U:%G %a %n' "$dst" /etc/sudoers.d/fates-005a-host-control
-sudo sha256sum "$dst"
+test "$(sudo sha256sum "$dst" | awk '{print $1}')" = "$expected"
 sudo -n "$dst" --version
+sudo -n "$dst" --self-test
 ```
 
-The `expected` value is intentionally filled from the remediation report; it
-must not be guessed. The installed helper must remain root-owned, mode 0755,
-and non-writable by `fatesadmin`. A harmless self-test may be run as:
+The `expected` value is intentionally filled from the R2 build report; it must
+not be guessed. The old helper is copied to the fixed backup path and retained
+until the later live acceptance is complete. The `mv` occurs within
+`/usr/local/libexec`, making the final replacement an atomic rename. The
+installed helper must remain root-owned, mode 0755, and non-writable by
+`fatesadmin`.
+
+Rollback restores only the saved R1 helper and removes the fixed R2 staging
+file. Run it before deleting the backup:
 
 ```sh
-sudo -n /usr/local/libexec/fates-005a-host-control --self-test
-```
-
-Rollback removes only this helper and its one sudoers file, followed by a
-syntax check:
-
-```sh
-sudo rm -f /etc/sudoers.d/fates-005a-host-control
-sudo rm -f /usr/local/libexec/fates-005a-host-control
+set -eu
+dst=/usr/local/libexec/fates-005a-host-control
+tmp=/usr/local/libexec/.fates-005a-host-control.r2.new
+backup=/usr/local/libexec/.fates-005a-host-control.r1.backup
+old='4e6ef924f6ca70854c175a5ea925577ce7658845ac4d6a3a60ddf40a4158f871'
+test "$(sudo sha256sum "$backup" | awk '{print $1}')" = "$old"
+sudo rm -f -- "$tmp"
+sudo mv -f -- "$backup" "$dst"
 sudo visudo -cf /etc/sudoers
+test "$(sudo sha256sum "$dst" | awk '{print $1}')" = "$old"
+sudo stat -c '%U:%G %a %n' "$dst"
+sudo -n "$dst" --version
+sudo -n "$dst" --self-test
 ```
 
 The acceptance command is intentionally not included here. A later authorized
-acceptance prompt must provide the new Moirae and Integration descendant SHAs,
-and attempt `001` remains unused until then.
+acceptance prompt must provide the R2 Moirae and Integration descendant SHAs.
+Attempt `001` is consumed with immutable failed evidence; attempt `002` remains
+unused until that later prompt.
