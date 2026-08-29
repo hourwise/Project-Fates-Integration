@@ -1021,9 +1021,11 @@ static int launch(const char *attempt) {
     }
     process_metadata firecracker_metadata;
     (void)read_process_metadata(record.firecracker_pid, &firecracker_metadata);
-    printf("{\"operation\":\"launch\",\"attemptId\":\"%s\",\"firecrackerPid\":%ld,\"firecrackerNamespacePid\":%ld,\"launcherPid\":%ld,\"launcherReaped\":%s,\"guestVsockSocket\":\"%s\"}\n",
+    char firecracker_namespace_pid_json[32] = "null";
+    if (firecracker_metadata.namespace_pid_valid) (void)snprintf(firecracker_namespace_pid_json, sizeof(firecracker_namespace_pid_json), "%ld", (long)firecracker_metadata.namespace_pid);
+    printf("{\"operation\":\"launch\",\"attemptId\":\"%s\",\"firecrackerPid\":%ld,\"firecrackerNamespacePid\":%s,\"launcherPid\":%ld,\"launcherReaped\":%s,\"guestVsockSocket\":\"%s\"}\n",
            attempt, (long)record.firecracker_pid,
-           firecracker_metadata.namespace_pid_valid ? (long)firecracker_metadata.namespace_pid : 0L,
+           firecracker_namespace_pid_json,
            (long)record.launcher_pid, launcher_reaped ? "true" : "false", g_guest_socket);
     return 0;
 }
@@ -1111,10 +1113,12 @@ static int inspect(const char *attempt) {
 static int cleanup(const char *attempt) {
     process_record record;
     if (read_process_record(&record) != 0) { errno = EACCES; return -1; }
+    pid_t pidfile_pid;
+    if (read_firecracker_pidfile(&pidfile_pid) != 0 || pidfile_pid != record.firecracker_pid) { errno = EOWNERDEAD; return -1; }
     if (stop_verified_process(record.firecracker_pid, record.firecracker_start_time, "firecracker", 1) != 0) return -1;
     if (stop_verified_process(record.launcher_pid, record.launcher_start_time, "jailer", 0) != 0) return -1;
     if (remove_exact_netns() != 0 || remove_exact_jail() != 0) return -1;
-    printf("{\"operation\":\"cleanup\",\"attemptId\":\"%s\",\"firecrackerStopped\":true,\"launcherReaped\":true,\"governedHostListenerStopped\":null,\"namespaceRemoved\":true,\"jailRemoved\":true,\"inputRemoved\":null}\n", attempt);
+    printf("{\"operation\":\"cleanup\",\"attemptId\":\"%s\",\"firecrackerPid\":%ld,\"launcherPid\":%ld,\"firecrackerStopped\":true,\"launcherReaped\":true,\"namespaceRemoved\":true,\"jailRemoved\":true}\n", attempt, (long)record.firecracker_pid, (long)record.launcher_pid);
     return 0;
 }
 

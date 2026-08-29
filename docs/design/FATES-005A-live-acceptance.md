@@ -136,11 +136,11 @@ sequence on `fates-kvm`; the temporary and backup paths are fixed:
 
 ```sh
 set -eu
-src=/home/fatesadmin/fates-005a/host-control-build/fates-005a-host-control
+src=/home/fatesadmin/fates-005a/host-control-build/fates-005a-host-control-r5
 dst=/usr/local/libexec/fates-005a-host-control
 tmp=/usr/local/libexec/.fates-005a-host-control.r5.new
 backup=/usr/local/libexec/.fates-005a-host-control.r4.backup
-expected='<R5 build SHA-256 from the reviewed build report>'
+expected='2f9788e6102f9006cb41d5f5042b4bab5306d68c7473d7185c5b95b2dd115020'
 old='a52d7c27dd1f9c3e55a95283ccf11dda844b3cd6529e862437d86020ee228e34'
 test "$(sha256sum "$src" | awk '{print $1}')" = "$expected"
 test ! -e "$tmp"
