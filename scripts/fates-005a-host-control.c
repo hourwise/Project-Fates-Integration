@@ -62,9 +62,11 @@ static char g_attempt_input_dir[PATH_MAX];
 static char g_initrd_source[PATH_MAX];
 static char g_pid_path[PATH_MAX];
 static char g_config_path[PATH_MAX];
+static char g_run_dir[PATH_MAX];
 static char g_listener_dir[PATH_MAX];
 static char g_guest_socket[PATH_MAX];
 static char g_jailer_log[PATH_MAX];
+static const char *g_failure_phase;
 
 static int format_paths(const char *attempt) {
     if (snprintf(g_session_dir, sizeof(g_session_dir), "%s/%s", JAIL_BASE, attempt) >= (int)sizeof(g_session_dir)) return -1;
@@ -74,7 +76,8 @@ static int format_paths(const char *attempt) {
     if (snprintf(g_initrd_source, sizeof(g_initrd_source), "%s/guest-initrd.cpio", g_attempt_input_dir) >= (int)sizeof(g_initrd_source)) return -1;
     if (snprintf(g_pid_path, sizeof(g_pid_path), "%s/fates-005a.pid", g_session_dir) >= (int)sizeof(g_pid_path)) return -1;
     if (snprintf(g_config_path, sizeof(g_config_path), "%s/firecracker-config.json", g_jail_root) >= (int)sizeof(g_config_path)) return -1;
-    if (snprintf(g_listener_dir, sizeof(g_listener_dir), "%s/run/fates", g_jail_root) >= (int)sizeof(g_listener_dir)) return -1;
+    if (snprintf(g_run_dir, sizeof(g_run_dir), "%s/run", g_jail_root) >= (int)sizeof(g_run_dir)) return -1;
+    if (snprintf(g_listener_dir, sizeof(g_listener_dir), "%s/fates", g_run_dir) >= (int)sizeof(g_listener_dir)) return -1;
     if (snprintf(g_guest_socket, sizeof(g_guest_socket), "%s/vsock.sock_%u", g_listener_dir, GUEST_VSOCK_PORT) >= (int)sizeof(g_guest_socket)) return -1;
     if (snprintf(g_jailer_log, sizeof(g_jailer_log), "%s/jailer.log", g_session_dir) >= (int)sizeof(g_jailer_log)) return -1;
     return 0;
@@ -255,8 +258,19 @@ static int secure_parent_directory(const char *path) {
 }
 
 static int mkdir_exact(const char *path, mode_t mode) {
-    if (mkdir(path, mode) == 0) return 0;
+    if (mkdir(path, mode) == 0) return chmod(path, mode);
     return errno == EEXIST && path_is_directory(path) ? 0 : -1;
+}
+
+typedef int (*mkdir_operation)(const char *path, mode_t mode);
+
+static int create_jail_tree(mkdir_operation create_dir) {
+    if (create_dir == NULL) { errno = EINVAL; return -1; }
+    if (create_dir(g_session_dir, 0711) != 0) return -1;
+    if (create_dir(g_jail_root, 0711) != 0) return -1;
+    if (create_dir(g_run_dir, 0711) != 0) return -1;
+    if (create_dir(g_listener_dir, 01733) != 0) return -1;
+    return 0;
 }
 
 static int write_exact_file(const char *path, const char *data, size_t length, mode_t mode) {
@@ -316,8 +330,8 @@ static int create_netns(void) {
     int fd = open(g_netns_path, O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC | O_NOFOLLOW, 0644);
     if (fd < 0) return -1;
     close(fd);
-    if (mount("/proc/self/ns/net", g_netns_path, NULL, MS_BIND, NULL) != 0) { unlink(g_netns_path); return -1; }
-    if (!namespace_has_only_loopback()) { umount2(g_netns_path, MNT_DETACH); unlink(g_netns_path); return -1; }
+    if (mount("/proc/self/ns/net", g_netns_path, NULL, MS_BIND, NULL) != 0) { int saved_errno = errno; unlink(g_netns_path); errno = saved_errno; return -1; }
+    if (!namespace_has_only_loopback()) { int saved_errno = EIO; umount2(g_netns_path, MNT_DETACH); unlink(g_netns_path); errno = saved_errno; return -1; }
     return 0;
 }
 
@@ -419,31 +433,60 @@ static int create_config(const char *attempt, const char *request_id, const char
     return write_exact_file(g_config_path, config, (size_t)length, 0644);
 }
 
+static int failure_errno_or_fallback(int failure_errno) {
+    return failure_errno == 0 ? EIO : failure_errno;
+}
+
+static int fail_with_phase(const char *phase, int failure_errno) {
+    g_failure_phase = phase;
+    errno = failure_errno_or_fallback(failure_errno);
+    return -1;
+}
+
+static int rollback_prepare_failure(const char *phase, int failure_errno) {
+    int saved_errno = failure_errno_or_fallback(failure_errno);
+    g_failure_phase = phase;
+    (void)remove_exact_netns();
+    (void)remove_exact_jail();
+    errno = saved_errno;
+    return -1;
+}
+
+static int report_failure(const char *operation) {
+    int failure_errno = failure_errno_or_fallback(errno);
+    const char *phase = g_failure_phase == NULL ? "operation failed" : g_failure_phase;
+    fprintf(stderr, "FATES-005A %s: %s: %s\n", operation, phase, strerror(failure_errno));
+    return 1;
+}
+
 static int prepare(const char *attempt, const char *request_id, const char *correlation_id, const char *source_id, const char *source_hash, const char *memory_id, const char *idempotency_key, const char *initrd_sha256) {
     if (!valid_field(request_id, 0, MAX_PROPOSAL_VALUE) || !valid_field(correlation_id, 0, MAX_PROPOSAL_VALUE) ||
         !valid_source_id(source_id) || !valid_sha256(source_hash) ||
         !valid_field(memory_id, 0, MAX_PROPOSAL_VALUE) || !valid_field(idempotency_key, 0, MAX_PROPOSAL_VALUE) ||
-        !valid_sha256(initrd_sha256)) return -1;
-    if (!secure_parent_directory(JAIL_BASE) || path_exists(g_session_dir) || path_exists(g_netns_path)) return -1;
+        !valid_sha256(initrd_sha256)) return fail_with_phase("validate proposal", EINVAL);
+    if (!secure_parent_directory(JAIL_BASE)) return fail_with_phase("validate jail parent", errno);
+    if (path_exists(g_session_dir) || path_exists(g_netns_path)) return fail_with_phase("validate unused attempt", EEXIST);
+    errno = 0;
     if (!fixed_digest_ok(FIRECRACKER_PATH, FIRECRACKER_SHA256) || !fixed_digest_ok(JAILER_PATH, JAILER_SHA256) ||
-        !fixed_digest_ok(GUEST_KERNEL_PATH, GUEST_KERNEL_SHA256) || !fixed_digest_ok(GUEST_ROOTFS_PATH, GUEST_ROOTFS_SHA256)) return -1;
-    if (!safe_fates_input_path() || !fixed_digest_ok(g_initrd_source, initrd_sha256)) return -1;
-    if (create_netns() != 0) return -1;
-    if (mkdir_exact(g_session_dir, 0711) != 0 || mkdir_exact(g_jail_root, 0711) != 0 || mkdir_exact(g_listener_dir, 01733) != 0) {
-        remove_exact_netns(); remove_exact_jail(); return -1;
-    }
+        !fixed_digest_ok(GUEST_KERNEL_PATH, GUEST_KERNEL_SHA256) || !fixed_digest_ok(GUEST_ROOTFS_PATH, GUEST_ROOTFS_SHA256)) return fail_with_phase("verify fixed artifacts", errno);
+    if (!safe_fates_input_path() || !fixed_digest_ok(g_initrd_source, initrd_sha256)) return fail_with_phase("verify fresh initrd", errno);
+    if (create_netns() != 0) return fail_with_phase("create network namespace", errno);
+    if (create_jail_tree(mkdir_exact) != 0) return rollback_prepare_failure("create jail runtime directory", errno);
     char target[PATH_MAX];
-    if (snprintf(target, sizeof(target), "%s/kernel", g_jail_root) >= (int)sizeof(target) || copy_exact_file(GUEST_KERNEL_PATH, target, 0644) != 0) goto fail;
-    if (snprintf(target, sizeof(target), "%s/rootfs", g_jail_root) >= (int)sizeof(target) || copy_exact_file(GUEST_ROOTFS_PATH, target, 0644) != 0) goto fail;
-    if (snprintf(target, sizeof(target), "%s/guest-initrd", g_jail_root) >= (int)sizeof(target) || copy_exact_file(g_initrd_source, target, 0644) != 0) goto fail;
-    if (create_config(attempt, request_id, correlation_id, source_id, source_hash, memory_id, idempotency_key) != 0) goto fail;
+    if (snprintf(target, sizeof(target), "%s/kernel", g_jail_root) >= (int)sizeof(target)) { errno = EOVERFLOW; g_failure_phase = "stage kernel"; goto fail; }
+    if (copy_exact_file(GUEST_KERNEL_PATH, target, 0644) != 0) { if (errno == 0) errno = EIO; g_failure_phase = "stage kernel"; goto fail; }
+    if (snprintf(target, sizeof(target), "%s/rootfs", g_jail_root) >= (int)sizeof(target)) { errno = EOVERFLOW; g_failure_phase = "stage rootfs"; goto fail; }
+    if (copy_exact_file(GUEST_ROOTFS_PATH, target, 0644) != 0) { if (errno == 0) errno = EIO; g_failure_phase = "stage rootfs"; goto fail; }
+    if (snprintf(target, sizeof(target), "%s/guest-initrd", g_jail_root) >= (int)sizeof(target)) { errno = EOVERFLOW; g_failure_phase = "stage guest initrd"; goto fail; }
+    if (copy_exact_file(g_initrd_source, target, 0644) != 0) { if (errno == 0) errno = EIO; g_failure_phase = "stage guest initrd"; goto fail; }
+    if (create_config(attempt, request_id, correlation_id, source_id, source_hash, memory_id, idempotency_key) != 0) { if (errno == 0) errno = EIO; g_failure_phase = "create Firecracker config"; goto fail; }
     struct passwd *fates_user = getpwnam("fatesadmin");
-    if (fates_user == NULL || chown(g_listener_dir, fates_user->pw_uid, fates_user->pw_gid) != 0 || chmod(g_listener_dir, 01733) != 0) goto fail;
+    if (fates_user == NULL) { errno = EINVAL; g_failure_phase = "set listener ownership"; goto fail; }
+    if (chown(g_listener_dir, fates_user->pw_uid, fates_user->pw_gid) != 0 || chmod(g_listener_dir, 01733) != 0) { if (errno == 0) errno = EIO; g_failure_phase = "set listener ownership"; goto fail; }
     printf("{\"operation\":\"prepare\",\"attemptId\":\"%s\",\"guestVsockSocket\":\"%s\",\"profileId\":\"linux-x86_64-kvm-firecracker-no-nic-constrained-vsock-proposal-v1\"}\n", attempt, g_guest_socket);
     return 0;
 fail:
-    remove_exact_netns(); remove_exact_jail();
-    return -1;
+    return rollback_prepare_failure(g_failure_phase == NULL ? "prepare" : g_failure_phase, errno);
 }
 
 static int launch(const char *attempt) {
@@ -554,6 +597,18 @@ static int cleanup(const char *attempt) {
     return 0;
 }
 
+static char self_test_mkdir_paths[4][PATH_MAX];
+static mode_t self_test_mkdir_modes[4];
+static size_t self_test_mkdir_count;
+
+static int self_test_record_mkdir(const char *path, mode_t mode) {
+    if (self_test_mkdir_count >= 4) { errno = EOVERFLOW; return -1; }
+    if (snprintf(self_test_mkdir_paths[self_test_mkdir_count], PATH_MAX, "%s", path) >= PATH_MAX) { errno = EOVERFLOW; return -1; }
+    self_test_mkdir_modes[self_test_mkdir_count] = mode;
+    self_test_mkdir_count++;
+    return 0;
+}
+
 static int self_test(void) {
     char temporary_template[] = "/tmp/fates-005a-helper-self-test-XXXXXX";
     int fd = mkstemp(temporary_template);
@@ -562,6 +617,16 @@ static int self_test(void) {
     ok = ok && valid_attempt("fates-005a-001") && !valid_attempt("001") && !valid_attempt("fates-005a-01") && !valid_attempt("fates-005a-../") && !valid_attempt("fates-005a-001/../x");
     ok = ok && valid_field("req_fates_005a_001", 0, MAX_PROPOSAL_VALUE) && valid_source_id("file:docs/fates-005c.md") && !valid_source_id("/etc/passwd") && !valid_source_id("file:../secret") && !valid_field("req;rm", 0, MAX_PROPOSAL_VALUE);
     ok = ok && valid_sha256(FIRECRACKER_SHA256) && !valid_sha256("0") && !fixed_digest_ok("/dev/null", FIRECRACKER_SHA256);
+    ok = ok && format_paths("fates-005a-001") == 0;
+    self_test_mkdir_count = 0;
+    ok = ok && create_jail_tree(self_test_record_mkdir) == 0;
+    ok = ok && self_test_mkdir_count == 4 &&
+         strcmp(self_test_mkdir_paths[0], g_session_dir) == 0 && self_test_mkdir_modes[0] == 0711 &&
+         strcmp(self_test_mkdir_paths[1], g_jail_root) == 0 && self_test_mkdir_modes[1] == 0711 &&
+         strcmp(self_test_mkdir_paths[2], g_run_dir) == 0 && self_test_mkdir_modes[2] == 0711 &&
+         strcmp(self_test_mkdir_paths[3], g_listener_dir) == 0 && self_test_mkdir_modes[3] == 01733 &&
+         strstr(self_test_mkdir_paths[2], "/root/run") != NULL && strstr(self_test_mkdir_paths[3], "/root/run/fates") != NULL;
+    ok = ok && failure_errno_or_fallback(0) == EIO && strcmp(strerror(failure_errno_or_fallback(0)), "Success") != 0;
     ok = ok && path_exists(temporary_template) && !secure_parent_directory("/tmp");
     unlink(temporary_template);
     ok = ok && !path_exists(temporary_template);
@@ -584,12 +649,13 @@ int main(int argc, char **argv) {
     if ((strcmp(operation, "prepare") != 0 && strcmp(operation, "launch") != 0 && strcmp(operation, "inspect") != 0 && strcmp(operation, "cleanup") != 0) || strcmp(flag, "--attempt") != 0 || !valid_attempt(attempt) || format_paths(attempt) != 0) {
         fprintf(stderr, "invalid FATES-005A host-control request\n"); return 2;
     }
+    g_failure_phase = NULL;
     if (strcmp(operation, "prepare") == 0) {
         if (argc != 18 || strcmp(argv[4], "--request-id") != 0 || strcmp(argv[6], "--correlation-id") != 0 || strcmp(argv[8], "--source-id") != 0 || strcmp(argv[10], "--source-sha256") != 0 || strcmp(argv[12], "--memory-id") != 0 || strcmp(argv[14], "--idempotency-key") != 0 || strcmp(argv[16], "--initrd-sha256") != 0) { fprintf(stderr, "invalid prepare request\n"); return 2; }
-        return prepare(attempt, argv[5], argv[7], argv[9], argv[11], argv[13], argv[15], argv[17]) == 0 ? 0 : (perror("FATES-005A prepare"), 1);
+        return prepare(attempt, argv[5], argv[7], argv[9], argv[11], argv[13], argv[15], argv[17]) == 0 ? 0 : report_failure("prepare");
     }
     if (argc != 4) { fprintf(stderr, "invalid fixed-operation arguments\n"); return 2; }
-    if (strcmp(operation, "launch") == 0) return launch(attempt) == 0 ? 0 : (perror("FATES-005A launch"), 1);
-    if (strcmp(operation, "inspect") == 0) return inspect(attempt) == 0 ? 0 : (perror("FATES-005A inspect"), 1);
-    return cleanup(attempt) == 0 ? 0 : (perror("FATES-005A cleanup"), 1);
+    if (strcmp(operation, "launch") == 0) return launch(attempt) == 0 ? 0 : report_failure("launch");
+    if (strcmp(operation, "inspect") == 0) return inspect(attempt) == 0 ? 0 : report_failure("inspect");
+    return cleanup(attempt) == 0 ? 0 : report_failure("cleanup");
 }

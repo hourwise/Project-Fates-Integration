@@ -48,7 +48,7 @@ test('client never supplies a shell, ambient PATH, arbitrary executable, or arbi
   assert.throws(() => invokeHostControl('arbitrary-shell', []), /unsupported/);
 });
 
-test('compiled helper self-test covers rejection of malformed/traversal values and digest mismatch', { skip: process.platform !== 'linux' ? 'host-control binary is Linux-only' : false }, () => {
+test('compiled helper self-test covers jail tree order, bounded modes, malformed values, and digest mismatch', { skip: process.platform !== 'linux' ? 'host-control binary is Linux-only' : false }, () => {
   const compiler = spawnSync('cc', ['--version'], { encoding: 'utf8', shell: false });
   if (compiler.status !== 0) return;
   const directory = mkdtempSync(join(tmpdir(), 'fates-005a-helper-test-'));
@@ -61,6 +61,15 @@ test('compiled helper self-test covers rejection of malformed/traversal values a
     assert.equal(version.stdout.trim(), 'fates-005a-host-control-v1');
     const selfTest = spawnSync(binary, ['--self-test'], { encoding: 'utf8', shell: false });
     assert.equal(selfTest.status, 0, selfTest.stderr);
+    const failedPrepare = spawnSync(binary, [
+      'prepare', '--attempt', 'fates-005a-001',
+      '--request-id', 'req_1', '--correlation-id', 'cor_1',
+      '--source-id', 'file:docs/fates-005c.md', '--source-sha256', 'a'.repeat(64),
+      '--memory-id', 'memory_1', '--idempotency-key', 'key_1', '--initrd-sha256', 'b'.repeat(64),
+    ], { encoding: 'utf8', shell: false });
+    assert.notEqual(failedPrepare.status, 0);
+    assert.match(failedPrepare.stderr, /FATES-005A prepare: (verify fixed artifacts|verify fresh initrd):/);
+    assert.doesNotMatch(failedPrepare.stderr, /Success/);
     for (const args of [
       ['launch', '--attempt', '001'],
       ['cleanup', '--attempt', 'fates-005a-../'],
