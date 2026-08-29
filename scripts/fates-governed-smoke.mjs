@@ -5,10 +5,12 @@ import { createHash, generateKeyPairSync, randomUUID } from 'node:crypto';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   downloadAndVerifyArtifact,
   loadCurrentCandidate,
+  normalizeGitUrl,
   peerDefinitions,
   repositoryRoot,
   verifyMaterializedRepository,
@@ -18,6 +20,7 @@ export const OPERATION_NAME = 'governed.memory-admission';
 export const REPLAY_SEMANTICS = 'IDEMPOTENT_SAME_EFFECT';
 export const BASE_NOW = '2026-08-27T12:00:00.000Z';
 export const REQUIRED_LOOPBACK_ENDPOINT = 'not-used';
+const SHA1 = /^[0-9a-f]{40}$/;
 
 function option(name) {
   const index = process.argv.indexOf(name);
@@ -172,21 +175,86 @@ export function createOperationBinding({ requestId, correlationId, callerId, act
 
 const importFrom = (root, relativePath) => import(pathToFileURL(join(root, relativePath)).href);
 
+const shortWorkspaceDirectories = Object.freeze({
+  adrasteia: 'adrasteia',
+  ananke: 'ananke',
+  mnemosyne: 'mnemosyne',
+  horae: 'horae',
+  'moirae-code': 'moirae-code',
+});
+
 function workspacePath(workspaceRoot, key) {
-  return join(workspaceRoot, peerDefinitions[key].directory);
+  const legacyPath = join(workspaceRoot, peerDefinitions[key].directory);
+  if (existsSync(legacyPath)) return legacyPath;
+  const shortDirectory = shortWorkspaceDirectories[key];
+  return shortDirectory ? join(workspaceRoot, shortDirectory) : legacyPath;
 }
 
-async function verifyCandidateCheckouts({ workspaceRoot, manifest }) {
+async function verifyCandidateCheckouts({ workspaceRoot, manifest, allowMoiraeWorkingTree = false, moiraeImplementationCommit }) {
   const heads = {};
   for (const key of ['adrasteia', ...['ananke', 'mnemosyne', 'horae', 'moirae-code']]) {
     const repository = manifest.repositories[key];
-    const result = verifyMaterializedRepository({ directory: workspacePath(workspaceRoot, key), expectedUrl: repository.url, expectedCommit: repository.commit });
+    const directory = workspacePath(workspaceRoot, key);
+    let result;
+    if (key === 'moirae-code' && allowMoiraeWorkingTree) {
+      result = verifyMoiraeImplementationCheckout({ directory, expectedCommit: repository.commit });
+    } else if (key === 'moirae-code' && moiraeImplementationCommit) {
+      result = verifyCommittedMoiraeImplementationCheckout({ directory, baselineCommit: repository.commit, expectedCommit: moiraeImplementationCommit });
+    } else {
+      result = verifyMaterializedRepository({ directory, expectedUrl: repository.url, expectedCommit: repository.commit });
+    }
     heads[key] = result.head;
   }
   return heads;
 }
 
-function requestFor({ createMoiraeGovernedRequest, projectId = 'project_fates_005c', tenantId = 'tenant_fates_005c', workspaceId = 'workspace_fates_005c', requestId = 'req_fates_005c_001', correlationId = 'cor_fates_005c_001', callerId = 'fates-authenticated-service', actingAgentId = 'moirae-controlled-agent', content = 'The controlled FATES-005C source is admitted only after authenticated authority and strict provenance verification.', memoryId = 'memory_fates_005c_001' }) {
+function verifyMoiraeImplementationCheckout({ directory, expectedCommit }) {
+  const headResult = spawnSync('git', ['-C', directory, 'rev-parse', 'HEAD'], { encoding: 'utf8', shell: false });
+  const head = headResult.stdout?.trim();
+  if (head !== expectedCommit) throw new Error(`Moirae implementation base checkpoint mismatch: expected ${expectedCommit}, got ${head || 'unavailable'}`);
+  const originResult = spawnSync('git', ['-C', directory, 'remote', 'get-url', 'origin'], { encoding: 'utf8', shell: false });
+  if (originResult.status !== 0 || normalizeGitUrl(originResult.stdout?.trim() ?? '') !== normalizeGitUrl(peerDefinitions['moirae-code'].canonicalUrl)) throw new Error('Moirae implementation origin mismatch');
+  const statusResult = spawnSync('git', ['-C', directory, 'status', '--porcelain=v1', '--untracked-files=all'], { encoding: 'utf8', shell: false });
+  if (statusResult.status !== 0) throw new Error('Moirae implementation worktree status failed');
+  const status = statusResult.stdout ?? '';
+  const allowed = new Set([
+    'packages/sandbox-adapter/src/firecracker-profile.ts',
+    'packages/sandbox-adapter/src/firecracker-profile.test.ts',
+    'packages/sandbox-adapter/src/firecracker-vsock.ts',
+    'packages/sandbox-adapter/src/firecracker-vsock.test.ts',
+    'packages/sandbox-adapter/src/guest-fates-vsock-proposal-init.c',
+    'packages/sandbox-adapter/src/index.ts',
+  ]);
+  const dirtyPaths = status.split(/\r?\n/).filter(Boolean).map((line) => line.slice(3).replaceAll('\\', '/'));
+  if (dirtyPaths.some((path) => !allowed.has(path))) throw new Error(`Moirae working tree contains an unsupported change: ${dirtyPaths.join(', ')}`);
+  return { head };
+}
+
+function verifyCommittedMoiraeImplementationCheckout({ directory, baselineCommit, expectedCommit }) {
+  if (!SHA1.test(expectedCommit) || !SHA1.test(baselineCommit)) throw new Error('Moirae implementation checkpoint is not a full commit SHA');
+  const head = currentHead(directory);
+  if (head !== expectedCommit) throw new Error(`Moirae implementation checkpoint mismatch: expected ${expectedCommit}, got ${head || 'unavailable'}`);
+  const originResult = spawnSync('git', ['-C', directory, 'remote', 'get-url', 'origin'], { encoding: 'utf8', shell: false });
+  if (originResult.status !== 0 || normalizeGitUrl(originResult.stdout?.trim() ?? '') !== normalizeGitUrl(peerDefinitions['moirae-code'].canonicalUrl)) throw new Error('Moirae implementation origin mismatch');
+  const statusResult = spawnSync('git', ['-C', directory, 'status', '--porcelain=v1', '--untracked-files=all'], { encoding: 'utf8', shell: false });
+  if (statusResult.status !== 0 || statusResult.stdout) throw new Error('Moirae implementation checkpoint is not clean');
+  const ancestor = spawnSync('git', ['-C', directory, 'merge-base', '--is-ancestor', baselineCommit, expectedCommit], { encoding: 'utf8', shell: false });
+  if (ancestor.status !== 0) throw new Error('Moirae implementation checkpoint does not descend from the r7 baseline');
+  const changed = spawnSync('git', ['-C', directory, 'diff', '--name-only', `${baselineCommit}..${expectedCommit}`], { encoding: 'utf8', shell: false });
+  const allowed = new Set([
+    'packages/sandbox-adapter/src/firecracker-profile.ts',
+    'packages/sandbox-adapter/src/firecracker-profile.test.ts',
+    'packages/sandbox-adapter/src/firecracker-vsock.ts',
+    'packages/sandbox-adapter/src/firecracker-vsock.test.ts',
+    'packages/sandbox-adapter/src/guest-fates-vsock-proposal-init.c',
+    'packages/sandbox-adapter/src/index.ts',
+  ]);
+  const changedPaths = (changed.stdout ?? '').split(/\r?\n/).filter(Boolean).map((path) => path.replaceAll('\\', '/'));
+  if (changed.status !== 0 || changedPaths.some((path) => !allowed.has(path))) throw new Error(`Moirae implementation checkpoint contains unsupported changes: ${changedPaths.join(', ')}`);
+  return { head, implementationBase: baselineCommit, changedPaths };
+}
+
+function requestFor({ createMoiraeGovernedRequest, projectId = 'project_fates_005c', tenantId = 'tenant_fates_005c', workspaceId = 'workspace_fates_005c', requestId = 'req_fates_005c_001', correlationId = 'cor_fates_005c_001', callerId = 'fates-authenticated-service', actingAgentId = 'moirae-controlled-agent', content = 'The controlled FATES-005C source is admitted only after authenticated authority and strict provenance verification.', memoryId = 'memory_fates_005c_001', idempotencyKey = 'fates-005c-idempotency-001' }) {
   const baseSessionRequest = {
     task: 'admit one source-backed fact',
     purpose: OPERATION_NAME,
@@ -226,7 +294,7 @@ function requestFor({ createMoiraeGovernedRequest, projectId = 'project_fates_00
   });
   const operationBindingDigest = canonicalRequestDigest(operationBinding);
   const envelope = createMoiraeGovernedRequest({
-    idempotencyKey: 'fates-005c-idempotency-001',
+    idempotencyKey,
     sessionRequest: baseSessionRequest,
     source,
     content,
@@ -331,9 +399,9 @@ function mutateSurface(surface) {
   return { tampered: surface };
 }
 
-export async function runGovernedSmoke({ workspaceRoot = resolve(repositoryRoot, '..'), verifyArtifact = true, durableStateRoot = mkdtempSync(join(tmpdir(), 'fates-005d-smoke-')) } = {}) {
+export async function runGovernedSmoke({ workspaceRoot = resolve(repositoryRoot, '..'), verifyArtifact = true, durableStateRoot = mkdtempSync(join(tmpdir(), 'fates-005d-smoke-')), proposal = {}, allowMoiraeWorkingTree = false, moiraeImplementationCommit } = {}) {
   const { pointer, manifest } = loadCurrentCandidate();
-  const heads = await verifyCandidateCheckouts({ workspaceRoot, manifest });
+  const heads = await verifyCandidateCheckouts({ workspaceRoot, manifest, allowMoiraeWorkingTree, moiraeImplementationCommit });
   const artifact = verifyArtifact
     ? await downloadAndVerifyArtifact(manifest.repositories.adrasteia.artifact, process.env.FATES_RUNTIME_CONTRACTS_ARTIFACT)
     : { status: 'DECLARED_ONLY', sha256: manifest.repositories.adrasteia.artifact.sha256 };
@@ -354,7 +422,7 @@ export async function runGovernedSmoke({ workspaceRoot = resolve(repositoryRoot,
   const { privateKey, publicKey } = generateKeyPairSync('ed25519');
   const signer = new Ed25519ContentReceiptSigner('ananke-fates-005c-key', privateKey);
   const policy = new ContentPolicyEngine();
-  const baseRequest = requestFor({ createMoiraeGovernedRequest });
+  const baseRequest = requestFor({ createMoiraeGovernedRequest, ...proposal });
   const identityProfile = {
     authenticatedPrincipal: { id: baseRequest.sessionRequest.execution.authenticatedPrincipal.id, kind: 'service' },
     actingPrincipal: { id: baseRequest.sessionRequest.execution.actingPrincipal.id, kind: 'agent' },
