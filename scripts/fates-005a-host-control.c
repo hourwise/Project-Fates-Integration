@@ -1272,10 +1272,12 @@ static int self_test_process_fixtures(void) {
     namespace_identity process_namespace;
     namespace_identity named_namespace;
     char saved_netns_path[PATH_MAX];
+    int self_namespace_fd = -1;
     if (snprintf(saved_netns_path, sizeof(saved_netns_path), "%s", g_netns_path) >= (int)sizeof(saved_netns_path) ||
         snprintf(g_netns_path, sizeof(g_netns_path), "/proc/self/ns/net") >= (int)sizeof(g_netns_path) ||
-        process_namespace_identity(getpid(), &process_namespace) != 0 || named_namespace_identity(&named_namespace) != 0 ||
+        process_namespace_identity(getpid(), &process_namespace) != 0 || (self_namespace_fd = open(g_netns_path, O_RDONLY | O_CLOEXEC)) < 0 || namespace_identity_from_fd(self_namespace_fd, &named_namespace) != 0 ||
         !namespace_identities_equal(&process_namespace, &named_namespace)) ok = 0;
+    if (self_namespace_fd >= 0) close(self_namespace_fd);
     namespace_identity different_namespace = named_namespace;
     different_namespace.inode++;
     if (ok && namespace_identities_equal(&process_namespace, &different_namespace)) ok = 0;
