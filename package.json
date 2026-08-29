@@ -18,6 +18,7 @@
     "fates:checkout-current": "node scripts/fates-checkout-current.mjs",
     "fates:governed": "node scripts/fates-governed-smoke.mjs",
     "fates:005a:initrd": "node scripts/fates-005a-build-guest-initrd.mjs",
+    "fates:005a:host-control-build": "node scripts/fates-005a-build-host-control.mjs",
     "fates:005a:acceptance": "node scripts/fates-005a-live-acceptance.mjs",
     "validate": "node scripts/validate.mjs"
   },

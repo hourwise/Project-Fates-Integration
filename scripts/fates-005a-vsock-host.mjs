@@ -34,6 +34,9 @@ async function waitForPath(path, timeoutMs) {
 
 async function main() {
   if (process.platform !== 'linux' || process.arch !== 'x64') throw new Error('FATES-005A host requires Linux x86_64');
+  const listenerUid = process.getuid?.();
+  const listenerGid = process.getgid?.();
+  if (listenerUid === undefined || listenerGid === undefined || listenerUid === 0 || listenerGid === 0) throw new Error('FATES-005A governed host listener must remain unprivileged');
   const socketPath = required('--socket');
   const sessionId = required('--session-id');
   const moiraeImplementationCommit = required('--moirae-implementation-commit');
@@ -87,6 +90,8 @@ async function main() {
       operationId: evidence.operationId,
       correlationId: evidence.correlationId,
       directProviderExecution: evidence.moirae.directProviderExecution,
+      listenerUid,
+      listenerGid,
     })}\n`);
   } catch (error) {
     process.stderr.write(`FATES-005A HOST: FAIL ${error instanceof Error ? error.message : 'unknown error'}\n`);
