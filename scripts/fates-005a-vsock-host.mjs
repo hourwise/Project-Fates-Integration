@@ -70,6 +70,8 @@ async function main() {
   let shutdownRequested = false;
   let closePromise;
   let boundSocket;
+  let guestConnectionAccepted = false;
+  let proposalReceived = false;
   const requestShutdown = () => {
     shutdownRequested = true;
     closePromise ??= transport.close().catch(() => undefined);
@@ -85,11 +87,27 @@ async function main() {
     if (!boundSocket) throw new Error(`governed host listener did not bind a Unix socket: ${socketPath}`);
     if (readyFile) writeFileSync(readyFile, `${socketPath}\n`, { encoding: 'utf8', flag: 'wx', mode: 0o600 });
     const frame = await transport.receive();
+    guestConnectionAccepted = true;
     proposal = parseFatesGuestProposal(frame, sessionId);
+    proposalReceived = true;
     const boundedProposal = proposal.payload;
     if (boundedProposal.sourceId !== SOURCE_ID || boundedProposal.sourceHash !== SOURCE_HASH || boundedProposal.memoryId !== MEMORY_ID || boundedProposal.idempotencyKey !== IDEMPOTENCY_KEY) {
       await transport.send(fatesProposalResultEnvelope(sessionId, proposal.requestId, { action: 'DENY', reasonCode: 'FATES_PROPOSAL_BINDING_MISMATCH' }));
-      process.stdout.write('FATES_005A_HOST_RESULT {"action":"DENY","reasonCode":"FATES_PROPOSAL_BINDING_MISMATCH"}\n');
+      process.stdout.write(`${JSON.stringify({
+        marker: 'FATES_005A_HOST_RESULT',
+        transportKind: transport.kind,
+        guestConnectionAccepted,
+        proposalReceived,
+        sessionId,
+        requestId: proposal.requestId,
+        correlationId: boundedProposal.correlationId,
+        proposalAction: boundedProposal.action,
+        action: 'DENY',
+        reasonCode: 'FATES_PROPOSAL_BINDING_MISMATCH',
+        directProviderExecution: false,
+        listenerUid,
+        listenerGid,
+      })}\n`);
       process.exitCode = 2;
       return;
     }
@@ -113,6 +131,13 @@ async function main() {
     }));
     process.stdout.write(`${JSON.stringify({
       marker: 'FATES_005A_HOST_RESULT',
+      transportKind: transport.kind,
+      guestConnectionAccepted,
+      proposalReceived,
+      sessionId,
+      requestId: proposal.requestId,
+      proposalAction: boundedProposal.action,
+      correlationId: boundedProposal.correlationId,
       action: 'ALLOW',
       reasonCode: 'FATES_GOVERNED_PATH_COMPLETED',
       candidateId: evidence.candidateId,

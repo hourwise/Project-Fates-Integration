@@ -1,11 +1,12 @@
 # FATES-005A — real Firecracker/KVM and Moirae-vsock acceptance
 
-Status: R5.2 historical-evidence and non-executing implementation-preflight
-remediation prepared; live acceptance is not claimed. Attempt 004 was invoked
-once and consumed by a pre-execution implementation-eligibility gate failure;
-no live containment or normal Attempt-004 acceptance evidence was generated.
-The installed R5.1 helper and historical Attempt-001/002/003 evidence remain
-unchanged.
+Status: R5.3 socket-lifecycle and transport-evidence remediation prepared; live
+acceptance is not claimed. Attempt 004 was invoked once and consumed by a
+pre-execution implementation-eligibility gate failure. Attempt 005 reached the
+real Firecracker/jailer launch path, but its retained result is
+`INCOMPLETE / NOT ACCEPTED` because the controller could not distinguish a
+normal one-shot listener cleanup from a transport failure. The installed R5.1
+helper and historical evidence remain unchanged.
 
 ## R5.2 historical Attempt-004 record
 
@@ -59,6 +60,75 @@ PASS` and `result: NOT_EXECUTED`. The plan path does not build an initrd,
 invoke sudo, create runtime state, start a listener or VMM, or write
 evidence. `--execute` independently repeats its checks immediately before
 live work.
+
+## R5.3 historical Attempt-005 record
+
+Attempt 005 is consumed. Its normal evidence was created once, retained
+unchanged, and is tracked as one exact implementation-history path:
+
+```text
+Attempt 005: CONSUMED
+classification: INCOMPLETE / NOT ACCEPTED
+failure phase: POST-LAUNCH TRANSPORT OBSERVATION
+normal evidence created: true
+evidence: docs/evidence/FATES-005A-live-acceptance-attempt-005.json
+evidence SHA-256: 2215d4875335ef996b74eb0b1a10f78deb49e2740c39fb190f5e59e69dfaad4f
+guest connection historical status: UNPROVABLE
+```
+
+The retained evidence proves that the host listener bound the expected
+guest-vsock `_7000` Unix endpoint before launch and that the fixed
+Firecracker/jailer lifecycle was launched and cleaned up. The controller then
+failed while waiting for the endpoint pathname to remain visible after launch.
+The pathname's absence is ambiguous: a successful guest exchange can close the
+one-shot listener and remove its pathname, while an unexpected listener failure
+can produce the same observation. The retained evidence therefore does not
+prove either a guest connection or a governed result, and no retrospective
+host-child outcome is reconstructed.
+
+## R5.3 transport sequencing and evidence
+
+Firecracker's guest-initiated vsock design maps a guest connection request for
+port `7000` to the host AF_UNIX listener at the configured `uds_path` followed
+by `_7000`; the guest connects to host CID `2`. This is the documented
+guest-initiated ordering in the [Firecracker vsock documentation](https://github.com/firecracker-microvm/firecracker/blob/main/docs/vsock.md):
+
+```text
+host binds uds_path_7000
+  → Firecracker launches with uds_path=/run/fates/vsock.sock
+  → guest AF_VSOCK connects to CID 2:7000
+  → Firecracker connects the request to the host Unix listener
+  → host accepts one connection and receives one bounded frame
+```
+
+R5.3 proves the `_7000` path independently with `lstat()`, requiring a
+non-symlink Unix socket before launch and recording only bounded `dev`/`ino`
+identity in acceptance evidence. It does not require the pathname to persist
+after the exchange. The host result marker now binds successful evidence to the
+exact session, request, correlation, proposal action, governed `ALLOW`,
+unprivileged listener UID/GID, and `directProviderExecution: false`; the
+`guestConnectionAccepted` and `proposalReceived` fields are emitted only after
+the real transport receive returns a frame.
+
+The controller's successful evidence chain is therefore:
+
+```text
+pre-launch socket identity
+  → immediate post-launch runtime inspection
+  → real guest connection marker
+  → real proposal marker
+  → exact governed ALLOW marker
+  → listener completion and inode-safe cleanup
+```
+
+Missing, stale, wrong-session/request/correlation, root-owned, provider-bypass,
+or transport-unproven markers fail closed. Normal listener cleanup may leave
+`socketPathStillExistsAfterExchange: false`; that field is diagnostic and is
+not an acceptance requirement.
+
+The Attempt-006 implementation-aware plan is non-executing and must report
+`result: NOT_EXECUTED` with `implementationEligibility: PASS`. Attempt 006 is
+not run by this remediation.
 
 ## Certified contract
 

@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
-import { lstat, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { lstat, mkdtemp, rm, unlink, writeFile } from 'node:fs/promises';
 import { spawn, spawnSync } from 'node:child_process';
+import { createConnection, createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { areImplementationPathsAllowed, assertRepo, captureChild, checkImplementationRepo, stopChild, waitForPath } from '../scripts/fates-005a-live-acceptance.mjs';
+import { areImplementationPathsAllowed, assertRepo, captureChild, checkImplementationRepo, inspectBoundSocket, parseHostResultMarker, stopChild, validateHostResultMarker, waitForPath } from '../scripts/fates-005a-live-acceptance.mjs';
 
 const integrationRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const liveAcceptanceScript = join(integrationRoot, 'scripts', 'fates-005a-live-acceptance.mjs');
@@ -39,12 +40,13 @@ function parseJsonLines(stdout) {
   });
 }
 
-test('R5.2 publication allowlist enumerates retained historical evidence exactly', () => {
+test('R5.3 publication allowlist enumerates retained historical evidence exactly', () => {
   const source = readFileSync(liveAcceptanceScript, 'utf8');
   const historicalPaths = [
     'docs/evidence/FATES-005A-live-acceptance-attempt-001.json',
     'docs/evidence/FATES-005A-live-acceptance-attempt-002.json',
     'docs/evidence/FATES-005A-live-acceptance-attempt-003.json',
+    'docs/evidence/FATES-005A-live-acceptance-attempt-005.json',
   ];
   for (const path of historicalPaths) {
     assert.equal(areImplementationPathsAllowed('integration-publication', [path]), true, path);
@@ -89,12 +91,12 @@ test('implementation preflight rejects a descendant fixture with an unsupported 
 });
 
 const implementationPlanEnabled = process.env.FATES_005A_R5_RUN_IMPLEMENTATION_PLAN === '1';
-test('implementation-aware plan passes without creating Attempt 005 runtime state', { skip: implementationPlanEnabled ? false : 'requires explicit remote plan authorization' }, () => {
+test('implementation-aware Attempt 006 plan passes without creating Attempt 006 runtime state', { skip: implementationPlanEnabled ? false : 'requires explicit remote plan authorization' }, () => {
   const integrationImplementation = gitIn(integrationRoot, ['rev-parse', 'HEAD']);
   const result = spawnSync(process.execPath, [
     liveAcceptanceScript,
     '--plan',
-    '--attempt-id', '005',
+    '--attempt-id', '006',
     '--repos-root', reposRoot,
     '--moirae-implementation-commit', moiraeR5Implementation,
     '--integration-implementation-commit', integrationImplementation,
@@ -110,10 +112,10 @@ test('implementation-aware plan passes without creating Attempt 005 runtime stat
   assert.equal(output.repositories.find((repository) => repository.name === 'moirae-code').implementationDiffAllowed, true);
   assert.equal(output.repositories.find((repository) => repository.name === 'integration-publication').implementationDiffAllowed, true);
   for (const path of [
-    '/run/netns/fates-005a-005',
-    '/srv/jailer/firecracker/fates-005a-005',
-    '/home/fatesadmin/fates-005a/attempts/fates-005a-005',
-    join(integrationRoot, 'docs', 'evidence', 'FATES-005A-live-acceptance-attempt-005.json'),
+    '/run/netns/fates-005a-006',
+    '/srv/jailer/firecracker/fates-005a-006',
+    '/home/fatesadmin/fates-005a/attempts/fates-005a-006',
+    join(integrationRoot, 'docs', 'evidence', 'FATES-005A-live-acceptance-attempt-006.json'),
   ]) assert.equal(existsSync(path), false, path);
 });
 
@@ -175,6 +177,128 @@ test('governed listener readiness is a bound UDS and the shared stop path closes
     await assert.rejects(lstat(socketPath));
   } finally {
     await stopChild(child, capture, 100);
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test('R5.3 accepts a real one-shot AF_UNIX exchange after listener cleanup removes the path', { skip: process.platform !== 'linux' ? 'requires Linux AF_UNIX semantics' : false }, async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'fates-005a-r53-race-'));
+  const socketPath = join(directory, 'vsock.sock_7000');
+  const sessionId = 'fates-r5-race';
+  const requestId = 'req_fates_005a_race';
+  const correlationId = 'cor_fates_005a_race';
+  const proposal = 'bounded-proposal-frame';
+  let server;
+  let marker;
+  let receivedFrame = '';
+  let receivedResult = '';
+  try {
+    server = createServer((socket) => {
+      socket.on('data', (chunk) => {
+        receivedFrame += chunk.toString('utf8');
+        const newline = receivedFrame.indexOf('\n');
+        if (newline < 0) return;
+        marker = {
+          marker: 'FATES_005A_HOST_RESULT',
+          transportKind: 'firecracker-vsock-uds',
+          guestConnectionAccepted: true,
+          proposalReceived: true,
+          sessionId,
+          requestId,
+          correlationId,
+          proposalAction: 'governed.memory-admission',
+          action: 'ALLOW',
+          reasonCode: 'FATES_GOVERNED_PATH_COMPLETED',
+          candidateId: 'fates-durable-candidate-2026-08-27-r7',
+          governedState: 'ADMITTED',
+          directProviderExecution: false,
+          listenerUid: process.getuid?.() ?? 1000,
+          listenerGid: process.getgid?.() ?? 1000,
+        };
+        socket.end('bounded-result-frame\n');
+      });
+    });
+    await new Promise((resolveListen, rejectListen) => {
+      server.once('error', rejectListen);
+      server.listen(socketPath, resolveListen);
+    });
+
+    const boundSocketIdentity = await inspectBoundSocket(socketPath);
+    assert.equal(Number.isSafeInteger(boundSocketIdentity.dev), true);
+    assert.equal(Number.isSafeInteger(boundSocketIdentity.ino), true);
+
+    await new Promise((resolveExchange, rejectExchange) => {
+      const client = createConnection(socketPath);
+      client.once('error', rejectExchange);
+      client.once('connect', () => client.write(`${proposal}\n`));
+      client.on('data', (chunk) => {
+        receivedResult += chunk.toString('utf8');
+        if (receivedResult.includes('\n')) client.end();
+      });
+      client.once('close', resolveExchange);
+    });
+    await new Promise((resolveClose, rejectClose) => server.close((error) => error ? rejectClose(error) : resolveClose()));
+    try { await unlink(socketPath); } catch (error) { if (error?.code !== 'ENOENT') throw error; }
+
+    assert.equal(receivedFrame, `${proposal}\n`);
+    assert.equal(receivedResult, 'bounded-result-frame\n');
+    await assert.rejects(lstat(socketPath));
+    assert.deepEqual(parseHostResultMarker(`${JSON.stringify(marker)}\n`), marker);
+    assert.deepEqual(validateHostResultMarker(marker, { sessionId, requestId, correlationId, candidateId: 'fates-durable-candidate-2026-08-27-r7' }), { ok: true, reason: null, failures: [] });
+  } finally {
+    if (server?.listening) await new Promise((resolveClose) => server.close(() => resolveClose()));
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test('R5.3 marker and pre-launch socket evidence fail closed for missing or mismatched transport proof', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'fates-005a-r53-failures-'));
+  const path = join(directory, 'expected-vsock-endpoint');
+  try {
+    await writeFile(path, 'host-ready\n', 'utf8');
+    await assert.rejects(inspectBoundSocket(path), /not a Unix socket/);
+
+    const expected = {
+      sessionId: 'fates-005a-006',
+      requestId: 'req_fates_005a_006',
+      correlationId: 'cor_fates_005a_006',
+      candidateId: 'fates-durable-candidate-2026-08-27-r7',
+    };
+    const base = {
+      marker: 'FATES_005A_HOST_RESULT',
+      transportKind: 'firecracker-vsock-uds',
+      guestConnectionAccepted: true,
+      proposalReceived: true,
+      sessionId: expected.sessionId,
+      requestId: expected.requestId,
+      correlationId: expected.correlationId,
+      proposalAction: 'governed.memory-admission',
+      action: 'ALLOW',
+      reasonCode: 'FATES_GOVERNED_PATH_COMPLETED',
+      candidateId: expected.candidateId,
+      governedState: 'ADMITTED',
+      directProviderExecution: false,
+      listenerUid: 1000,
+      listenerGid: 1000,
+    };
+    const failures = [
+      ['listener dies before connection', { guestConnectionAccepted: false, proposalReceived: false }],
+      ['wrong request', { requestId: 'req_fates_005a_other' }],
+      ['wrong session', { sessionId: 'fates-005a-other' }],
+      ['wrong correlation', { correlationId: 'cor_fates_005a_other' }],
+      ['missing transport proof', { guestConnectionAccepted: false }],
+      ['root listener uid', { listenerUid: 0 }],
+      ['root listener gid', { listenerGid: 0 }],
+      ['provider bypass', { directProviderExecution: true }],
+    ];
+    for (const [name, change] of failures) {
+      const validation = validateHostResultMarker({ ...base, ...change }, expected);
+      assert.equal(validation.ok, false, name);
+    }
+    assert.equal(validateHostResultMarker(undefined, expected).ok, false, 'listener without a marker');
+    const stale = parseHostResultMarker(`${JSON.stringify({ ...base, sessionId: 'fates-005a-005' })}\n`);
+    assert.equal(validateHostResultMarker(stale, expected).ok, false, 'stale marker');
+  } finally {
     await rm(directory, { recursive: true, force: true });
   }
 });
