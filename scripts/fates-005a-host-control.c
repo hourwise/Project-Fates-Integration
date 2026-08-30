@@ -42,7 +42,7 @@
 #define FIRECRACKER_SHA256 "2fd0171309af7e24cf8dafc8a6f921c1434c49b5f9349bb996b7ed0a4deb8aa7"
 #define JAILER_PATH "/usr/local/bin/jailer"
 #define JAILER_SHA256 "1f3a0c1fe86212d0001819bfe0819071c01208b3ccc9398c3b3bc1b84cf21edd"
-#define GUEST_KERNEL_PATH "/home/fatesadmin/fates-005a/diagnostics/r54/vmlinux-6.18.44-vsock-mmio"
+#define GUEST_KERNEL_PATH "/home/fatesadmin/firecracker-test/vmlinux-6.18.44-fates-vsock-mmio"
 #define GUEST_KERNEL_SHA256 "8b872cf4b2dfab3e2b97af8554914aad08393f1b266e7b389991da457d4caa5c"
 #define GUEST_ROOTFS_PATH "/home/fatesadmin/firecracker-test/ubuntu-24.04.ext4"
 #define GUEST_ROOTFS_SHA256 "aa36ebaf68f67c1e232eb6575541de9f25763b2ce61f4bd0a062823e3d9fdf50"
@@ -65,6 +65,15 @@
 #define LIFECYCLE_TEST_ID "fates-r5-lifecycle-test"
 #define LIFECYCLE_TEST_INITRD "/home/fatesadmin/fates-005a/diagnostics/r4/guest-initrd.cpio"
 #define LIFECYCLE_TEST_INITRD_SHA256 "51eb8d4ac3bdff9d1d17a591ae9a148f514b48e0984be0331ff99b03144f446b"
+#define DIAGNOSTIC_TEST_ID "fates-r54-vsock-diagnostic"
+#define DIAGNOSTIC_TEST_INITRD "/home/fatesadmin/fates-005a/diagnostics/r54/guest-initrd-diagnostic-r54a.cpio"
+#define DIAGNOSTIC_TEST_INITRD_SHA256 "dae168395e78ccd74c5c3972050a4bd7ee83f45a7395dc894efe74e75edd5e1d"
+#define DIAGNOSTIC_TEST_REQUEST_ID "req_fates_r54_diagnostic"
+#define DIAGNOSTIC_TEST_CORRELATION_ID "cor_fates_r54_diagnostic"
+#define DIAGNOSTIC_TEST_SOURCE_ID "file:docs/fates-005a-r5.4a-diagnostic.md"
+#define DIAGNOSTIC_TEST_SOURCE_SHA256 "2416405e530ff0421dd154f5aa643bc2e091462930796ba62fda1864f2bb4f5e"
+#define DIAGNOSTIC_TEST_MEMORY_ID "memory_fates_r54_diagnostic"
+#define DIAGNOSTIC_TEST_IDEMPOTENCY_KEY "fates-r54-diagnostic-key"
 
 static char g_session_dir[PATH_MAX];
 static char g_jail_root[PATH_MAX];
@@ -136,6 +145,10 @@ static int valid_attempt(const char *attempt) {
         if (attempt[i] < '0' || attempt[i] > '9') return 0;
     }
     return 1;
+}
+
+static int valid_fixed_identity(const char *identity) {
+    return identity != NULL && (strcmp(identity, LIFECYCLE_TEST_ID) == 0 || strcmp(identity, DIAGNOSTIC_TEST_ID) == 0);
 }
 
 static int valid_field(const char *value, int allow_slash, size_t maximum) {
@@ -488,16 +501,20 @@ static int remove_tree_callback(const char *path, const struct stat *info, int t
 
 static int remove_exact_jail(void) {
     char lifecycle_session[PATH_MAX];
+    char diagnostic_session[PATH_MAX];
     if (snprintf(lifecycle_session, sizeof(lifecycle_session), "%s/%s", JAIL_BASE, LIFECYCLE_TEST_ID) >= (int)sizeof(lifecycle_session) ||
-        (strncmp(g_session_dir, JAIL_BASE "/fates-005a-", strlen(JAIL_BASE "/fates-005a-")) != 0 && strcmp(g_session_dir, lifecycle_session) != 0)) return -1;
+        snprintf(diagnostic_session, sizeof(diagnostic_session), "%s/%s", JAIL_BASE, DIAGNOSTIC_TEST_ID) >= (int)sizeof(diagnostic_session) ||
+        (strncmp(g_session_dir, JAIL_BASE "/fates-005a-", strlen(JAIL_BASE "/fates-005a-")) != 0 && strcmp(g_session_dir, lifecycle_session) != 0 && strcmp(g_session_dir, diagnostic_session) != 0)) return -1;
     if (!path_exists(g_session_dir)) return 0;
     return nftw(g_session_dir, remove_tree_callback, 32, FTW_DEPTH | FTW_PHYS);
 }
 
 static int remove_exact_netns(void) {
     char lifecycle_netns[PATH_MAX];
+    char diagnostic_netns[PATH_MAX];
     if (snprintf(lifecycle_netns, sizeof(lifecycle_netns), "%s/%s", NETNS_BASE, LIFECYCLE_TEST_ID) >= (int)sizeof(lifecycle_netns) ||
-        (strncmp(g_netns_path, NETNS_BASE "/fates-005a-", strlen(NETNS_BASE "/fates-005a-")) != 0 && strcmp(g_netns_path, lifecycle_netns) != 0)) return -1;
+        snprintf(diagnostic_netns, sizeof(diagnostic_netns), "%s/%s", NETNS_BASE, DIAGNOSTIC_TEST_ID) >= (int)sizeof(diagnostic_netns) ||
+        (strncmp(g_netns_path, NETNS_BASE "/fates-005a-", strlen(NETNS_BASE "/fates-005a-")) != 0 && strcmp(g_netns_path, lifecycle_netns) != 0 && strcmp(g_netns_path, diagnostic_netns) != 0)) return -1;
     if (!path_exists(g_netns_path)) return 0;
     if (umount2(g_netns_path, MNT_DETACH) != 0 && errno != EINVAL) return -1;
     return unlink(g_netns_path);
@@ -972,7 +989,8 @@ static int launch(const char *attempt) {
         return -1;
     }
     close(namespace_fd);
-    int log_fd = open(g_jailer_log, O_WRONLY | O_CREAT | O_APPEND | O_CLOEXEC | O_NOFOLLOW, 0600);
+    mode_t log_mode = strcmp(g_session_dir, JAIL_BASE "/" DIAGNOSTIC_TEST_ID) == 0 ? 0644 : 0600;
+    int log_fd = open(g_jailer_log, O_WRONLY | O_CREAT | O_APPEND | O_CLOEXEC | O_NOFOLLOW, log_mode);
     if (log_fd < 0) return -1;
     pid_t child = fork();
     if (child < 0) { close(log_fd); return -1; }
@@ -1119,6 +1137,67 @@ static int cleanup(const char *attempt) {
     if (stop_verified_process(record.launcher_pid, record.launcher_start_time, "jailer", 0) != 0) return -1;
     if (remove_exact_netns() != 0 || remove_exact_jail() != 0) return -1;
     printf("{\"operation\":\"cleanup\",\"attemptId\":\"%s\",\"firecrackerPid\":%ld,\"launcherPid\":%ld,\"firecrackerStopped\":true,\"launcherReaped\":true,\"namespaceRemoved\":true,\"jailRemoved\":true}\n", attempt, (long)record.firecracker_pid, (long)record.launcher_pid);
+    return 0;
+}
+
+static int remove_diagnostic_input(void) {
+    char expected_directory[PATH_MAX];
+    if (snprintf(expected_directory, sizeof(expected_directory), "%s/%s", ATTEMPT_INPUT_BASE, DIAGNOSTIC_TEST_ID) >= (int)sizeof(expected_directory) ||
+        strcmp(g_attempt_input_dir, expected_directory) != 0) return -1;
+    if (path_exists(g_initrd_source) && unlink(g_initrd_source) != 0) return -1;
+    if (path_exists(g_attempt_input_dir) && rmdir(g_attempt_input_dir) != 0) return -1;
+    return path_exists(g_initrd_source) || path_exists(g_attempt_input_dir) ? -1 : 0;
+}
+
+static int stage_diagnostic_input(void) {
+    struct passwd *fates_user = getpwnam("fatesadmin");
+    if (fates_user == NULL) return fail_with_phase("stage diagnostic initrd owner", ENOENT);
+    if (path_exists(g_attempt_input_dir) || path_exists(g_initrd_source)) return fail_with_phase("validate unused diagnostic input", EEXIST);
+    if (mkdir(g_attempt_input_dir, 0700) != 0 || chown(g_attempt_input_dir, fates_user->pw_uid, fates_user->pw_gid) != 0 || chmod(g_attempt_input_dir, 0700) != 0) {
+        int saved_errno = errno == 0 ? EIO : errno;
+        (void)remove_diagnostic_input();
+        return fail_with_phase("stage diagnostic initrd directory", saved_errno);
+    }
+    if (copy_exact_file(DIAGNOSTIC_TEST_INITRD, g_initrd_source, 0600) != 0 || chown(g_initrd_source, fates_user->pw_uid, fates_user->pw_gid) != 0 || chmod(g_initrd_source, 0600) != 0) {
+        int saved_errno = errno == 0 ? EIO : errno;
+        (void)remove_diagnostic_input();
+        return fail_with_phase("stage diagnostic initrd", saved_errno);
+    }
+    return 0;
+}
+
+static int diagnostic_prepare(void) {
+    if (format_paths(DIAGNOSTIC_TEST_ID) != 0) return fail_with_phase("format diagnostic paths", EOVERFLOW);
+    if (path_exists(g_session_dir) || path_exists(g_netns_path) || path_exists(g_attempt_input_dir)) return fail_with_phase("validate unused diagnostic identity", EEXIST);
+    if (stage_diagnostic_input() != 0) return -1;
+    if (prepare(DIAGNOSTIC_TEST_ID, DIAGNOSTIC_TEST_REQUEST_ID, DIAGNOSTIC_TEST_CORRELATION_ID, DIAGNOSTIC_TEST_SOURCE_ID,
+                FIRECRACKER_SHA256, DIAGNOSTIC_TEST_MEMORY_ID, DIAGNOSTIC_TEST_IDEMPOTENCY_KEY, DIAGNOSTIC_TEST_INITRD_SHA256) != 0) {
+        int saved_errno = errno == 0 ? EIO : errno;
+        (void)remove_diagnostic_input();
+        errno = saved_errno;
+        return -1;
+    }
+    printf("{\"operation\":\"diagnostic-prepare\",\"attemptId\":\"%s\",\"guestVsockSocket\":\"%s\",\"jailerLog\":\"%s\",\"diagnosticInitrd\":\"%s\",\"diagnosticInitrdSha256\":\"%s\"}\n",
+           DIAGNOSTIC_TEST_ID, g_guest_socket, g_jailer_log, DIAGNOSTIC_TEST_INITRD, DIAGNOSTIC_TEST_INITRD_SHA256);
+    return 0;
+}
+
+static int diagnostic_launch(void) {
+    if (format_paths(DIAGNOSTIC_TEST_ID) != 0) return fail_with_phase("format diagnostic paths", EOVERFLOW);
+    return launch(DIAGNOSTIC_TEST_ID);
+}
+
+static int diagnostic_inspect(void) {
+    if (format_paths(DIAGNOSTIC_TEST_ID) != 0) return fail_with_phase("format diagnostic paths", EOVERFLOW);
+    return inspect(DIAGNOSTIC_TEST_ID);
+}
+
+static int diagnostic_cleanup(void) {
+    if (format_paths(DIAGNOSTIC_TEST_ID) != 0) return fail_with_phase("format diagnostic paths", EOVERFLOW);
+    if (cleanup(DIAGNOSTIC_TEST_ID) != 0) return -1;
+    if (remove_diagnostic_input() != 0) return fail_with_phase("remove diagnostic input", errno);
+    if (path_exists(g_session_dir) || path_exists(g_netns_path) || path_exists(g_attempt_input_dir)) return fail_with_phase("verify diagnostic cleanup", EBUSY);
+    printf("{\"operation\":\"diagnostic-cleanup\",\"attemptId\":\"%s\",\"namespaceRemoved\":true,\"jailRemoved\":true,\"inputRemoved\":true,\"noSurvivor\":true}\n", DIAGNOSTIC_TEST_ID);
     return 0;
 }
 
@@ -1378,6 +1457,7 @@ static int self_test(void) {
     int ok = fd >= 0;
     if (fd >= 0) close(fd);
     ok = ok && valid_attempt("fates-005a-001") && !valid_attempt("001") && !valid_attempt("fates-005a-01") && !valid_attempt("fates-005a-../") && !valid_attempt("fates-005a-001/../x");
+    ok = ok && valid_fixed_identity(DIAGNOSTIC_TEST_ID) && valid_fixed_identity(LIFECYCLE_TEST_ID) && !valid_fixed_identity("fates-005a-007");
     ok = ok && valid_field("req_fates_005a_001", 0, MAX_PROPOSAL_VALUE) && valid_source_id("file:docs/fates-005c.md") && !valid_source_id("/etc/passwd") && !valid_source_id("file:../secret") && !valid_field("req;rm", 0, MAX_PROPOSAL_VALUE);
     ok = ok && valid_sha256(FIRECRACKER_SHA256) && !valid_sha256("0") && check_digest("/dev/null", FIRECRACKER_SHA256) == DIGEST_MISMATCH && check_digest("/dev/null", "0") == DIGEST_EXPECTED_INVALID;
     ok = ok && format_paths("fates-005a-001") == 0;
@@ -1404,12 +1484,16 @@ static int self_test(void) {
 }
 
 static void usage(void) {
-    fprintf(stderr, "usage: fates-005a-host-control --version|--self-test|prepare|launch|inspect|cleanup ...\n");
+    fprintf(stderr, "usage: fates-005a-host-control --version|--self-test|prepare|launch|inspect|cleanup|diagnostic-prepare|diagnostic-launch|diagnostic-inspect|diagnostic-cleanup ...\n");
 }
 
 int main(int argc, char **argv) {
     if (argc == 2 && strcmp(argv[1], "--version") == 0) { puts(HELPER_VERSION); return 0; }
     if (argc == 2 && strcmp(argv[1], "--self-test") == 0) return self_test();
+    if (argc == 2 && strcmp(argv[1], "diagnostic-prepare") == 0) return diagnostic_prepare() == 0 ? 0 : report_failure("diagnostic-prepare");
+    if (argc == 2 && strcmp(argv[1], "diagnostic-launch") == 0) return diagnostic_launch() == 0 ? 0 : report_failure("diagnostic-launch");
+    if (argc == 2 && strcmp(argv[1], "diagnostic-inspect") == 0) return diagnostic_inspect() == 0 ? 0 : report_failure("diagnostic-inspect");
+    if (argc == 2 && strcmp(argv[1], "diagnostic-cleanup") == 0) return diagnostic_cleanup() == 0 ? 0 : report_failure("diagnostic-cleanup");
     if (argc < 4) { usage(); return 2; }
     const char *operation = argv[1];
     const char *flag = argv[2];

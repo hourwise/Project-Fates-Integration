@@ -1,6 +1,7 @@
 {
   "acceptance": "FATES-005A",
   "remediation": "FATES-005A-R5.4",
+  "followUp": "FATES-005A-R5.4A",
   "classification": "PROVEN KERNEL CAPABILITY DEFECT",
   "auditMethod": "embedded IKCONFIG extraction from the exact guest ELF",
   "pinnedKernel": {
@@ -23,7 +24,8 @@
     "defect": "CONFIG_VIRTIO_MMIO_CMDLINE_DEVICES is disabled; the FATES profile boots with pci=off and the initrd contains no modules"
   },
   "replacementKernel": {
-    "path": "~/fates-005a/diagnostics/r54/vmlinux-6.18.44-vsock-mmio",
+    "path": "~/firecracker-test/vmlinux-6.18.44-fates-vsock-mmio",
+    "stagingPath": "~/fates-005a/diagnostics/r54/vmlinux-6.18.44-vsock-mmio",
     "sha256": "8b872cf4b2dfab3e2b97af8554914aad08393f1b266e7b389991da457d4caa5c",
     "size": 29995192,
     "configSha256": "0a9945bdc619baa720de276b82a72f7898938b9e509d394324bf95c73014480c",
@@ -39,7 +41,8 @@
       "CONFIG_PRINTK": "y"
     },
     "guestKernelVsockCapable": true,
-    "status": "prepared_not_installed"
+    "status": "prepared_not_installed",
+    "finalPathEstablished": true
   },
   "source": {
     "project": "Linux kernel",
@@ -69,11 +72,11 @@
       "status": "compiled_not_installed"
     },
     "guestAgentSource": {
-      "path": "~/fates-005a/diagnostics/r54/guest-fates-vsock-proposal-init-r54.c",
-      "sha256": "e188999a11aa3d1c5d2585a993c4d9a4b777ea60ec42d95e438578929620d74e",
-      "size": 9951,
+      "path": "~/fates-005a/diagnostics/r54/guest-fates-vsock-proposal-init-r54a.c",
+      "sha256": "755a17abc0c0ad7dd84c2cbd1f8dff24c09e52e77b1b87f519d8f219ca6f5e55",
+      "size": 9713,
       "owner": "fatesadmin:fatesadmin",
-      "mode": "0664",
+      "mode": "0644",
       "implementationCommit": "8e8502aef13e5940fd14865449be422e057fb0f7"
     },
     "normalInitrd": {
@@ -87,8 +90,8 @@
       "status": "compiled_not_used"
     },
     "diagnosticInitrd": {
-      "path": "~/fates-005a/diagnostics/r54/guest-initrd-diagnostic.cpio",
-      "sha256": "4f1942c7a70d1866c3c8fbe54e017e57963422d8b83a12406fdaae1768a0cd50",
+      "path": "~/fates-005a/diagnostics/r54/guest-initrd-diagnostic-r54a.cpio",
+      "sha256": "dae168395e78ccd74c5c3972050a4bd7ee83f45a7395dc894efe74e75edd5e1d",
       "size": 743936,
       "owner": "fatesadmin:fatesadmin",
       "mode": "0600",
@@ -105,7 +108,25 @@
       "vsockExchange": false
     }
   },
+  "diagnosticRehearsal": {
+    "identity": "fates-r54-vsock-diagnostic",
+    "helperOperations": [
+      "diagnostic-prepare",
+      "diagnostic-launch",
+      "diagnostic-inspect",
+      "diagnostic-cleanup"
+    ],
+    "kernelPath": "~/firecracker-test/vmlinux-6.18.44-fates-vsock-mmio",
+    "kernelSha256": "8b872cf4b2dfab3e2b97af8554914aad08393f1b266e7b389991da457d4caa5c",
+    "diagnosticInitrdPath": "~/fates-005a/diagnostics/r54/guest-initrd-diagnostic-r54a.cpio",
+    "diagnosticInitrdSha256": "dae168395e78ccd74c5c3972050a4bd7ee83f45a7395dc894efe74e75edd5e1d",
+    "guestCid": 42,
+    "hostCid": 2,
+    "guestPort": 7000,
+    "status": "not_run"
+  },
   "replacementTransaction": {
+    "finalKernelPathEstablished": true,
     "installedKernelChanged": false,
     "installedHelperChanged": false,
     "manualActionRequired": true,

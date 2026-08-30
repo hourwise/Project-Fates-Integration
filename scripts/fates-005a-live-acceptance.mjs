@@ -40,7 +40,7 @@ const TRANSPORT_KIND = 'firecracker-vsock-uds';
 const FIXED_ARTIFACTS = Object.freeze({
   firecracker: { path: '/usr/local/bin/firecracker', sha256: '2fd0171309af7e24cf8dafc8a6f921c1434c49b5f9349bb996b7ed0a4deb8aa7' },
   jailer: { path: '/usr/local/bin/jailer', sha256: '1f3a0c1fe86212d0001819bfe0819071c01208b3ccc9398c3b3bc1b84cf21edd' },
-  guestKernel: { path: '/home/fatesadmin/fates-005a/diagnostics/r54/vmlinux-6.18.44-vsock-mmio', sha256: '8b872cf4b2dfab3e2b97af8554914aad08393f1b266e7b389991da457d4caa5c' },
+  guestKernel: { path: '/home/fatesadmin/firecracker-test/vmlinux-6.18.44-fates-vsock-mmio', sha256: '8b872cf4b2dfab3e2b97af8554914aad08393f1b266e7b389991da457d4caa5c' },
   guestRootfs: { path: '/home/fatesadmin/firecracker-test/ubuntu-24.04.ext4', sha256: 'aa36ebaf68f67c1e232eb6575541de9f25763b2ce61f4bd0a062823e3d9fdf50' },
 });
 const GUEST_KERNEL_CAPABILITIES = Object.freeze({
@@ -118,6 +118,7 @@ const ALLOWED_DIRTY_PATHS = {
     'scripts/fates-005a-host-control.c',
     'scripts/fates-005a-live-acceptance.mjs',
     'scripts/fates-005a-vsock-host.mjs',
+    'scripts/fates-005a-vsock-diagnostic.mjs',
     'scripts/fates-governed-smoke.mjs',
     'docs/design/FATES-005A-live-acceptance.md',
     'docs/evidence/FATES-005A-r5.4-kernel-capability.json',

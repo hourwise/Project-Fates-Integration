@@ -1,14 +1,16 @@
 # FATES-005A — real Firecracker/KVM and Moirae-vsock acceptance
 
-Status: R5.4 guest-kernel capability and listener-cleanup remediation prepared;
-live acceptance is not claimed. Attempt 004 was invoked once and consumed by a
-pre-execution implementation-eligibility gate failure. Attempt 005 reached the
-real Firecracker/jailer launch path, and Attempt 006 reached the live VMM path,
-but their retained results are `INCOMPLETE / NOT ACCEPTED`. R5.4 proved that
-the previously pinned guest kernel cannot expose the required non-PCI
-virtio-vsock path, prepared a separate corrected kernel/helper pair, and
-transferred pathname cleanup ownership to the fixed helper. The installed
-helper and historical evidence remain unchanged.
+Status: R5.4A has published the exact R5.4 source checkpoints, established a
+separate final corrected-kernel path, and added a fixed non-acceptance
+diagnostic lifecycle; the explicit helper replacement and real rehearsal are
+still pending. Live FATES-005A acceptance is not claimed. Attempt 004 was
+invoked once and consumed by a pre-execution implementation-eligibility gate
+failure. Attempt 005 reached the real Firecracker/jailer launch path, and
+Attempt 006 reached the live VMM path, but their retained results are
+`INCOMPLETE / NOT ACCEPTED`. R5.4 proved that the previously pinned guest
+kernel cannot expose the required non-PCI virtio-vsock path, while R5.4A keeps
+that kernel unchanged and binds the replacement to a distinct production path.
+Historical evidence and the accepted r7 candidate remain unchanged.
 
 ## R5.2 historical Attempt-004 record
 
@@ -247,7 +249,7 @@ them rather than trusting the Node process:
 | --- | --- | --- |
 | Firecracker | `/usr/local/bin/firecracker` | `2fd0171309af7e24cf8dafc8a6f921c1434c49b5f9349bb996b7ed0a4deb8aa7` |
 | jailer | `/usr/local/bin/jailer` | `1f3a0c1fe86212d0001819bfe0819071c01208b3ccc9398c3b3bc1b84cf21edd` |
-| guest kernel (R5.4 replacement, not installed) | `/home/fatesadmin/fates-005a/diagnostics/r54/vmlinux-6.18.44-vsock-mmio` | `8b872cf4b2dfab3e2b97af8554914aad08393f1b266e7b389991da457d4caa5c` |
+| guest kernel (R5.4A replacement path, helper pending explicit install) | `/home/fatesadmin/firecracker-test/vmlinux-6.18.44-fates-vsock-mmio` | `8b872cf4b2dfab3e2b97af8554914aad08393f1b266e7b389991da457d4caa5c` |
 | guest rootfs | `/home/fatesadmin/firecracker-test/ubuntu-24.04.ext4` | `aa36ebaf68f67c1e232eb6575541de9f25763b2ce61f4bd0a062823e3d9fdf50` |
 | lifecycle-test initrd | `/home/fatesadmin/fates-005a/diagnostics/r4/guest-initrd.cpio` | `51eb8d4ac3bdff9d1d17a591ae9a148f514b48e0984be0331ff99b03144f446b` |
 
@@ -270,13 +272,13 @@ certified config SHA-256
 `0a9945bdc619baa720de276b82a72f7898938b9e509d394324bf95c73014480c`. Its
 required symbols, including `CONFIG_VIRTIO_MMIO_CMDLINE_DEVICES=y`, are
 embedded and verified. The resulting static x86-64 kernel is 29,995,192 bytes
-and remains at the diagnostics-only path above; it has not replaced the
-validated `~/firecracker-test` kernel.
+and was copied byte-for-byte to the distinct final path above; the validated
+`~/firecracker-test/vmlinux-6.18.44` kernel remains unchanged.
 
 The exact structured audit and replacement metadata are recorded in
 `docs/evidence/FATES-005A-r5.4-kernel-capability.json`. The replacement helper
-is likewise a staging artifact only; no installed helper or production kernel
-was changed by R5.4.
+source now binds the final path, but remains a staging artifact until the
+R5.4A pre-install gates and explicit root replacement transaction complete.
 
 Compile-only remote staging on `fates-kvm` produced the replacement helper at
 `/home/fatesadmin/fates-005a/diagnostics/r54/fates-005a-host-control-r54`,
@@ -288,11 +290,13 @@ built at
 SHA-256
 `77d43ef1f04cd259dd60bd6ef4143120cb273c341d1a06f4a4b950ee9fa8bd4a`; the
 explicit diagnostic initrd was built at
-`/home/fatesadmin/fates-005a/diagnostics/r54/guest-initrd-diagnostic.cpio`,
+`/home/fatesadmin/fates-005a/diagnostics/r54/guest-initrd-diagnostic-r54a.cpio`,
 SHA-256
-`4f1942c7a70d1866c3c8fbe54e017e57963422d8b83a12406fdaae1768a0cd50`. Both
-archives are single-`init`, mode `0600`, and marked `compiled_not_used`; no
-Firecracker process was launched from either staging artifact.
+`dae168395e78ccd74c5c3972050a4bd7ee83f45a7395dc894efe74e75edd5e1d`. The
+R5.4A diagnostic archive is a fresh single-`init`, mode `0600` artifact built
+from the published Moirae checkpoint; it is bound to the fixed diagnostic
+helper identity below and has not yet been used in a Firecracker rehearsal.
+The earlier R5.4 staging archives remain separate and untouched.
 
 ## R5.4 listener ownership and guest diagnostics
 
@@ -325,7 +329,14 @@ clamps numeric errno values to 0–65535; it adds no shell, network, credential,
 provider, or arbitrary guest-content channel. The normal acceptance initrd
 build does not enable this mode. A diagnostic initrd can be requested with
 `fates-005a-build-guest-initrd.mjs --diagnostic` for a future non-acceptance
-rehearsal after the explicit kernel/helper replacement.
+rehearsal after the explicit kernel/helper replacement. R5.4A adds the fixed
+identity `fates-r54-vsock-diagnostic`; its root helper operations stage only
+the immutable diagnostic initrd above, use the final corrected kernel, and
+remove only the exact diagnostic session, namespace, and staged input. The
+unprivileged diagnostic listener binds the real `_7000` AF_UNIX endpoint,
+receives one bounded proposal, sends the fixed test result
+`FATES_DIAGNOSTIC_REHEARSAL_ONLY`, and never invokes governance peers or a
+provider.
 
 The original files under `~/firecracker-test` are read-only inputs. The
 attempt initrd is freshly built at the exact derived path

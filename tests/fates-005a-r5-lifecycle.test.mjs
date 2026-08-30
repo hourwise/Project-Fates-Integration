@@ -82,6 +82,21 @@ test('R5.4 binds the replacement guest kernel digest to a certified built-in cap
   assert.equal(areImplementationPathsAllowed('integration-publication', ['docs/evidence/FATES-005A-r5.4-kernel-capability.json']), true);
 });
 
+test('R5.4A binds a fixed diagnostic identity and keeps the listener outside governance', () => {
+  const helperSource = readFileSync(hostControlSourcePath, 'utf8');
+  const diagnosticSource = readFileSync(join(integrationRoot, 'scripts', 'fates-005a-vsock-diagnostic.mjs'), 'utf8');
+  assert.match(helperSource, /#define GUEST_KERNEL_PATH "\/home\/fatesadmin\/firecracker-test\/vmlinux-6\.18\.44-fates-vsock-mmio"/);
+  assert.match(helperSource, /#define DIAGNOSTIC_TEST_ID "fates-r54-vsock-diagnostic"/);
+  assert.match(helperSource, /#define DIAGNOSTIC_TEST_INITRD_SHA256 "dae168395e78ccd74c5c3972050a4bd7ee83f45a7395dc894efe74e75edd5e1d"/);
+  for (const operation of ['diagnostic-prepare', 'diagnostic-launch', 'diagnostic-inspect', 'diagnostic-cleanup']) assert.match(helperSource, new RegExp(operation));
+  assert.match(diagnosticSource, /FirecrackerVsockTransport/);
+  assert.match(diagnosticSource, /parseFatesGuestDiagnosticLine/);
+  assert.match(diagnosticSource, /guestConnectionAccepted: true/);
+  assert.match(diagnosticSource, /diagnosticFrameReceived: true/);
+  assert.doesNotMatch(diagnosticSource, /runGovernedSmoke|Ananke|Horae|Mnemosyne|provider|model/i);
+  assert.doesNotMatch(diagnosticSource, /unlink/);
+});
+
 test('R5.4 leaves pathname/jail cleanup to the fixed helper after listener close', () => {
   const source = readFileSync(hostListenerScript, 'utf8');
   assert.doesNotMatch(source, /unlinkBoundSocket/);
