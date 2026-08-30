@@ -1,8 +1,9 @@
 # FATES-005A — real Firecracker/KVM and Moirae-vsock acceptance
 
-Status: R5 remediation prepared; live acceptance is not claimed until a later
+Status: R5.1 remediation prepared; live acceptance is not claimed until a later
 authorized Linux/KVM `--execute` path completes. R5 does not execute Attempt
-004, replace the installed R4 helper, or create acceptance evidence. The
+004, replace the installed R4 helper, or create acceptance evidence. R5.1
+corrects only the fixed lifecycle-fixture path/digest binding. The
 historical Attempt-001/002/003 evidence remains immutable.
 
 ## Certified contract
@@ -119,29 +120,67 @@ them rather than trusting the Node process:
 | jailer | `/usr/local/bin/jailer` | `1f3a0c1fe86212d0001819bfe0819071c01208b3ccc9398c3b3bc1b84cf21edd` |
 | guest kernel | `/home/fatesadmin/firecracker-test/vmlinux-6.18.44` | `435466ec838656f59e464ce941e7fe9f3697d5da6a73c5e5dad60dae5ad93ceb` |
 | guest rootfs | `/home/fatesadmin/firecracker-test/ubuntu-24.04.ext4` | `aa36ebaf68f67c1e232eb6575541de9f25763b2ce61f4bd0a062823e3d9fdf50` |
+| lifecycle-test initrd | `/home/fatesadmin/fates-005a/diagnostics/r4/guest-initrd.cpio` | `51eb8d4ac3bdff9d1d17a591ae9a148f514b48e0984be0331ff99b03144f446b` |
 
 The original files under `~/firecracker-test` are read-only inputs. The
 attempt initrd is freshly built at the exact derived path
 `/home/fatesadmin/fates-005a/attempts/fates-005a-NNN/guest-initrd.cpio`; the
 helper verifies its digest before copying it into the exact jail.
 
-## R5 helper replacement (manual root action only)
+The lifecycle-test initrd is a separate retained R4/R5 diagnostic fixture, not
+an acceptance-attempt input. Read-only verification on `fates-kvm` found a
+regular, non-symlink `newc` cpio archive owned by `fatesadmin:fatesadmin`, mode
+`0600`, size `743936` bytes, with only the `init` archive entry. The embedded
+`/init` byte-for-byte matches a static build of the exact pinned Moirae proposal
+source at `832d35d3fe14e5539059adfedf43ce1159d2fbd8` (source SHA-256
+`37433ea0f2e9af41327b9899fcf924b44ccd9790d34fa9fd296ba219e2faa45f`). The
+source and archive contain no model, provider client, credentials, shell, host
+checkout, or unrelated payload. This dedicated fixture is therefore bound to
+`51eb8d4ac3bdff9d1d17a591ae9a148f514b48e0984be0331ff99b03144f446b`. The
+immutable Attempt-003 evidence records a different, ephemeral freshly built
+initrd hash, `67336c2dfa415fd347878d68c386cb2c5cc52be089345fa5b303e4933b4922a6`;
+that attempt input was removed and is not reused here.
 
-R5 builds and validates a replacement for the already-installed R4 helper but
-does not replace it. The installed R4 SHA-256 is
+## R5.1 helper replacement (manual root action only)
+
+R5.1 builds and validates a replacement for the already-installed R4 helper
+but does not replace it. The installed R4 SHA-256 is
 `a52d7c27dd1f9c3e55a95283ccf11dda844b3cd6529e862437d86020ee228e34` and must
-remain unchanged during this remediation. After reviewing the R5 implementation
-commit and the exact build SHA-256, the host administrator may run this bounded
-sequence on `fates-kvm`; the temporary and backup paths are fixed:
+remain unchanged during this remediation. The R5.1 staging artifact was built
+from Integration commit
+`171a4f0f4ceec157134867f17bb62ba92f4508fb` and the corrected helper source
+SHA-256 is
+`1fe49219221e69d645a6683090f0a3d1859c166c3e943b97ffeb500e9c5f52c4`. The
+Linux compiler was `gcc (Ubuntu 15.2.0-16ubuntu1) 15.2.0`; the exact command
+was:
+
+```sh
+gcc -std=c11 -O2 -static -s -Wall -Wextra -Werror -o /home/fatesadmin/fates-005a/host-control-build/fates-005a-host-control-r5-1 scripts/fates-005a-host-control.c
+```
+
+The resulting non-installed staging binary is
+`/home/fatesadmin/fates-005a/host-control-build/fates-005a-host-control-r5-1`,
+SHA-256
+`030df70f1ebc77659bae458bc6b2b45db8a6b4c50da4b9973e217bac8c52445e`, size
+`1120568` bytes, static x86-64. The previously staged R5 binary remains
+separate and is not the installation source. After reviewing the R5.1
+implementation commit and exact build SHA-256, the host administrator may run
+this bounded sequence on `fates-kvm`; the temporary and backup paths are fixed:
 
 ```sh
 set -eu
-src=/home/fatesadmin/fates-005a/host-control-build/fates-005a-host-control-r5
+src=/home/fatesadmin/fates-005a/host-control-build/fates-005a-host-control-r5-1
 dst=/usr/local/libexec/fates-005a-host-control
 tmp=/usr/local/libexec/.fates-005a-host-control.r5.new
 backup=/usr/local/libexec/.fates-005a-host-control.r4.backup
-expected='687267398c8fe4c33442bf3f1ce88222f40bb480da2cdcf1f221d8931face0a7'
+fixture=/home/fatesadmin/fates-005a/diagnostics/r4/guest-initrd.cpio
+fixture_expected='51eb8d4ac3bdff9d1d17a591ae9a148f514b48e0984be0331ff99b03144f446b'
+expected='030df70f1ebc77659bae458bc6b2b45db8a6b4c50da4b9973e217bac8c52445e'
 old='a52d7c27dd1f9c3e55a95283ccf11dda844b3cd6529e862437d86020ee228e34'
+test -f "$fixture"
+test ! -L "$fixture"
+test "$(stat -c '%U:%G %a %s %F' "$fixture")" = 'fatesadmin:fatesadmin 600 743936 regular file'
+test "$(sha256sum "$fixture" | awk '{print $1}')" = "$fixture_expected"
 test "$(sha256sum "$src" | awk '{print $1}')" = "$expected"
 test ! -e "$tmp"
 test ! -e "$backup"
@@ -156,9 +195,16 @@ stat -c '%U:%G %a %n' "$dst" /etc/sudoers.d/fates-005a-host-control
 test "$(sha256sum "$dst" | awk '{print $1}')" = "$expected"
 sudo -n "$dst" --version
 sudo -n "$dst" --self-test
+test ! -e /run/netns/fates-r5-lifecycle-test
+test ! -e /srv/jailer/firecracker/fates-r5-lifecycle-test
+test ! -e /home/fatesadmin/fates-005a/attempts/fates-r5-lifecycle-test
+test ! -e /run/netns/fates-005a-004
+test ! -e /srv/jailer/firecracker/fates-005a-004
+test ! -e /home/fatesadmin/fates-005a/attempts/fates-005a-004
+test ! -e /home/fatesadmin/fates-005a/repos/integration/docs/evidence/FATES-005A-live-acceptance-attempt-004.json
 ```
 
-The R5 `--self-test` lifecycle, when run as root after this explicitly
+The R5.1 `--self-test` lifecycle, when run as root after this explicitly
 authorized replacement, uses only `fates-r5-lifecycle-test`; it does not create
 an acceptance attempt or evidence file. The acceptance command is intentionally
 not included here. A later authorized prompt must provide the exact R5 Moirae

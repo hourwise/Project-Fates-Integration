@@ -40,7 +40,7 @@ test('R5 lifecycle fixture path and digest are bound to the retained diagnostic 
   assert.equal(pathMatch[1], lifecycleFixturePath);
   assert.equal(digestMatch[1], lifecycleFixtureSha256);
   assert.equal(documentedFixture, `| lifecycle-test initrd | \`${lifecycleFixturePath}\` | \`${lifecycleFixtureSha256}\` |`);
-  assert.match(documentation, /byte-for-byte matches a static build of the exact pinned Moirae proposal source at `832d35d3fe14e5539059adfedf43ce1159d2fbd8`/);
+  assert.match(documentation, /byte-for-byte matches a static build of the exact pinned Moirae proposal\s+source at `832d35d3fe14e5539059adfedf43ce1159d2fbd8`/);
 });
 
 test('real non-acceptance lifecycle is available only as an explicit root-gated check', { skip: process.platform !== 'linux' || process.env.FATES_005A_R5_RUN_LIVE_LIFECYCLE !== '1' ? 'requires explicit Linux/KVM lifecycle authorization' : false }, () => {
