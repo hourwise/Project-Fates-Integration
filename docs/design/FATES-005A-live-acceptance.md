@@ -1,10 +1,60 @@
 # FATES-005A — real Firecracker/KVM and Moirae-vsock acceptance
 
-Status: R5.1 remediation prepared; live acceptance is not claimed until a later
-authorized Linux/KVM `--execute` path completes. R5 does not execute Attempt
-004, replace the installed R4 helper, or create acceptance evidence. R5.1
-corrects only the fixed lifecycle-fixture path/digest binding. The
-historical Attempt-001/002/003 evidence remains immutable.
+Status: R5.2 historical-evidence and non-executing implementation-preflight
+remediation prepared; live acceptance is not claimed. Attempt 004 was invoked
+once and consumed by a pre-execution implementation-eligibility gate failure;
+no live containment or normal Attempt-004 acceptance evidence was generated.
+The installed R5.1 helper and historical Attempt-001/002/003 evidence remain
+unchanged.
+
+## R5.2 historical Attempt-004 record
+
+Attempt 004 is consumed. The authorized `--execute --attempt-id 004` command
+was invoked exactly once and failed before guest initrd construction,
+privileged preparation, namespace creation, jail creation, Firecracker or
+jailer launch, live KVM execution, AF_VSOCK, the governed listener, the
+governed proposal, or any model/provider execution.
+
+```text
+Attempt 004: CONSUMED
+classification: PRE-EXECUTION IMPLEMENTATION-ELIGIBILITY GATE FAILURE
+live containment reached: false
+normal acceptance evidence JSON created: false
+```
+
+The exact blocker was the omission of
+`docs/evidence/FATES-005A-live-acceptance-attempt-003.json` from the
+Integration publication implementation allowlist. The normal
+`docs/evidence/FATES-005A-live-acceptance-attempt-004.json` path was not
+created and must not be fabricated after the failed pre-execution gate.
+
+The retained controller streams are diagnostic captures, not acceptance
+evidence:
+
+```text
+stdout: /tmp/fates-005a-attempt-004.stdout
+SHA-256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+
+stderr: /tmp/fates-005a-attempt-004.stderr
+SHA-256: b0bd7426a94d45e3a1a907738d02b35e43edfe2c2865becc85d89330997df109
+```
+
+The immutable repository evidence remains unchanged:
+
+```text
+Attempt 001: 67b10b3605ac4ba06df9916fab1b2ef63ce04057d8f03bbd4683538f8abdc485
+Attempt 002: e8298157801bf2cfc2e841004c7f8740fb858e704344bc4c71c9942c1416753
+Attempt 003: 2f886d1bd257b84b781120de44002daf4785730bb56d8c203372ddc50f65a3e5
+```
+
+R5.2 adds the missing Attempt-003 path as one exact enumerated entry. When
+both implementation checkpoints are supplied to `--plan`, it performs the
+same exact SHA, descendant, changed-path allowlist, clean-worktree, and
+candidate checks as `--execute`, then reports `implementationEligibility:
+PASS` and `result: NOT_EXECUTED`. The plan path does not build an initrd,
+invoke sudo, create runtime state, start a listener or VMM, or write
+evidence. `--execute` independently repeats its checks immediately before
+live work.
 
 ## Certified contract
 
@@ -209,4 +259,5 @@ authorized replacement, uses only `fates-r5-lifecycle-test`; it does not create
 an acceptance attempt or evidence file. The acceptance command is intentionally
 not included here. A later authorized prompt must provide the exact R5 Moirae
 and Integration descendant SHAs and select an unused three-digit acceptance
-attempt. Attempt 004 remains unused.
+attempt. At the R5.1 checkpoint, Attempt 004 remained unused; R5.2 records its
+subsequent one-shot consumption above.

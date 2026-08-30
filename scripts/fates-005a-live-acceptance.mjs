@@ -55,6 +55,20 @@ function required(name) {
   return value;
 }
 
+function implementationCheckpointsFromArgs({ required: requiredCheckpoints = false } = {}) {
+  const moiraeImplementationCommit = arg('--moirae-implementation-commit');
+  const integrationImplementationCommit = arg('--integration-implementation-commit');
+  const supplied = moiraeImplementationCommit !== undefined || integrationImplementationCommit !== undefined;
+  if (!supplied) {
+    if (requiredCheckpoints) throw new Error('--moirae-implementation-commit and --integration-implementation-commit are required');
+    return null;
+  }
+  if (!moiraeImplementationCommit || !integrationImplementationCommit) throw new Error('--moirae-implementation-commit and --integration-implementation-commit must be supplied together');
+  if (!SHA1.test(moiraeImplementationCommit) || moiraeImplementationCommit === BASELINE.moirae) throw new Error('--moirae-implementation-commit must identify a non-baseline FATES-005A commit');
+  if (!SHA1.test(integrationImplementationCommit) || integrationImplementationCommit === BASELINE.integrationPublication) throw new Error('--integration-implementation-commit must identify a non-baseline FATES-005A commit');
+  return { moiraeImplementationCommit, integrationImplementationCommit };
+}
+
 function sha256Path(path) {
   return createHash('sha256').update(readFileSync(path)).digest('hex');
 }
@@ -91,6 +105,7 @@ const ALLOWED_DIRTY_PATHS = {
     'docs/design/FATES-005A-live-acceptance.md',
     'docs/evidence/FATES-005A-live-acceptance-attempt-001.json',
     'docs/evidence/FATES-005A-live-acceptance-attempt-002.json',
+    'docs/evidence/FATES-005A-live-acceptance-attempt-003.json',
     'scripts/verify-boundaries.mjs',
     'tests/fates-005a-host-control.test.mjs',
     'tests/fates-005a-r5-lifecycle.test.mjs',
@@ -119,14 +134,18 @@ function assertRepo(check, label) {
   if (check.implementationDiffAllowed === false) throw new Error(`${label} implementation checkpoint contains unsupported changes: ${check.changedPaths.join(', ')}`);
 }
 
+function areImplementationPathsAllowed(name, changedPaths) {
+  const allowedPaths = ALLOWED_DIRTY_PATHS[name] ?? new Set();
+  return changedPaths.every((pathName) => allowedPaths.has(pathName));
+}
+
 function checkImplementationRepo(name, path, baselineHead, implementationHead) {
   if (!SHA1.test(implementationHead)) throw new Error(`${name} implementation checkpoint must be a full commit SHA`);
   const check = checkRepo(name, path, implementationHead, false);
   const ancestor = git(path, ['merge-base', '--is-ancestor', baselineHead, implementationHead]);
   const changed = git(path, ['diff', '--name-only', `${baselineHead}..${implementationHead}`]);
-  const allowedPaths = ALLOWED_DIRTY_PATHS[name] ?? new Set();
   const changedPaths = changed.stdout.split(/\r?\n/).filter(Boolean).map((line) => line.replaceAll('\\', '/'));
-  return { ...check, implementationBaseMatch: ancestor.status === 0, implementationDiffAllowed: changed.status === 0 && changedPaths.every((pathName) => allowedPaths.has(pathName)), changedPaths };
+  return { ...check, implementationBaseMatch: ancestor.status === 0, implementationDiffAllowed: changed.status === 0 && areImplementationPathsAllowed(name, changedPaths), changedPaths };
 }
 
 function captureChild(child) {
@@ -230,20 +249,21 @@ function repoChecks(reposRoot, { moiraeHead = BASELINE.moirae, integrationHead =
 async function plan() {
   const attemptId = required('--attempt-id');
   if (!ATTEMPT.test(attemptId)) throw new Error('--attempt-id must be exactly three digits');
+  const implementation = implementationCheckpointsFromArgs();
   const reposRoot = resolve(arg('--repos-root', defaultReposRoot));
-  const checks = repoChecks(reposRoot);
+  const checks = implementation ? repoChecks(reposRoot, { moiraeHead: implementation.moiraeImplementationCommit, integrationHead: implementation.integrationImplementationCommit }) : repoChecks(reposRoot);
+  if (implementation) for (const check of checks) assertRepo(check, check.name);
   const candidate = currentCandidateCheck();
-  process.stdout.write(`${JSON.stringify({ mode: 'plan', result: 'NOT_EXECUTED', acceptance: 'FATES-005A', candidate, attemptId, profileId: FATES_005A_PROPOSAL_PROFILE_ID, platform: { platform: process.platform, architecture: process.arch, supported: process.platform === 'linux' && process.arch === 'x64' }, repositories: checks, namespace: { required: `/run/netns/fates-005a-${attemptId}`, createDuringExecute: true, identityCheck: 'kernel namespace object identity (st_dev/st_ino)', linksCheck: 'actual getifaddrs enumeration with loopback-only flags', networkInterfacesAllowed: false }, transport: { guest: 'AF_VSOCK -> CID 2:7000', host: 'host AF_UNIX listener at jail-root uds_path_7000', tcpFallback: false }, governance: { route: 'guest proposal -> host Fates governed.memory-admission -> Ananke/Horae/Mnemosyne smoke', guestSupplies: ['bounded proposal identity and source digest'], guestDoesNotSupply: ['authority', 'credentials', 'provider endpoint', 'host state'] }, actions: ['verify exact r7 materialisations', 'build a fresh static proposal-agent initrd', 'prepare and inspect one empty network namespace through the fixed host-control helper', 'launch the pinned Firecracker+jailer profile through the helper', 'connect over the real Firecracker UDS/vsock bridge', 'prove the governed host response and VMM namespace/no-NIC facts', 'stop the VMM and remove only the fresh namespace/session artifacts'], workload: { included: false, reason: 'not part of the documented 005A proposal-channel contract' }, evidenceCreated: false, priorJailEvidenceTouched: false }, null, 2)}\n`);
+  const implementationResult = implementation ? { implementationEligibility: 'PASS', implementationCheckpoints: { moiraeCode: implementation.moiraeImplementationCommit, integration: implementation.integrationImplementationCommit } } : {};
+  process.stdout.write(`${JSON.stringify({ mode: 'plan', result: 'NOT_EXECUTED', ...implementationResult, acceptance: 'FATES-005A', candidate, attemptId, profileId: FATES_005A_PROPOSAL_PROFILE_ID, platform: { platform: process.platform, architecture: process.arch, supported: process.platform === 'linux' && process.arch === 'x64' }, repositories: checks, namespace: { required: `/run/netns/fates-005a-${attemptId}`, createDuringExecute: true, identityCheck: 'kernel namespace object identity (st_dev/st_ino)', linksCheck: 'actual getifaddrs enumeration with loopback-only flags', networkInterfacesAllowed: false }, transport: { guest: 'AF_VSOCK -> CID 2:7000', host: 'host AF_UNIX listener at jail-root uds_path_7000', tcpFallback: false }, governance: { route: 'guest proposal -> host Fates governed.memory-admission -> Ananke/Horae/Mnemosyne smoke', guestSupplies: ['bounded proposal identity and source digest'], guestDoesNotSupply: ['authority', 'credentials', 'provider endpoint', 'host state'] }, actions: ['verify exact r7 materialisations', 'build a fresh static proposal-agent initrd', 'prepare and inspect one empty network namespace through the fixed host-control helper', 'launch the pinned Firecracker+jailer profile through the helper', 'connect over the real Firecracker UDS/vsock bridge', 'prove the governed host response and VMM namespace/no-NIC facts', 'stop the VMM and remove only the fresh namespace/session artifacts'], workload: { included: false, reason: 'not part of the documented 005A proposal-channel contract' }, evidenceCreated: false, priorJailEvidenceTouched: false }, null, 2)}\n`);
 }
 
 async function execute() {
   if (process.platform !== 'linux' || process.arch !== 'x64') throw new Error('INCOMPLETE / NOT ACCEPTED: FATES-005A execute requires a Linux x86_64 host');
   const attemptId = required('--attempt-id');
   if (!ATTEMPT.test(attemptId)) throw new Error('--attempt-id must be exactly three digits');
-  const moiraeImplementationCommit = required('--moirae-implementation-commit');
-  const integrationImplementationCommit = required('--integration-implementation-commit');
-  if (!SHA1.test(moiraeImplementationCommit) || moiraeImplementationCommit === BASELINE.moirae) throw new Error('--moirae-implementation-commit must identify a non-baseline FATES-005A commit');
-  if (!SHA1.test(integrationImplementationCommit) || integrationImplementationCommit === BASELINE.integrationPublication) throw new Error('--integration-implementation-commit must identify a non-baseline FATES-005A commit');
+  const implementation = implementationCheckpointsFromArgs({ required: true });
+  const { moiraeImplementationCommit, integrationImplementationCommit } = implementation;
   const reposRoot = resolve(arg('--repos-root', defaultReposRoot));
   const checks = repoChecks(reposRoot, { moiraeHead: moiraeImplementationCommit, integrationHead: integrationImplementationCommit });
   for (const check of checks) assertRepo(check, check.name);
@@ -335,7 +355,7 @@ async function execute() {
   process.stdout.write(`${JSON.stringify(evidence, null, 2)}\n`);
 }
 
-export { captureChild, stopChild, waitForPath };
+export { areImplementationPathsAllowed, assertRepo, captureChild, checkImplementationRepo, stopChild, waitForPath };
 
 const isMainModule = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMainModule) {
