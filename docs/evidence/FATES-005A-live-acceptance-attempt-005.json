@@ -1,0 +1,189 @@
+{
+  "acceptance": "FATES-005A",
+  "classification": "INCOMPLETE / NOT ACCEPTED",
+  "attemptId": "005",
+  "candidate": {
+    "candidate": "fates-durable-candidate-2026-08-27-r7",
+    "manifest": "fates-durable-candidate-2026-08-27-r7",
+    "status": "provisional"
+  },
+  "baseline": {
+    "adrasteia": "a1c01bf9e6f9d6a126cfdcc1acfacd488b214210",
+    "ananke": "3d76adb162a0ff07b5630700ae30a823f1419cb4",
+    "mnemosyne": "f02df61be147d6fe716a98912d37eaaf1fe89f23",
+    "horae": "68508f5c37e1cb3b244116d45fa267e689a6e75c",
+    "moirae": "b23f723fc5267c95fe9f7eccb2efa32465f8d2f1",
+    "integrationControl": "39f66dcb1a58b8cbc217a987942781f7b77fde7a",
+    "integrationPublication": "35a00e881df8e5143eb86bf88332292b8baaa13d"
+  },
+  "implementationCheckpoints": {
+    "moiraeCode": "832d35d3fe14e5539059adfedf43ce1159d2fbd8",
+    "integration": "9bcacf924bfb5f654099123a598d14b4bd68a30f"
+  },
+  "repositories": [
+    {
+      "name": "adrasteia",
+      "expectedHead": "a1c01bf9e6f9d6a126cfdcc1acfacd488b214210",
+      "actualHead": "a1c01bf9e6f9d6a126cfdcc1acfacd488b214210",
+      "headMatch": true,
+      "clean": true,
+      "dirtyPaths": []
+    },
+    {
+      "name": "ananke",
+      "expectedHead": "3d76adb162a0ff07b5630700ae30a823f1419cb4",
+      "actualHead": "3d76adb162a0ff07b5630700ae30a823f1419cb4",
+      "headMatch": true,
+      "clean": true,
+      "dirtyPaths": []
+    },
+    {
+      "name": "mnemosyne",
+      "expectedHead": "f02df61be147d6fe716a98912d37eaaf1fe89f23",
+      "actualHead": "f02df61be147d6fe716a98912d37eaaf1fe89f23",
+      "headMatch": true,
+      "clean": true,
+      "dirtyPaths": []
+    },
+    {
+      "name": "horae",
+      "expectedHead": "68508f5c37e1cb3b244116d45fa267e689a6e75c",
+      "actualHead": "68508f5c37e1cb3b244116d45fa267e689a6e75c",
+      "headMatch": true,
+      "clean": true,
+      "dirtyPaths": []
+    },
+    {
+      "name": "moirae-code",
+      "expectedHead": "832d35d3fe14e5539059adfedf43ce1159d2fbd8",
+      "actualHead": "832d35d3fe14e5539059adfedf43ce1159d2fbd8",
+      "headMatch": true,
+      "clean": true,
+      "dirtyPaths": [],
+      "implementationBaseMatch": true,
+      "implementationDiffAllowed": true,
+      "changedPaths": [
+        "packages/sandbox-adapter/src/firecracker-profile.test.ts",
+        "packages/sandbox-adapter/src/firecracker-profile.ts",
+        "packages/sandbox-adapter/src/firecracker-vsock.test.ts",
+        "packages/sandbox-adapter/src/firecracker-vsock.ts",
+        "packages/sandbox-adapter/src/guest-fates-vsock-proposal-init.c",
+        "packages/sandbox-adapter/src/index.ts"
+      ]
+    },
+    {
+      "name": "integration-control",
+      "expectedHead": "39f66dcb1a58b8cbc217a987942781f7b77fde7a",
+      "actualHead": "39f66dcb1a58b8cbc217a987942781f7b77fde7a",
+      "headMatch": true,
+      "clean": true,
+      "dirtyPaths": []
+    },
+    {
+      "name": "integration-publication",
+      "expectedHead": "9bcacf924bfb5f654099123a598d14b4bd68a30f",
+      "actualHead": "9bcacf924bfb5f654099123a598d14b4bd68a30f",
+      "headMatch": true,
+      "clean": true,
+      "dirtyPaths": [],
+      "implementationBaseMatch": true,
+      "implementationDiffAllowed": true,
+      "changedPaths": [
+        "docs/design/FATES-005A-live-acceptance.md",
+        "docs/evidence/FATES-005A-live-acceptance-attempt-001.json",
+        "docs/evidence/FATES-005A-live-acceptance-attempt-002.json",
+        "docs/evidence/FATES-005A-live-acceptance-attempt-003.json",
+        "package.json",
+        "scripts/fates-005a-build-guest-initrd.mjs",
+        "scripts/fates-005a-build-host-control.mjs",
+        "scripts/fates-005a-host-control-client.mjs",
+        "scripts/fates-005a-host-control.c",
+        "scripts/fates-005a-live-acceptance.mjs",
+        "scripts/fates-005a-vsock-host.mjs",
+        "scripts/fates-governed-smoke.mjs",
+        "scripts/verify-boundaries.mjs",
+        "tests/boundaries.test.mjs",
+        "tests/fates-005a-host-control.test.mjs",
+        "tests/fates-005a-r5-lifecycle.test.mjs"
+      ]
+    }
+  ],
+  "profile": {
+    "id": "linux-x86_64-kvm-firecracker-no-nic-constrained-vsock-proposal-v1",
+    "contract": "proposal-channel-only-v1",
+    "workloadExecuted": false,
+    "evidenceCollectorExecuted": false
+  },
+  "artifacts": {
+    "firecracker": {
+      "sha256": "2fd0171309af7e24cf8dafc8a6f921c1434c49b5f9349bb996b7ed0a4deb8aa7",
+      "pathClass": "fixed-host-or-fresh-attempt-artifact"
+    },
+    "jailer": {
+      "sha256": "1f3a0c1fe86212d0001819bfe0819071c01208b3ccc9398c3b3bc1b84cf21edd",
+      "pathClass": "fixed-host-or-fresh-attempt-artifact"
+    },
+    "guestKernel": {
+      "sha256": "435466ec838656f59e464ce941e7fe9f3697d5da6a73c5e5dad60dae5ad93ceb",
+      "pathClass": "fixed-host-or-fresh-attempt-artifact"
+    },
+    "guestRootfs": {
+      "sha256": "aa36ebaf68f67c1e232eb6575541de9f25763b2ce61f4bd0a062823e3d9fdf50",
+      "pathClass": "fixed-host-or-fresh-attempt-artifact"
+    },
+    "guestInitrd": {
+      "sha256": "238114aeaf31158c895f74a443e381434d06a2f12d49bce2676ae8dc11e1a0ae",
+      "bytes": 743936,
+      "pathClass": "fixed-host-or-fresh-attempt-artifact"
+    }
+  },
+  "sessionId": "fates-005a-005",
+  "namespaceName": "fates-005a-005",
+  "namespaceHandle": "run/netns/<attempt-id>",
+  "transport": {
+    "guest": "AF_VSOCK",
+    "host": "AF_UNIX listener at Firecracker uds_path_<guest-port>",
+    "guestCid": 42,
+    "guestPort": 7000,
+    "tcpFallback": false
+  },
+  "guestAgentSource": {
+    "pathClass": "pinned-Moirae-source",
+    "sha256": "37433ea0f2e9af41327b9899fcf924b44ccd9790d34fa9fd296ba219e2faa45f",
+    "implementationCommit": "832d35d3fe14e5539059adfedf43ce1159d2fbd8"
+  },
+  "guestProposal": {
+    "action": "governed.memory-admission",
+    "requestId": "req_fates_005a_005",
+    "correlationId": "cor_fates_005a_005",
+    "sourceId": "file:docs/fates-005c.md",
+    "sourceHash": "1e68fa961044a71d4abf840f7a711d9fb9e92461a07ab82198b5adbe262b1334",
+    "memoryId": "memory_fates_005c_001",
+    "idempotencyKey": "fates-005c-idempotency-001"
+  },
+  "governance": null,
+  "runtime": null,
+  "cleanup": {
+    "governedHostListenerStopped": true,
+    "firecrackerStopped": true,
+    "namespaceRemoved": true,
+    "jailRemoved": true,
+    "inputRemoved": true,
+    "helperCleanup": {
+      "operation": "cleanup",
+      "attemptId": "fates-005a-005",
+      "firecrackerPid": 32663,
+      "launcherPid": 32662,
+      "firecrackerStopped": true,
+      "launcherReaped": true,
+      "namespaceRemoved": true,
+      "jailRemoved": true
+    }
+  },
+  "limitations": [
+    "No model or external provider was run.",
+    "The guest receives no host credential or authority state.",
+    "005A certifies proposal-channel containment, not guest workload execution."
+  ],
+  "error": "host did not bind the Firecracker guest-vsock UDS: <host-path>"
+}
