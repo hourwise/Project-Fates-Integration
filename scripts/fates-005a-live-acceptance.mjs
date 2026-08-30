@@ -40,8 +40,23 @@ const TRANSPORT_KIND = 'firecracker-vsock-uds';
 const FIXED_ARTIFACTS = Object.freeze({
   firecracker: { path: '/usr/local/bin/firecracker', sha256: '2fd0171309af7e24cf8dafc8a6f921c1434c49b5f9349bb996b7ed0a4deb8aa7' },
   jailer: { path: '/usr/local/bin/jailer', sha256: '1f3a0c1fe86212d0001819bfe0819071c01208b3ccc9398c3b3bc1b84cf21edd' },
-  guestKernel: { path: '/home/fatesadmin/firecracker-test/vmlinux-6.18.44', sha256: '435466ec838656f59e464ce941e7fe9f3697d5da6a73c5e5dad60dae5ad93ceb' },
+  guestKernel: { path: '/home/fatesadmin/fates-005a/diagnostics/r54/vmlinux-6.18.44-vsock-mmio', sha256: '8b872cf4b2dfab3e2b97af8554914aad08393f1b266e7b389991da457d4caa5c' },
   guestRootfs: { path: '/home/fatesadmin/firecracker-test/ubuntu-24.04.ext4', sha256: 'aa36ebaf68f67c1e232eb6575541de9f25763b2ce61f4bd0a062823e3d9fdf50' },
+});
+const GUEST_KERNEL_CAPABILITIES = Object.freeze({
+  kernelSha256: FIXED_ARTIFACTS.guestKernel.sha256,
+  configSha256: '0a9945bdc619baa720de276b82a72f7898938b9e509d394324bf95c73014480c',
+  symbols: Object.freeze({
+    CONFIG_VSOCKETS: 'y',
+    CONFIG_VIRTIO_VSOCKETS: 'y',
+    CONFIG_VIRTIO: 'y',
+    CONFIG_VIRTIO_MMIO: 'y',
+    CONFIG_VIRTIO_MMIO_CMDLINE_DEVICES: 'y',
+    CONFIG_BLK_DEV_INITRD: 'y',
+    CONFIG_KVM_GUEST: 'y',
+    CONFIG_SERIAL_8250_CONSOLE: 'y',
+    CONFIG_PRINTK: 'y',
+  }),
 });
 
 function arg(name, fallback = undefined) {
@@ -105,10 +120,12 @@ const ALLOWED_DIRTY_PATHS = {
     'scripts/fates-005a-vsock-host.mjs',
     'scripts/fates-governed-smoke.mjs',
     'docs/design/FATES-005A-live-acceptance.md',
+    'docs/evidence/FATES-005A-r5.4-kernel-capability.json',
     'docs/evidence/FATES-005A-live-acceptance-attempt-001.json',
     'docs/evidence/FATES-005A-live-acceptance-attempt-002.json',
     'docs/evidence/FATES-005A-live-acceptance-attempt-003.json',
     'docs/evidence/FATES-005A-live-acceptance-attempt-005.json',
+    'docs/evidence/FATES-005A-live-acceptance-attempt-006.json',
     'scripts/verify-boundaries.mjs',
     'tests/fates-005a-host-control.test.mjs',
     'tests/fates-005a-r5-lifecycle.test.mjs',
@@ -266,6 +283,7 @@ function manifestFor({ networkNamespacePath, guestInitrd, guestProposal }) {
   return {
     profileId: FATES_005A_PROPOSAL_PROFILE_ID,
     ...FIXED_ARTIFACTS,
+    guestKernelCapabilities: GUEST_KERNEL_CAPABILITIES,
     guestInitrd,
     sessionId: networkNamespacePath.split('/').at(-1),
     kvmDevice: '/dev/kvm',
@@ -337,20 +355,23 @@ async function execute() {
   const guestInitrdPath = fixedAttemptInputPath(sessionId);
   const guestAgentSource = resolve(arg('--guest-agent-source', join(reposRoot, 'moirae-code', 'packages', 'sandbox-adapter', 'src', 'guest-fates-vsock-proposal-init.c')));
   if (!existsSync(guestAgentSource)) throw new Error(`guest agent source is unavailable: ${guestAgentSource}`);
+  const moiraeRoot = join(reposRoot, 'moirae-code');
+  const sandbox = await import(pathToFileURL(join(moiraeRoot, 'packages', 'sandbox-adapter', 'dist', 'index.js')).href);
+  const kernelCapabilityPreflight = sandbox.validateFates005aGuestKernelCapabilities({ guestKernel: FIXED_ARTIFACTS.guestKernel, guestKernelCapabilities: GUEST_KERNEL_CAPABILITIES });
+  if (!kernelCapabilityPreflight.ok) throw new Error(`FATES-005A guest kernel preflight failed before host preparation: ${kernelCapabilityPreflight.reason}`);
   const build = run(process.execPath, [join(integrationRoot, 'scripts', 'fates-005a-build-guest-initrd.mjs'), '--agent-source', guestAgentSource, '--output', guestInitrdPath], { cwd: integrationRoot });
   if (build.status !== 0) throw new Error(`guest initrd build failed: ${build.stderr.trim()}`);
   const guestInitrd = { path: guestInitrdPath, sha256: sha256Path(guestInitrdPath), bytes: Number(run('stat', ['-c', '%s', guestInitrdPath]).stdout.trim()) };
   if (!Number.isSafeInteger(guestInitrd.bytes) || guestInitrd.bytes <= 0) throw new Error(`guest initrd size is invalid: ${guestInitrd.bytes}`);
   const guestProposal = { requestId: `req_fates_005a_${attemptId}`, correlationId: `cor_fates_005a_${attemptId}`, sourceId: SOURCE_ID, sourceHash: SOURCE_HASH, memoryId: MEMORY_ID, idempotencyKey: IDEMPOTENCY_KEY };
   const manifest = manifestFor({ networkNamespacePath: namespacePath, guestInitrd, guestProposal });
-  const moiraeRoot = join(reposRoot, 'moirae-code');
-  const sandbox = await import(pathToFileURL(join(moiraeRoot, 'packages', 'sandbox-adapter', 'dist', 'index.js')).href);
   const evidence = {
     acceptance: 'FATES-005A', classification: 'INCOMPLETE / NOT ACCEPTED', attemptId, candidate,
     baseline: BASELINE, implementationCheckpoints: { moiraeCode: moiraeImplementationCommit, integration: integrationImplementationCommit },
     repositories: checks.map(({ path: _path, stderr: _stderr, ...check }) => check),
     profile: { id: manifest.profileId, contract: 'proposal-channel-only-v1', workloadExecuted: false, evidenceCollectorExecuted: false },
     artifacts: Object.fromEntries(Object.entries({ ...FIXED_ARTIFACTS, guestInitrd }).map(([name, artifact]) => [name, { sha256: artifact.sha256, ...(artifact.bytes === undefined ? {} : { bytes: artifact.bytes }), pathClass: 'fixed-host-or-fresh-attempt-artifact' }])),
+    guestKernelCapabilities: GUEST_KERNEL_CAPABILITIES,
     sessionId, namespaceName: sessionId, namespaceHandle: 'run/netns/<attempt-id>',
     transport: { guest: 'AF_VSOCK', host: 'AF_UNIX listener at Firecracker uds_path_<guest-port>', guestCid: 42, guestPort: 7000, tcpFallback: false, socketBoundBeforeLaunch: false, boundSocketIdentity: null, guestConnectionAccepted: false, proposalReceived: false, listenerCompleted: false, socketPathStillExistsAfterExchange: null },
     guestAgentSource: { pathClass: 'pinned-Moirae-source', sha256: sha256Path(guestAgentSource), implementationCommit: moiraeImplementationCommit },

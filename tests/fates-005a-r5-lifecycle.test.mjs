@@ -18,11 +18,12 @@ const moiraeRoot = join(reposRoot, 'moirae-code');
 const moiraeDist = join(moiraeRoot, 'packages', 'sandbox-adapter', 'dist', 'index.js');
 const hostControlSourcePath = join(integrationRoot, 'scripts', 'fates-005a-host-control.c');
 const acceptanceDesignPath = join(integrationRoot, 'docs', 'design', 'FATES-005A-live-acceptance.md');
+const kernelCapabilityEvidencePath = join(integrationRoot, 'docs', 'evidence', 'FATES-005A-r5.4-kernel-capability.json');
 const lifecycleFixturePath = '/home/fatesadmin/fates-005a/diagnostics/r4/guest-initrd.cpio';
 const lifecycleFixtureSha256 = '51eb8d4ac3bdff9d1d17a591ae9a148f514b48e0984be0331ff99b03144f446b';
 const integrationPublicationBaseline = '35a00e881df8e5143eb86bf88332292b8baaa13d';
 const integrationR51 = 'df5422c7364d9ddddfc516d2e36aea5ec63fd663';
-const moiraeR5Implementation = '832d35d3fe14e5539059adfedf43ce1159d2fbd8';
+const moiraeR5Implementation = '8e8502aef13e5940fd14865449be422e057fb0f7';
 
 function fixedEnvironment() {
   return { PATH: '/usr/bin:/bin', LANG: 'C', LC_ALL: 'C' };
@@ -47,6 +48,7 @@ test('R5.3 publication allowlist enumerates retained historical evidence exactly
     'docs/evidence/FATES-005A-live-acceptance-attempt-002.json',
     'docs/evidence/FATES-005A-live-acceptance-attempt-003.json',
     'docs/evidence/FATES-005A-live-acceptance-attempt-005.json',
+    'docs/evidence/FATES-005A-live-acceptance-attempt-006.json',
   ];
   for (const path of historicalPaths) {
     assert.equal(areImplementationPathsAllowed('integration-publication', [path]), true, path);
@@ -62,6 +64,29 @@ test('R5.3 publication allowlist enumerates retained historical evidence exactly
   const changedPaths = diff.stdout.split(/\r?\n/).filter(Boolean);
   assert.ok(changedPaths.length > 0);
   assert.equal(areImplementationPathsAllowed('integration-publication', changedPaths), true, changedPaths.join(', '));
+});
+
+test('R5.4 binds the replacement guest kernel digest to a certified built-in capability record', () => {
+  const source = readFileSync(liveAcceptanceScript, 'utf8');
+  const record = JSON.parse(readFileSync(kernelCapabilityEvidencePath, 'utf8'));
+  assert.equal(record.classification, 'PROVEN KERNEL CAPABILITY DEFECT');
+  assert.equal(record.pinnedKernel.requiredSymbols.CONFIG_VIRTIO_MMIO_CMDLINE_DEVICES, 'n');
+  assert.equal(record.replacementKernel.requiredSymbols.CONFIG_VIRTIO_MMIO_CMDLINE_DEVICES, 'y');
+  assert.equal(record.replacementKernel.status, 'prepared_not_installed');
+  const replacementKernelPath = record.replacementKernel.path.startsWith('~/')
+    ? `/home/fatesadmin/${record.replacementKernel.path.slice(2)}`
+    : record.replacementKernel.path;
+  assert.match(source, new RegExp(replacementKernelPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  assert.match(source, new RegExp(record.replacementKernel.sha256));
+  assert.match(source, new RegExp(record.replacementKernel.configSha256));
+  assert.equal(areImplementationPathsAllowed('integration-publication', ['docs/evidence/FATES-005A-r5.4-kernel-capability.json']), true);
+});
+
+test('R5.4 leaves pathname/jail cleanup to the fixed helper after listener close', () => {
+  const source = readFileSync(hostListenerScript, 'utf8');
+  assert.doesNotMatch(source, /unlinkBoundSocket/);
+  assert.doesNotMatch(source, /listener cleanup failed/);
+  assert.match(source, /transport\.close\(\)/);
 });
 
 test('implementation preflight rejects a descendant fixture with an unsupported changed path', async () => {
@@ -161,7 +186,7 @@ test('real non-acceptance lifecycle is available only as an explicit root-gated 
   assert.equal(existsSync(join(integrationRoot, 'docs', 'evidence', 'FATES-005A-live-acceptance-attempt-004.json')), false);
 });
 
-test('governed listener readiness is a bound UDS and the shared stop path closes and unlinks it', { skip: process.platform !== 'linux' || process.arch !== 'x64' || !existsSync(moiraeDist) ? 'requires the Linux host and pinned Moirae build' : false }, async () => {
+test('governed listener readiness is a bound UDS and the shared stop path closes its descriptors', { skip: process.platform !== 'linux' || process.arch !== 'x64' || !existsSync(moiraeDist) ? 'requires the Linux host and pinned Moirae build' : false }, async () => {
   const directory = await mkdtemp(join(tmpdir(), 'fates-005a-r5-listener-'));
   const socketPath = join(directory, 'vsock.sock_7000');
   const readyFile = join(directory, 'host-ready');

@@ -1,11 +1,13 @@
 # FATES-005A — real Firecracker/KVM and Moirae-vsock acceptance
 
-Status: R5.3 socket-lifecycle and transport-evidence remediation prepared; live
-acceptance is not claimed. Attempt 004 was invoked once and consumed by a
+Status: R5.4 guest-kernel capability and listener-cleanup remediation prepared;
+live acceptance is not claimed. Attempt 004 was invoked once and consumed by a
 pre-execution implementation-eligibility gate failure. Attempt 005 reached the
-real Firecracker/jailer launch path, but its retained result is
-`INCOMPLETE / NOT ACCEPTED` because the controller could not distinguish a
-normal one-shot listener cleanup from a transport failure. The installed R5.1
+real Firecracker/jailer launch path, and Attempt 006 reached the live VMM path,
+but their retained results are `INCOMPLETE / NOT ACCEPTED`. R5.4 proved that
+the previously pinned guest kernel cannot expose the required non-PCI
+virtio-vsock path, prepared a separate corrected kernel/helper pair, and
+transferred pathname cleanup ownership to the fixed helper. The installed
 helper and historical evidence remain unchanged.
 
 ## R5.2 historical Attempt-004 record
@@ -110,7 +112,7 @@ unprivileged listener UID/GID, and `directProviderExecution: false`; the
 `guestConnectionAccepted` and `proposalReceived` fields are emitted only after
 the real transport receive returns a frame.
 
-The controller's successful evidence chain is therefore:
+The controller's successful evidence chain at the R5.3 checkpoint was:
 
 ```text
 pre-launch socket identity
@@ -122,9 +124,10 @@ pre-launch socket identity
 ```
 
 Missing, stale, wrong-session/request/correlation, root-owned, provider-bypass,
-or transport-unproven markers fail closed. Normal listener cleanup may leave
-`socketPathStillExistsAfterExchange: false`; that field is diagnostic and is
-not an acceptance requirement.
+or transport-unproven markers fail closed. R5.4 removes the listener's
+post-launch pathname operation entirely: its transport close owns only its
+server/socket descriptors, while the fixed helper owns exact jail/session
+removal after verified VMM shutdown.
 
 The Attempt-006 implementation-aware plan is non-executing and must report
 `result: NOT_EXECUTED` with `implementationEligibility: PASS`. Attempt 006 is
@@ -223,8 +226,10 @@ Network containment is checked by comparing `st_dev`/`st_ino` identities for
 The loopback-only result comes from enumerating the links in that namespace;
 it is not a hardcoded evidence list. The unprivileged host listener writes its
 ready marker only after the exact guest-vsock AF_UNIX endpoint is a bound Unix
-socket. Its signal cleanup waits for transport closure and unlinks only the
-same socket inode it bound. No TCP fallback, NIC, TAP, NAT, or ordinary IP
+socket. Its signal cleanup waits for transport closure and closes only the
+server/socket descriptors it owns; it does not traverse or unlink the jail
+pathname after jailer launch. The fixed helper removes the exact session tree
+after verified VMM shutdown. No TCP fallback, NIC, TAP, NAT, or ordinary IP
 route is introduced.
 
 The helper does not grant write access to `/srv/jailer`, does not change
@@ -242,9 +247,85 @@ them rather than trusting the Node process:
 | --- | --- | --- |
 | Firecracker | `/usr/local/bin/firecracker` | `2fd0171309af7e24cf8dafc8a6f921c1434c49b5f9349bb996b7ed0a4deb8aa7` |
 | jailer | `/usr/local/bin/jailer` | `1f3a0c1fe86212d0001819bfe0819071c01208b3ccc9398c3b3bc1b84cf21edd` |
-| guest kernel | `/home/fatesadmin/firecracker-test/vmlinux-6.18.44` | `435466ec838656f59e464ce941e7fe9f3697d5da6a73c5e5dad60dae5ad93ceb` |
+| guest kernel (R5.4 replacement, not installed) | `/home/fatesadmin/fates-005a/diagnostics/r54/vmlinux-6.18.44-vsock-mmio` | `8b872cf4b2dfab3e2b97af8554914aad08393f1b266e7b389991da457d4caa5c` |
 | guest rootfs | `/home/fatesadmin/firecracker-test/ubuntu-24.04.ext4` | `aa36ebaf68f67c1e232eb6575541de9f25763b2ce61f4bd0a062823e3d9fdf50` |
 | lifecycle-test initrd | `/home/fatesadmin/fates-005a/diagnostics/r4/guest-initrd.cpio` | `51eb8d4ac3bdff9d1d17a591ae9a148f514b48e0984be0331ff99b03144f446b` |
+
+The kernel used by Attempts 001–006 remains an immutable historical input at
+`/home/fatesadmin/firecracker-test/vmlinux-6.18.44`, SHA-256
+`435466ec838656f59e464ce941e7fe9f3697d5da6a73c5e5dad60dae5ad93ceb`. R5.4
+extracted its embedded IKCONFIG (config SHA-256
+`f02e332384bc5b4b3b8df3694935d2d7774b7b7c884414cddd7c2d65b8acb75d`) and
+found `CONFIG_VSOCKETS=y`, `CONFIG_VIRTIO_VSOCKETS=y`, `CONFIG_VIRTIO=y`,
+`CONFIG_VIRTIO_MMIO=y`, `CONFIG_BLK_DEV_INITRD=y`, `CONFIG_KVM_GUEST=y`,
+`CONFIG_SERIAL_8250_CONSOLE=y`, and `CONFIG_PRINTK=y`, but
+`CONFIG_VIRTIO_MMIO_CMDLINE_DEVICES` was disabled. Because the profile boots
+with `pci=off` and the initrd has no modules, the pinned guest is classified
+`PROVEN KERNEL CAPABILITY DEFECT`.
+
+The replacement artifact was built from the official Linux 6.18.44 source
+archive (archive SHA-256
+`0f72d938f06828e82c90405174fe572287db7bfe089e2fc46572a99a7f240d43`) with a
+certified config SHA-256
+`0a9945bdc619baa720de276b82a72f7898938b9e509d394324bf95c73014480c`. Its
+required symbols, including `CONFIG_VIRTIO_MMIO_CMDLINE_DEVICES=y`, are
+embedded and verified. The resulting static x86-64 kernel is 29,995,192 bytes
+and remains at the diagnostics-only path above; it has not replaced the
+validated `~/firecracker-test` kernel.
+
+The exact structured audit and replacement metadata are recorded in
+`docs/evidence/FATES-005A-r5.4-kernel-capability.json`. The replacement helper
+is likewise a staging artifact only; no installed helper or production kernel
+was changed by R5.4.
+
+Compile-only remote staging on `fates-kvm` produced the replacement helper at
+`/home/fatesadmin/fates-005a/diagnostics/r54/fates-005a-host-control-r54`,
+SHA-256
+`7d575925963d3b08e001ee12d7f507eb4c977c040a6e9df220b226609f783207`,
+owned by `fatesadmin:fatesadmin` with mode `0755`. The normal guest initrd was
+built at
+`/home/fatesadmin/fates-005a/diagnostics/r54/guest-initrd-normal.cpio`,
+SHA-256
+`77d43ef1f04cd259dd60bd6ef4143120cb273c341d1a06f4a4b950ee9fa8bd4a`; the
+explicit diagnostic initrd was built at
+`/home/fatesadmin/fates-005a/diagnostics/r54/guest-initrd-diagnostic.cpio`,
+SHA-256
+`4f1942c7a70d1866c3c8fbe54e017e57963422d8b83a12406fdaae1768a0cd50`. Both
+archives are single-`init`, mode `0600`, and marked `compiled_not_used`; no
+Firecracker process was launched from either staging artifact.
+
+## R5.4 listener ownership and guest diagnostics
+
+Attempt 006 independently reproduced the listener `EACCES`. Before jailer
+launch, the exact session chain was traversable by `fatesadmin`: `/srv`,
+`/srv/jailer`, and `/srv/jailer/firecracker` were `root:root 0755`, the fresh
+session and chroot root were `root:root 0711`, `/root/run` was `root:root 0711`,
+and `/root/run/fates` was `root:root 01733`. While Firecracker was live, jailer
+changed the chroot root to `65532:65532 0700` as part of the configured
+privilege drop. The session parent stayed `root:root 0711`; the listener then
+received `EACCES` when pathname traversal reached the now-private chroot root,
+so its `lstat()`/`unlink()` cleanup could not safely inspect the endpoint.
+
+R5.4 therefore makes ownership explicit. The unprivileged listener closes its
+open server and accepted-socket descriptors only. The fixed root helper stops
+the verified Firecracker process, accounts for the launcher, removes the exact
+derived namespace and jail/session, and is the sole owner of stale pathname
+removal. No generic privileged unlink operation is added, and the pre-launch
+socket type plus bounded `dev`/`ino` evidence remains required.
+
+The built R5.4 transport module was also exercised on Linux in a non-VMM
+descriptor check: close completed after its socket parent was made inaccessible,
+and an idempotent second close preserved a replacement Unix socket. These are
+listener-lifecycle checks only; they are not Firecracker/vsock or containment
+acceptance evidence.
+
+The production guest source now has an explicitly requested diagnostic build
+mode. It emits at most 32 fixed stage records to the guest serial stream and
+clamps numeric errno values to 0–65535; it adds no shell, network, credential,
+provider, or arbitrary guest-content channel. The normal acceptance initrd
+build does not enable this mode. A diagnostic initrd can be requested with
+`fates-005a-build-guest-initrd.mjs --diagnostic` for a future non-acceptance
+rehearsal after the explicit kernel/helper replacement.
 
 The original files under `~/firecracker-test` are read-only inputs. The
 attempt initrd is freshly built at the exact derived path

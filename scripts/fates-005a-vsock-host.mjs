@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { writeFileSync } from 'node:fs';
-import { access, lstat, unlink } from 'node:fs/promises';
+import { access, lstat } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { runGovernedSmoke } from './fates-governed-smoke.mjs';
@@ -44,13 +44,6 @@ async function waitForSocket(path, timeoutMs) {
   return undefined;
 }
 
-async function unlinkBoundSocket(path, boundSocket) {
-  if (!boundSocket) return;
-  const current = await lstat(path);
-  if (!current.isSocket() || current.dev !== boundSocket.dev || current.ino !== boundSocket.ino) throw new Error('governed host listener socket identity changed before cleanup');
-  await unlink(path);
-}
-
 async function main() {
   if (process.platform !== 'linux' || process.arch !== 'x64') throw new Error('FATES-005A host requires Linux x86_64');
   const listenerUid = process.getuid?.();
@@ -69,7 +62,6 @@ async function main() {
   const transport = new FirecrackerVsockTransport({ socketPath, maxFrameBytes: 64 * 1024, connectTimeoutMs: 60_000 });
   let shutdownRequested = false;
   let closePromise;
-  let boundSocket;
   let guestConnectionAccepted = false;
   let proposalReceived = false;
   const requestShutdown = () => {
@@ -83,8 +75,7 @@ async function main() {
     if (!await waitForPath(dirname(socketPath), 60_000)) throw new Error(`Firecracker jail root did not become available: ${dirname(socketPath)}`);
     if (shutdownRequested) return;
     await transport.listen();
-    boundSocket = await waitForSocket(socketPath, 5_000);
-    if (!boundSocket) throw new Error(`governed host listener did not bind a Unix socket: ${socketPath}`);
+    if (!await waitForSocket(socketPath, 5_000)) throw new Error(`governed host listener did not bind a Unix socket: ${socketPath}`);
     if (readyFile) writeFileSync(readyFile, `${socketPath}\n`, { encoding: 'utf8', flag: 'wx', mode: 0o600 });
     const frame = await transport.receive();
     guestConnectionAccepted = true;
@@ -161,12 +152,6 @@ async function main() {
     process.off('SIGTERM', requestShutdown);
     process.off('SIGINT', requestShutdown);
     await (closePromise ?? transport.close());
-    try { await unlinkBoundSocket(socketPath, boundSocket); } catch (error) {
-      if (error?.code !== 'ENOENT') {
-        process.stderr.write(`FATES-005A HOST: listener cleanup failed ${error instanceof Error ? error.message : 'unknown error'}\n`);
-        process.exitCode = 1;
-      }
-    }
   }
 }
 

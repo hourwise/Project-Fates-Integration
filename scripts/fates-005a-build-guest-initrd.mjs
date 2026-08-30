@@ -36,12 +36,13 @@ async function main() {
   const source = resolve(arg('--agent-source', defaultAgentSource));
   const output = resolve(arg('--output', join(integrationRoot, 'artifacts', 'fates-005a-guest-initrd.cpio')));
   const compiler = arg('--compiler', 'cc');
+  const diagnostic = process.argv.includes('--diagnostic');
   if (!isAbsolute(source) || !isAbsolute(output)) fail('agent source and initrd output must be absolute paths');
 
   const stage = await mkdtemp(join(tmpdir(), 'fates-005a-initrd-'));
   try {
     const binary = join(stage, 'fates-vsock-proposal-init');
-    const compiled = spawnSync(compiler, ['-std=c11', '-O2', '-static', '-s', '-Wall', '-Wextra', '-o', binary, source], {
+    const compiled = spawnSync(compiler, ['-std=c11', '-O2', '-static', '-s', '-Wall', '-Wextra', ...(diagnostic ? ['-DFATES_005A_GUEST_DIAGNOSTIC=1'] : []), '-o', binary, source], {
       cwd: integrationRoot,
       encoding: 'utf8',
       shell: false,
@@ -83,6 +84,7 @@ async function main() {
       initrdSha256: sha256(initrdBytes),
       initrdFormat: 'newc-cpio-uncompressed',
       compiler,
+      diagnostic,
       cpio: cpioCommand,
     }, null, 2)}\n`);
   } finally {

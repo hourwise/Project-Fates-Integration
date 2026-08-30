@@ -1,0 +1,114 @@
+{
+  "acceptance": "FATES-005A",
+  "remediation": "FATES-005A-R5.4",
+  "classification": "PROVEN KERNEL CAPABILITY DEFECT",
+  "auditMethod": "embedded IKCONFIG extraction from the exact guest ELF",
+  "pinnedKernel": {
+    "path": "~/firecracker-test/vmlinux-6.18.44",
+    "sha256": "435466ec838656f59e464ce941e7fe9f3697d5da6a73c5e5dad60dae5ad93ceb",
+    "size": 27841376,
+    "configSha256": "f02e332384bc5b4b3b8df3694935d2d7774b7b7c884414cddd7c2d65b8acb75d",
+    "requiredSymbols": {
+      "CONFIG_VSOCKETS": "y",
+      "CONFIG_VIRTIO_VSOCKETS": "y",
+      "CONFIG_VIRTIO": "y",
+      "CONFIG_VIRTIO_MMIO": "y",
+      "CONFIG_VIRTIO_MMIO_CMDLINE_DEVICES": "n",
+      "CONFIG_BLK_DEV_INITRD": "y",
+      "CONFIG_KVM_GUEST": "y",
+      "CONFIG_SERIAL_8250_CONSOLE": "y",
+      "CONFIG_PRINTK": "y"
+    },
+    "guestKernelVsockCapable": false,
+    "defect": "CONFIG_VIRTIO_MMIO_CMDLINE_DEVICES is disabled; the FATES profile boots with pci=off and the initrd contains no modules"
+  },
+  "replacementKernel": {
+    "path": "~/fates-005a/diagnostics/r54/vmlinux-6.18.44-vsock-mmio",
+    "sha256": "8b872cf4b2dfab3e2b97af8554914aad08393f1b266e7b389991da457d4caa5c",
+    "size": 29995192,
+    "configSha256": "0a9945bdc619baa720de276b82a72f7898938b9e509d394324bf95c73014480c",
+    "requiredSymbols": {
+      "CONFIG_VSOCKETS": "y",
+      "CONFIG_VIRTIO_VSOCKETS": "y",
+      "CONFIG_VIRTIO": "y",
+      "CONFIG_VIRTIO_MMIO": "y",
+      "CONFIG_VIRTIO_MMIO_CMDLINE_DEVICES": "y",
+      "CONFIG_BLK_DEV_INITRD": "y",
+      "CONFIG_KVM_GUEST": "y",
+      "CONFIG_SERIAL_8250_CONSOLE": "y",
+      "CONFIG_PRINTK": "y"
+    },
+    "guestKernelVsockCapable": true,
+    "status": "prepared_not_installed"
+  },
+  "source": {
+    "project": "Linux kernel",
+    "version": "6.18.44",
+    "archive": "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.18.44.tar.xz",
+    "archiveSha256": "0f72d938f06828e82c90405174fe572287db7bfe089e2fc46572a99a7f240d43",
+    "configPreparation": "copied extracted pinned config, enabled CONFIG_VIRTIO_MMIO_CMDLINE_DEVICES, then make olddefconfig",
+    "normalization": "upstream olddefconfig also normalized unsupported Amazon/custom symbols and host compiler metadata; this is recorded and is not represented as a one-line clone"
+  },
+  "build": {
+    "command": "PATH=~/fates-005a/r54-build-tools/root/usr/bin:/usr/bin:/bin LD_LIBRARY_PATH=~/fates-005a/r54-build-tools/root/usr/lib/x86_64-linux-gnu PKG_CONFIG_PATH=~/fates-005a/r54-build-tools/root/usr/lib/x86_64-linux-gnu/pkgconfig PKG_CONFIG_SYSROOT_DIR=~/fates-005a/r54-build-tools/root HOSTPKG_CONFIG=~/fates-005a/r54-build-tools/root/usr/bin/pkg-config make -C ~/fates-005a/r54-kernel-source/linux-6.18.44 O=~/fates-005a/r54-kernel-build ARCH=x86_64 -j2 vmlinux",
+    "hostToolchain": "cc (Ubuntu 15.2.0-16ubuntu1) 15.2.0",
+    "make": "GNU Make 4.4.1",
+    "sourceTree": "~/fates-005a/r54-kernel-source/linux-6.18.44",
+    "outputTree": "~/fates-005a/r54-kernel-build",
+    "buildTools": "~/fates-005a/r54-build-tools/root"
+  },
+  "stagingArtifacts": {
+    "hostControl": {
+      "path": "~/fates-005a/diagnostics/r54/fates-005a-host-control-r54",
+      "sourcePath": "~/fates-005a/diagnostics/r54/fates-005a-host-control-r54.c",
+      "sourceSha256": "cc506d02fbdacf44fb412695f40509d8c2b87ccc890ca0b82900aca71d6ec665",
+      "sha256": "7d575925963d3b08e001ee12d7f507eb4c977c040a6e9df220b226609f783207",
+      "size": 1120568,
+      "owner": "fatesadmin:fatesadmin",
+      "mode": "0755",
+      "status": "compiled_not_installed"
+    },
+    "guestAgentSource": {
+      "path": "~/fates-005a/diagnostics/r54/guest-fates-vsock-proposal-init-r54.c",
+      "sha256": "e188999a11aa3d1c5d2585a993c4d9a4b777ea60ec42d95e438578929620d74e",
+      "size": 9951,
+      "owner": "fatesadmin:fatesadmin",
+      "mode": "0664",
+      "implementationCommit": "8e8502aef13e5940fd14865449be422e057fb0f7"
+    },
+    "normalInitrd": {
+      "path": "~/fates-005a/diagnostics/r54/guest-initrd-normal.cpio",
+      "sha256": "77d43ef1f04cd259dd60bd6ef4143120cb273c341d1a06f4a4b950ee9fa8bd4a",
+      "size": 743936,
+      "owner": "fatesadmin:fatesadmin",
+      "mode": "0600",
+      "format": "newc-cpio-uncompressed",
+      "diagnostic": false,
+      "status": "compiled_not_used"
+    },
+    "diagnosticInitrd": {
+      "path": "~/fates-005a/diagnostics/r54/guest-initrd-diagnostic.cpio",
+      "sha256": "4f1942c7a70d1866c3c8fbe54e017e57963422d8b83a12406fdaae1768a0cd50",
+      "size": 743936,
+      "owner": "fatesadmin:fatesadmin",
+      "mode": "0600",
+      "format": "newc-cpio-uncompressed",
+      "diagnostic": true,
+      "status": "compiled_not_used"
+    },
+    "linuxTransportDescriptorChecks": {
+      "modulePath": "~/fates-005a/diagnostics/r54/firecracker-vsock-r54.mjs",
+      "moduleSha256": "ed8878e19ae72e67a3c0104c85ef6a1cde29820905ad2b2f54aa797198c88cbd",
+      "inaccessibleParentClose": "PASS",
+      "replacementSocketPreservedAfterSecondClose": "PASS",
+      "firecrackerLaunched": false,
+      "vsockExchange": false
+    }
+  },
+  "replacementTransaction": {
+    "installedKernelChanged": false,
+    "installedHelperChanged": false,
+    "manualActionRequired": true,
+    "attempt007Executed": false
+  }
+}
