@@ -43,9 +43,13 @@ The immutable repository evidence remains unchanged:
 
 ```text
 Attempt 001: 67b10b3605ac4ba06df9916fab1b2ef63ce04057d8f03bbd4683538f8abdc485
-Attempt 002: e8298157801bf2cfc2e841004c7f8740fb858e704344bc4c71c9942c1416753
+Attempt 002: e8298157801bf2c2fc2e841004c7f8740fb858e704344bc4c71c9942c1416753
 Attempt 003: 2f886d1bd257b84b781120de44002daf4785730bb56d8c203372ddc50f65a3e5
 ```
+
+The R5.2 instruction contained a 63-character transcription of the Attempt
+002 digest. The 64-character value recorded above is the digest of the
+unchanged repository artifact, verified locally and on `fates-kvm`.
 
 R5.2 adds the missing Attempt-003 path as one exact enumerated entry. When
 both implementation checkpoints are supplied to `--plan`, it performs the
