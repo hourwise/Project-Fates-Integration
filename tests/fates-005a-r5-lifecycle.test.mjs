@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { lstat, mkdtemp, rm } from 'node:fs/promises';
 import { spawn, spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
@@ -14,6 +14,10 @@ const installedHelper = '/usr/local/libexec/fates-005a-host-control';
 const reposRoot = resolve(integrationRoot, '..');
 const moiraeRoot = join(reposRoot, 'moirae-code');
 const moiraeDist = join(moiraeRoot, 'packages', 'sandbox-adapter', 'dist', 'index.js');
+const hostControlSourcePath = join(integrationRoot, 'scripts', 'fates-005a-host-control.c');
+const acceptanceDesignPath = join(integrationRoot, 'docs', 'design', 'FATES-005A-live-acceptance.md');
+const lifecycleFixturePath = '/home/fatesadmin/fates-005a/diagnostics/r4/guest-initrd.cpio';
+const lifecycleFixtureSha256 = '51eb8d4ac3bdff9d1d17a591ae9a148f514b48e0984be0331ff99b03144f446b';
 
 function fixedEnvironment() {
   return { PATH: '/usr/bin:/bin', LANG: 'C', LC_ALL: 'C' };
@@ -24,6 +28,20 @@ function parseJsonLines(stdout) {
     try { return [JSON.parse(line)]; } catch { return []; }
   });
 }
+
+test('R5 lifecycle fixture path and digest are bound to the retained diagnostic artifact', () => {
+  const source = readFileSync(hostControlSourcePath, 'utf8');
+  const documentation = readFileSync(acceptanceDesignPath, 'utf8');
+  const pathMatch = source.match(/^#define LIFECYCLE_TEST_INITRD "([^"]+)"$/m);
+  const digestMatch = source.match(/^#define LIFECYCLE_TEST_INITRD_SHA256 "([0-9a-f]{64})"$/m);
+  const documentedFixture = documentation.split(/\r?\n/).find((line) => line.startsWith('| lifecycle-test initrd |'));
+  assert.ok(pathMatch, 'helper must declare the lifecycle fixture path');
+  assert.ok(digestMatch, 'helper must declare the lifecycle fixture digest');
+  assert.equal(pathMatch[1], lifecycleFixturePath);
+  assert.equal(digestMatch[1], lifecycleFixtureSha256);
+  assert.equal(documentedFixture, `| lifecycle-test initrd | \`${lifecycleFixturePath}\` | \`${lifecycleFixtureSha256}\` |`);
+  assert.match(documentation, /byte-for-byte matches a static build of the exact pinned Moirae proposal source at `832d35d3fe14e5539059adfedf43ce1159d2fbd8`/);
+});
 
 test('real non-acceptance lifecycle is available only as an explicit root-gated check', { skip: process.platform !== 'linux' || process.env.FATES_005A_R5_RUN_LIVE_LIFECYCLE !== '1' ? 'requires explicit Linux/KVM lifecycle authorization' : false }, () => {
   const result = spawnSync('sudo', ['-n', installedHelper, '--self-test'], { encoding: 'utf8', shell: false, env: fixedEnvironment() });

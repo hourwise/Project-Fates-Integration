@@ -64,7 +64,7 @@
 #define PROCESS_STOP_TIMEOUT_MS 5000U
 #define LIFECYCLE_TEST_ID "fates-r5-lifecycle-test"
 #define LIFECYCLE_TEST_INITRD "/home/fatesadmin/fates-005a/diagnostics/r4/guest-initrd.cpio"
-#define LIFECYCLE_TEST_INITRD_SHA256 "67336c2dfa415fd347878d68c386cb2c5cc52be089345fa5b303e4933b4922a6"
+#define LIFECYCLE_TEST_INITRD_SHA256 "51eb8d4ac3bdff9d1d17a591ae9a148f514b48e0984be0331ff99b03144f446b"
 
 static char g_session_dir[PATH_MAX];
 static char g_jail_root[PATH_MAX];
