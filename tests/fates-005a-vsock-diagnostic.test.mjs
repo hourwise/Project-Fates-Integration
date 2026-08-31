@@ -143,11 +143,20 @@ test('stage evidence remains bounded and reports truncation instead of accepting
 
 test('diagnostic inspection is ordered before receive and the observer starts after inspection', () => {
   const source = readFileSync(diagnosticScript, 'utf8');
+  const listen = source.indexOf('await transport.listen()');
+  const beforeAuthorization = source.indexOf('boundSocketIdentityBeforeAuthorization = await inspectBoundSocket');
+  const authorize = source.indexOf("invokeFixedHelper('diagnostic-authorize-listener')");
+  const afterAuthorization = source.indexOf('boundSocketIdentityAfterAuthorization = await inspectBoundSocket');
   const launch = source.indexOf("invokeFixedHelper('diagnostic-launch')");
   const inspect = source.indexOf("invokeFixedHelper('diagnostic-inspect')");
   const observer = source.indexOf('stageObserver = createDiagnosticStageObserver');
   const receive = source.indexOf('transport.receive()');
+  assert.ok(listen >= 0);
+  assert.ok(beforeAuthorization > listen);
+  assert.ok(authorize > beforeAuthorization);
+  assert.ok(afterAuthorization > authorize);
   assert.ok(launch >= 0);
+  assert.ok(launch > afterAuthorization);
   assert.ok(inspect > launch);
   assert.ok(observer > inspect);
   assert.ok(receive > observer);

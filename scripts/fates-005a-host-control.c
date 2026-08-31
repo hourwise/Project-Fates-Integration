@@ -25,8 +25,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/mount.h>
+#include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/syscall.h>
 #include <sys/types.h>
+#include <sys/un.h>
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
@@ -54,6 +57,7 @@
 #define JAILER_GID 65532
 #define GUEST_CID 42
 #define GUEST_VSOCK_PORT 7000
+#define AUTHORIZED_LISTENER_MODE 0620
 #define VCPU_COUNT 1
 #define MEMORY_MIB 256
 #define PID_MAX_VALUE 4194304ULL
@@ -483,6 +487,138 @@ static int copy_exact_file(const char *source, const char *target, mode_t mode) 
 
 static int fail_with_phase(const char *phase, int failure_errno);
 static int digest_failure_errno(digest_result result);
+
+typedef struct {
+    dev_t device;
+    ino_t inode;
+    uid_t uid;
+    gid_t gid;
+    mode_t mode;
+} socket_identity;
+
+#ifndef SYS_fchmodat2
+#define SYS_fchmodat2 452
+#endif
+
+static void socket_identity_from_stat(const struct stat *info, socket_identity *identity) {
+    identity->device = info->st_dev;
+    identity->inode = info->st_ino;
+    identity->uid = info->st_uid;
+    identity->gid = info->st_gid;
+    identity->mode = info->st_mode & 0777;
+}
+
+static int socket_identity_same_inode(const socket_identity *left, const socket_identity *right) {
+    return left->device == right->device && left->inode == right->inode;
+}
+
+static int lstat_listener_socket(socket_identity *identity) {
+    struct stat info;
+    if (lstat(g_guest_socket, &info) != 0) return -1;
+    if (S_ISLNK(info.st_mode)) { errno = ELOOP; return -1; }
+    if (!S_ISSOCK(info.st_mode)) { errno = EINVAL; return -1; }
+    socket_identity_from_stat(&info, identity);
+    return 0;
+}
+
+static int validate_listener_runtime(uid_t expected_uid, gid_t expected_gid) {
+    struct stat info;
+    if (lstat(g_session_dir, &info) != 0) return -1;
+    if (S_ISLNK(info.st_mode)) { errno = ELOOP; return -1; }
+    if (!S_ISDIR(info.st_mode)) { errno = ENOTDIR; return -1; }
+    if (lstat(g_netns_path, &info) != 0) return -1;
+    if (S_ISLNK(info.st_mode)) { errno = ELOOP; return -1; }
+    if (lstat(g_listener_dir, &info) != 0) return -1;
+    if (S_ISLNK(info.st_mode)) { errno = ELOOP; return -1; }
+    if (!S_ISDIR(info.st_mode)) { errno = ENOTDIR; return -1; }
+    if (info.st_uid != expected_uid || info.st_gid != expected_gid || (info.st_mode & 07777) != 01733) { errno = EACCES; return -1; }
+    return 0;
+}
+
+static int open_listener_socket_for_authorization(uid_t expected_uid, gid_t expected_gid,
+                                                   socket_identity *before) {
+    if (lstat_listener_socket(before) != 0) return -1;
+    if (before->uid != expected_uid || before->gid != expected_gid) { errno = EACCES; return -1; }
+    if ((before->mode & 0002) != 0) { errno = EACCES; return -1; }
+
+    int fd = open(g_guest_socket, O_PATH | O_CLOEXEC | O_NOFOLLOW);
+    if (fd < 0) return -1;
+    struct stat opened;
+    if (fstat(fd, &opened) != 0) {
+        int saved_errno = errno;
+        close(fd);
+        errno = saved_errno;
+        return -1;
+    }
+    socket_identity opened_identity;
+    socket_identity_from_stat(&opened, &opened_identity);
+    if (!S_ISSOCK(opened.st_mode) || !socket_identity_same_inode(before, &opened_identity)) {
+        close(fd);
+        errno = EBUSY;
+        return -1;
+    }
+    return fd;
+}
+
+static int authorize_listener_socket(const char *operation) {
+    if (operation == NULL) return fail_with_phase("validate listener authorization operation", EINVAL);
+    struct passwd *fates_user = getpwnam("fatesadmin");
+    if (fates_user == NULL) return fail_with_phase("verify listener fatesadmin account", ENOENT);
+    if (validate_listener_runtime(fates_user->pw_uid, fates_user->pw_gid) != 0) return fail_with_phase("verify listener runtime", errno);
+
+    socket_identity before;
+    int fd = open_listener_socket_for_authorization(fates_user->pw_uid, fates_user->pw_gid, &before);
+    if (fd < 0) return fail_with_phase("verify listener socket", errno);
+    if (fchownat(fd, "", fates_user->pw_uid, (gid_t)JAILER_GID, AT_EMPTY_PATH) != 0) {
+        int saved_errno = errno;
+        close(fd);
+        return fail_with_phase("authorize listener group", saved_errno);
+    }
+    if (syscall(SYS_fchmodat2, fd, "", (mode_t)AUTHORIZED_LISTENER_MODE, AT_EMPTY_PATH) != 0) {
+        int saved_errno = errno;
+        close(fd);
+        return fail_with_phase("authorize listener mode", saved_errno);
+    }
+
+    struct stat after_fd_info;
+    socket_identity after_fd;
+    if (fstat(fd, &after_fd_info) != 0) {
+        int saved_errno = errno;
+        close(fd);
+        return fail_with_phase("verify authorized listener descriptor", saved_errno);
+    }
+    socket_identity_from_stat(&after_fd_info, &after_fd);
+    socket_identity after_path;
+    if (lstat_listener_socket(&after_path) != 0) {
+        int saved_errno = errno;
+        close(fd);
+        return fail_with_phase("verify authorized listener path", saved_errno);
+    }
+    if (!S_ISSOCK(after_fd_info.st_mode) || !socket_identity_same_inode(&before, &after_fd) ||
+        !socket_identity_same_inode(&before, &after_path) || !socket_identity_same_inode(&after_fd, &after_path) ||
+        after_fd.uid != fates_user->pw_uid || after_fd.gid != (gid_t)JAILER_GID ||
+        after_fd.mode != (mode_t)AUTHORIZED_LISTENER_MODE || (after_fd.mode & 0002) != 0) {
+        close(fd);
+        return fail_with_phase("verify authorized listener identity", EBUSY);
+    }
+    if (close(fd) != 0) return fail_with_phase("close authorized listener descriptor", errno);
+
+    printf("{\"operation\":\"%s\",\"attemptId\":\"%s\",\"socketDev\":%" PRIuMAX ",\"socketIno\":%" PRIuMAX ",\"socketUid\":%u,\"socketGid\":%u,\"socketMode\":%u,\"socketModeOctal\":\"0620\",\"socketOtherWritable\":false}\n",
+           operation, strrchr(g_session_dir, '/') + 1, (uintmax_t)after_path.device, (uintmax_t)after_path.inode,
+           (unsigned int)after_path.uid, (unsigned int)after_path.gid, (unsigned int)after_path.mode);
+    return 0;
+}
+
+static int verify_authorized_listener(uid_t expected_uid) {
+    socket_identity identity;
+    if (lstat_listener_socket(&identity) != 0) return -1;
+    if (identity.uid != expected_uid || identity.gid != (gid_t)JAILER_GID ||
+        identity.mode != (mode_t)AUTHORIZED_LISTENER_MODE || (identity.mode & 0002) != 0) {
+        errno = EACCES;
+        return -1;
+    }
+    return 0;
+}
 
 static int verify_staged_artifact(const char *path, const char *expected_digest, const char *phase, int require_root_owner) {
     int fd = open(path, O_RDONLY | O_CLOEXEC | O_NOFOLLOW);
@@ -1043,6 +1179,9 @@ fail:
 
 static int launch(const char *attempt) {
     (void)attempt;
+    struct passwd *fates_user = getpwnam("fatesadmin");
+    if (fates_user == NULL) return fail_with_phase("verify authorized listener fatesadmin account", ENOENT);
+    if (verify_authorized_listener(fates_user->pw_uid) != 0) return fail_with_phase("verify authorized listener", errno);
     struct stat initrd_info;
     if (!path_is_directory(g_session_dir) || !path_is_directory(g_jail_root) || lstat(g_config_path, &initrd_info) != 0 || !S_ISREG(initrd_info.st_mode) || !path_exists(g_netns_path)) return -1;
     int namespace_fd = open(g_netns_path, O_RDONLY | O_CLOEXEC | O_NOFOLLOW);
@@ -1242,6 +1381,16 @@ static int diagnostic_prepare(void) {
     printf("{\"operation\":\"diagnostic-prepare\",\"attemptId\":\"%s\",\"guestVsockSocket\":\"%s\",\"jailerLog\":\"%s\",\"diagnosticInitrd\":\"%s\",\"diagnosticInitrdSha256\":\"%s\"}\n",
            DIAGNOSTIC_TEST_ID, g_guest_socket, g_jailer_log, DIAGNOSTIC_TEST_INITRD, DIAGNOSTIC_TEST_INITRD_SHA256);
     return 0;
+}
+
+static int authorize_listener(const char *attempt) {
+    if (format_paths(attempt) != 0) return fail_with_phase("format listener authorization paths", EOVERFLOW);
+    return authorize_listener_socket("authorize-listener");
+}
+
+static int diagnostic_authorize_listener(void) {
+    if (format_paths(DIAGNOSTIC_TEST_ID) != 0) return fail_with_phase("format diagnostic authorization paths", EOVERFLOW);
+    return authorize_listener_socket("diagnostic-authorize-listener");
 }
 
 static int diagnostic_launch(void) {
@@ -1465,6 +1614,7 @@ static int self_test_live_lifecycle(void) {
     int ok = 1;
     int prepared = 0;
     int cleaned = 0;
+    int listener = -1;
     struct passwd *fates_user = getpwnam("fatesadmin");
     if (fates_user == NULL || format_paths(LIFECYCLE_TEST_ID) != 0) ok = 0;
     if (ok && (path_exists(g_session_dir) || path_exists(g_netns_path) || path_exists(g_attempt_input_dir))) ok = 0;
@@ -1472,6 +1622,16 @@ static int self_test_live_lifecycle(void) {
                copy_exact_file(LIFECYCLE_TEST_INITRD, g_initrd_source, 0600) != 0 || chown(g_initrd_source, fates_user->pw_uid, fates_user->pw_gid) != 0 || chmod(g_initrd_source, 0600) != 0)) ok = 0;
     if (ok && prepare(LIFECYCLE_TEST_ID, "req_fates_r5_lifecycle", "cor_fates_r5_lifecycle", "file:docs/fates-005c.md", FIRECRACKER_SHA256, "memory_fates_r5_lifecycle", "fates-r5-lifecycle-key", LIFECYCLE_TEST_INITRD_SHA256) != 0) ok = 0;
     else if (ok) prepared = 1;
+    if (ok) {
+        struct sockaddr_un address;
+        memset(&address, 0, sizeof(address));
+        address.sun_family = AF_UNIX;
+        listener = socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
+        if (listener < 0 || snprintf(address.sun_path, sizeof(address.sun_path), "%s", g_guest_socket) >= (int)sizeof(address.sun_path) ||
+            bind(listener, (const struct sockaddr *)&address, sizeof(address)) != 0 || listen(listener, 4) != 0 ||
+            chown(g_guest_socket, fates_user->pw_uid, fates_user->pw_gid) != 0 || chmod(g_guest_socket, 0775) != 0 ||
+            authorize_listener_socket("authorize-listener") != 0) ok = 0;
+    }
     if (ok && launch(LIFECYCLE_TEST_ID) != 0) ok = 0;
     if (ok) {
         process_record record;
@@ -1505,6 +1665,7 @@ static int self_test_live_lifecycle(void) {
         }
     }
     if (prepared && !cleaned) ok = 0;
+    if (listener >= 0) close(listener);
     if (path_exists(g_initrd_source) && unlink(g_initrd_source) != 0) ok = 0;
     if (path_exists(g_attempt_input_dir) && rmdir(g_attempt_input_dir) != 0) ok = 0;
     if (path_exists(g_session_dir) || path_exists(g_netns_path) || path_exists(g_attempt_input_dir)) ok = 0;
@@ -1546,7 +1707,7 @@ static int self_test(void) {
 }
 
 static void usage(void) {
-    fprintf(stderr, "usage: fates-005a-host-control --version|--self-test|prepare|launch|inspect|cleanup|diagnostic-prepare|diagnostic-launch|diagnostic-inspect|diagnostic-cleanup ...\n");
+    fprintf(stderr, "usage: fates-005a-host-control --version|--self-test|prepare|authorize-listener|launch|inspect|cleanup|diagnostic-prepare|diagnostic-authorize-listener|diagnostic-launch|diagnostic-inspect|diagnostic-cleanup ...\n");
 }
 
 #ifndef FATES_005A_TESTING
@@ -1554,6 +1715,7 @@ int main(int argc, char **argv) {
     if (argc == 2 && strcmp(argv[1], "--version") == 0) { puts(HELPER_VERSION); return 0; }
     if (argc == 2 && strcmp(argv[1], "--self-test") == 0) return self_test();
     if (argc == 2 && strcmp(argv[1], "diagnostic-prepare") == 0) return diagnostic_prepare() == 0 ? 0 : report_failure("diagnostic-prepare");
+    if (argc == 2 && strcmp(argv[1], "diagnostic-authorize-listener") == 0) return diagnostic_authorize_listener() == 0 ? 0 : report_failure("diagnostic-authorize-listener");
     if (argc == 2 && strcmp(argv[1], "diagnostic-launch") == 0) return diagnostic_launch() == 0 ? 0 : report_failure("diagnostic-launch");
     if (argc == 2 && strcmp(argv[1], "diagnostic-inspect") == 0) return diagnostic_inspect() == 0 ? 0 : report_failure("diagnostic-inspect");
     if (argc == 2 && strcmp(argv[1], "diagnostic-cleanup") == 0) return diagnostic_cleanup() == 0 ? 0 : report_failure("diagnostic-cleanup");
@@ -1561,7 +1723,7 @@ int main(int argc, char **argv) {
     const char *operation = argv[1];
     const char *flag = argv[2];
     const char *attempt = argv[3];
-    if ((strcmp(operation, "prepare") != 0 && strcmp(operation, "launch") != 0 && strcmp(operation, "inspect") != 0 && strcmp(operation, "cleanup") != 0) || strcmp(flag, "--attempt") != 0 || !valid_attempt(attempt) || format_paths(attempt) != 0) {
+    if ((strcmp(operation, "prepare") != 0 && strcmp(operation, "authorize-listener") != 0 && strcmp(operation, "launch") != 0 && strcmp(operation, "inspect") != 0 && strcmp(operation, "cleanup") != 0) || strcmp(flag, "--attempt") != 0 || !valid_attempt(attempt) || format_paths(attempt) != 0) {
         fprintf(stderr, "invalid FATES-005A host-control request\n"); return 2;
     }
     g_failure_phase = NULL;
@@ -1570,6 +1732,7 @@ int main(int argc, char **argv) {
         return prepare(attempt, argv[5], argv[7], argv[9], argv[11], argv[13], argv[15], argv[17]) == 0 ? 0 : report_failure("prepare");
     }
     if (argc != 4) { fprintf(stderr, "invalid fixed-operation arguments\n"); return 2; }
+    if (strcmp(operation, "authorize-listener") == 0) return authorize_listener(attempt) == 0 ? 0 : report_failure("authorize-listener");
     if (strcmp(operation, "launch") == 0) return launch(attempt) == 0 ? 0 : report_failure("launch");
     if (strcmp(operation, "inspect") == 0) return inspect(attempt) == 0 ? 0 : report_failure("inspect");
     return cleanup(attempt) == 0 ? 0 : report_failure("cleanup");

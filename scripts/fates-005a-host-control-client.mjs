@@ -65,7 +65,7 @@ function parseHelperOutput(stdout, operation) {
 }
 
 export function invokeHostControl(operation, args = [], { spawnImpl = spawnSync, binary = HOST_CONTROL_BINARY } = {}) {
-  const allowed = new Set(['prepare', 'launch', 'inspect', 'cleanup', '--version', '--self-test']);
+  const allowed = new Set(['prepare', 'authorize-listener', 'launch', 'inspect', 'cleanup', 'diagnostic-authorize-listener', '--version', '--self-test']);
   if (!allowed.has(operation)) throw new TypeError('unsupported host-control operation');
   const result = spawnImpl('sudo', ['-n', binary, operation, ...args], {
     encoding: 'utf8',
@@ -100,6 +100,15 @@ export function prepareHostControl(attemptId, proposal, initrdSha256, options = 
 export function launchHostControl(attemptId, options = {}) {
   validateAttemptId(attemptId);
   return invokeHostControl('launch', ['--attempt', attemptId], options);
+}
+
+export function authorizeListenerHostControl(attemptId, options = {}) {
+  validateAttemptId(attemptId);
+  return invokeHostControl('authorize-listener', ['--attempt', attemptId], options);
+}
+
+export function authorizeDiagnosticListenerHostControl(options = {}) {
+  return invokeHostControl('diagnostic-authorize-listener', [], options);
 }
 
 export function inspectHostControl(attemptId, options = {}) {

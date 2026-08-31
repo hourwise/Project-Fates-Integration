@@ -16,6 +16,8 @@ const DIAGNOSTIC_SOURCE_SHA256 = '2416405e530ff0421dd154f5aa643bc2e091462930796b
 const DIAGNOSTIC_MEMORY_ID = 'memory_fates_r54_diagnostic';
 const DIAGNOSTIC_IDEMPOTENCY_KEY = 'fates-r54-diagnostic-key';
 const EXPECTED_SOCKET = `/srv/jailer/firecracker/${DIAGNOSTIC_IDENTITY}/root/run/fates/vsock.sock_7000`;
+const EXPECTED_FIRECRACKER_GID = 65532;
+const AUTHORIZED_SOCKET_MODE = 0o620;
 const MAX_LOG_BYTES = 64 * 1024;
 const REQUIRED_STAGES = ['INIT_STARTED', 'CMDLINE_PARSED', 'EXECUTION_CONTRACT_VALID', 'AF_VSOCK_SOCKET_CREATED', 'AF_VSOCK_CONNECTED'];
 export const GUEST_CONNECT_RETRY_BUDGET_MS = 60_000;
@@ -85,7 +87,11 @@ async function inspectBoundSocket(path) {
   const info = await lstat(path);
   if (!info.isSocket() || info.isSymbolicLink()) throw new Error('diagnostic guest-vsock endpoint is not a real Unix socket');
   if (!Number.isSafeInteger(info.dev) || !Number.isSafeInteger(info.ino)) throw new Error('diagnostic guest-vsock endpoint lacks bounded device/inode identity');
-  return { dev: info.dev, ino: info.ino, mode: info.mode & 0o777 };
+  return { dev: info.dev, ino: info.ino, uid: info.uid, gid: info.gid, mode: info.mode & 0o777, modeOctal: (info.mode & 0o777).toString(8).padStart(4, '0') };
+}
+
+function sameSocketInode(left, right) {
+  return left?.dev === right?.dev && left?.ino === right?.ino;
 }
 
 const READ_ONLY_NOFOLLOW_FLAGS =
@@ -348,6 +354,12 @@ async function main() {
   let cleanup;
   let inspected;
   let socketIdentity;
+  let socketBoundBeforeLaunch = false;
+  let boundSocketIdentityBeforeAuthorization;
+  let socketAuthorizedForFirecracker = false;
+  let boundSocketIdentityAfterAuthorization;
+  let socketOtherWritable = null;
+  let authorizationRecord;
   let proposal;
   let stageObserver;
   let finalStageEvidence = unavailableDiagnosticSnapshot(fixedLogError('NOT_OBSERVED'));
@@ -368,7 +380,22 @@ async function main() {
 
     transport = new FirecrackerVsockTransport({ socketPath: preparedRecord.guestVsockSocket, maxFrameBytes: 64 * 1024, connectTimeoutMs: HOST_CONNECT_TIMEOUT_MS });
     await transport.listen();
-    socketIdentity = await inspectBoundSocket(preparedRecord.guestVsockSocket);
+    boundSocketIdentityBeforeAuthorization = await inspectBoundSocket(preparedRecord.guestVsockSocket);
+    socketBoundBeforeLaunch = true;
+    if (boundSocketIdentityBeforeAuthorization.uid !== listenerUid || boundSocketIdentityBeforeAuthorization.gid !== listenerGid || (boundSocketIdentityBeforeAuthorization.mode & 0o002) !== 0) {
+      throw new Error('diagnostic listener pre-authorization socket identity is not the unprivileged fixed socket');
+    }
+    authorizationRecord = invokeFixedHelper('diagnostic-authorize-listener').value;
+    if (authorizationRecord.operation !== 'diagnostic-authorize-listener' || authorizationRecord.socketUid !== listenerUid || authorizationRecord.socketGid !== EXPECTED_FIRECRACKER_GID || authorizationRecord.socketMode !== AUTHORIZED_SOCKET_MODE || authorizationRecord.socketModeOctal !== '0620' || authorizationRecord.socketOtherWritable !== false) {
+      throw new Error('diagnostic listener authorization response is not the fixed least-privilege identity');
+    }
+    boundSocketIdentityAfterAuthorization = await inspectBoundSocket(preparedRecord.guestVsockSocket);
+    if (!sameSocketInode(boundSocketIdentityBeforeAuthorization, boundSocketIdentityAfterAuthorization) || boundSocketIdentityAfterAuthorization.uid !== listenerUid || boundSocketIdentityAfterAuthorization.gid !== EXPECTED_FIRECRACKER_GID || boundSocketIdentityAfterAuthorization.mode !== AUTHORIZED_SOCKET_MODE || (boundSocketIdentityAfterAuthorization.mode & 0o002) !== 0 || authorizationRecord.socketDev !== boundSocketIdentityAfterAuthorization.dev || authorizationRecord.socketIno !== boundSocketIdentityAfterAuthorization.ino) {
+      throw new Error('diagnostic listener authorization changed or failed to prove the fixed socket inode');
+    }
+    socketAuthorizedForFirecracker = true;
+    socketOtherWritable = (boundSocketIdentityAfterAuthorization.mode & 0o002) !== 0;
+    socketIdentity = boundSocketIdentityAfterAuthorization;
 
     invokeFixedHelper('diagnostic-launch');
     try {
@@ -443,6 +470,12 @@ async function main() {
       inspected: inspected ?? null,
       runtime: inspected ?? null,
       runtimeInspectionError,
+      socketBoundBeforeLaunch,
+      boundSocketIdentityBeforeAuthorization: boundSocketIdentityBeforeAuthorization ?? null,
+      socketAuthorizedForFirecracker,
+      boundSocketIdentityAfterAuthorization: boundSocketIdentityAfterAuthorization ?? null,
+      socketOtherWritable,
+      authorizationRecord: authorizationRecord ?? null,
       guestStageObservation: finalStageEvidence.guestStageObservation,
       guestStages: finalStageEvidence.guestStages,
       lastSuccessfulStage: finalStageEvidence.lastSuccessfulStage,
@@ -484,6 +517,12 @@ async function main() {
     guestPort: 7000,
     noTcpFallback: true,
     noGuestNic: inspected.noGuestNic,
+    socketBoundBeforeLaunch,
+    boundSocketIdentityBeforeAuthorization,
+    socketAuthorizedForFirecracker,
+    boundSocketIdentityAfterAuthorization,
+    socketOtherWritable,
+    authorizationRecord,
     socketIdentity,
     guestStageObservation: finalStageEvidence.guestStageObservation,
     guestStages: finalStageEvidence.guestStages,

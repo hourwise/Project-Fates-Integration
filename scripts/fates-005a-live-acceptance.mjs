@@ -7,6 +7,7 @@ import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   FATES_005A_PROPOSAL_PROFILE_ID,
+  authorizeListenerHostControl,
   cleanupHostControl,
   fixedAttemptInputPath,
   guestVsockSocketPath,
@@ -37,6 +38,8 @@ const ATTEMPT = /^\d{3}$/;
 const MAX_OUTPUT_BYTES = 8192;
 const HOST_RESULT_MARKER = 'FATES_005A_HOST_RESULT';
 const TRANSPORT_KIND = 'firecracker-vsock-uds';
+const FIRECRACKER_GID = 65532;
+const AUTHORIZED_SOCKET_MODE = 0o620;
 const FIXED_ARTIFACTS = Object.freeze({
   firecracker: { path: '/usr/local/bin/firecracker', sha256: '2fd0171309af7e24cf8dafc8a6f921c1434c49b5f9349bb996b7ed0a4deb8aa7' },
   jailer: { path: '/usr/local/bin/jailer', sha256: '1f3a0c1fe86212d0001819bfe0819071c01208b3ccc9398c3b3bc1b84cf21edd' },
@@ -130,6 +133,7 @@ const ALLOWED_DIRTY_PATHS = {
     'scripts/verify-boundaries.mjs',
     'tests/fates-005a-host-control.test.mjs',
     'tests/fates-005a-staged-digest.test.c',
+    'tests/fates-005a-vsock-permission.test.c',
     'tests/fates-005a-r5-lifecycle.test.mjs',
     'tests/fates-005a-vsock-diagnostic.test.mjs',
     'tests/boundaries.test.mjs',
@@ -223,7 +227,7 @@ async function inspectBoundSocket(path) {
   const info = await lstat(path);
   if (!info.isSocket() || info.isSymbolicLink()) throw new Error('expected guest-vsock endpoint is not a Unix socket');
   if (!Number.isSafeInteger(info.dev) || !Number.isSafeInteger(info.ino)) throw new Error('expected guest-vsock endpoint has no bounded Unix socket identity');
-  return { dev: info.dev, ino: info.ino };
+  return { dev: info.dev, ino: info.ino, uid: info.uid, gid: info.gid, mode: info.mode & 0o777, modeOctal: (info.mode & 0o777).toString(8).padStart(4, '0') };
 }
 
 async function inspectReadyFile(path) {
@@ -336,7 +340,7 @@ async function plan() {
   if (implementation) for (const check of checks) assertRepo(check, check.name);
   const candidate = currentCandidateCheck();
   const implementationResult = implementation ? { implementationEligibility: 'PASS', implementationCheckpoints: { moiraeCode: implementation.moiraeImplementationCommit, integration: implementation.integrationImplementationCommit } } : {};
-  process.stdout.write(`${JSON.stringify({ mode: 'plan', result: 'NOT_EXECUTED', ...implementationResult, acceptance: 'FATES-005A', candidate, attemptId, profileId: FATES_005A_PROPOSAL_PROFILE_ID, platform: { platform: process.platform, architecture: process.arch, supported: process.platform === 'linux' && process.arch === 'x64' }, repositories: checks, namespace: { required: `/run/netns/fates-005a-${attemptId}`, createDuringExecute: true, identityCheck: 'kernel namespace object identity (st_dev/st_ino)', linksCheck: 'actual getifaddrs enumeration with loopback-only flags', networkInterfacesAllowed: false }, transport: { guest: 'AF_VSOCK -> CID 2:7000', host: 'host AF_UNIX listener at jail-root uds_path_7000', tcpFallback: false, preLaunchSocketEvidence: 'independent lstat type plus bounded dev/ino identity', postExchangeSocketPathPersistenceRequired: false, successProof: ['guestConnectionAccepted === true', 'proposalReceived === true'] }, governance: { route: 'guest proposal -> host Fates governed.memory-admission -> Ananke/Horae/Mnemosyne smoke', guestSupplies: ['bounded proposal identity and source digest'], guestDoesNotSupply: ['authority', 'credentials', 'provider endpoint', 'host state'] }, actions: ['verify exact r7 materialisations', 'build a fresh static proposal-agent initrd', 'prepare and inspect one empty network namespace through the fixed host-control helper', 'bind and independently verify the host guest-vsock Unix socket before launch', 'launch the pinned Firecracker+jailer profile through the helper', 'connect over the real Firecracker UDS/vsock bridge', 'prove the governed host response and VMM namespace/no-NIC facts', 'stop the VMM and remove only the fresh namespace/session artifacts'], workload: { included: false, reason: 'not part of the documented 005A proposal-channel contract' }, evidenceCreated: false, priorJailEvidenceTouched: false }, null, 2)}`);
+  process.stdout.write(`${JSON.stringify({ mode: 'plan', result: 'NOT_EXECUTED', ...implementationResult, acceptance: 'FATES-005A', candidate, attemptId, profileId: FATES_005A_PROPOSAL_PROFILE_ID, platform: { platform: process.platform, architecture: process.arch, supported: process.platform === 'linux' && process.arch === 'x64' }, repositories: checks, namespace: { required: `/run/netns/fates-005a-${attemptId}`, createDuringExecute: true, identityCheck: 'kernel namespace object identity (st_dev/st_ino)', linksCheck: 'actual getifaddrs enumeration with loopback-only flags', networkInterfacesAllowed: false }, transport: { guest: 'AF_VSOCK -> CID 2:7000', host: 'host AF_UNIX listener at jail-root uds_path_7000', tcpFallback: false, authorization: { operation: 'authorize-listener', ownerUid: 'fatesadmin', firecrackerGid: FIRECRACKER_GID, modeOctal: '0620', otherWritable: false, sameInodeRequired: true, performedDuringPlan: false }, preLaunchSocketEvidence: 'independent lstat type plus bounded dev/ino/uid/gid/mode identity', postExchangeSocketPathPersistenceRequired: false, successProof: ['socketAuthorizedForFirecracker === true', 'guestConnectionAccepted === true', 'proposalReceived === true'] }, governance: { route: 'guest proposal -> host Fates governed.memory-admission -> Ananke/Horae/Mnemosyne smoke', guestSupplies: ['bounded proposal identity and source digest'], guestDoesNotSupply: ['authority', 'credentials', 'provider endpoint', 'host state'] }, actions: ['verify exact r7 materialisations', 'build a fresh static proposal-agent initrd', 'prepare and inspect one empty network namespace through the fixed host-control helper', 'bind and independently verify the host guest-vsock Unix socket before launch', 'authorize the exact listener inode through the fixed root helper operation', 're-lstat the same socket inode and require UID 1000, GID 65532, mode 0620', 'launch the pinned Firecracker+jailer profile through the helper', 'connect over the real Firecracker UDS/vsock bridge', 'prove the governed host response and VMM namespace/no-NIC facts', 'stop the VMM and remove only the fresh namespace/session artifacts'], workload: { included: false, reason: 'not part of the documented 005A proposal-channel contract' }, evidenceCreated: false, priorJailEvidenceTouched: false }, null, 2)}`);
 }
 
 async function execute() {
@@ -376,7 +380,7 @@ async function execute() {
     artifacts: Object.fromEntries(Object.entries({ ...FIXED_ARTIFACTS, guestInitrd }).map(([name, artifact]) => [name, { sha256: artifact.sha256, ...(artifact.bytes === undefined ? {} : { bytes: artifact.bytes }), pathClass: 'fixed-host-or-fresh-attempt-artifact' }])),
     guestKernelCapabilities: GUEST_KERNEL_CAPABILITIES,
     sessionId, namespaceName: sessionId, namespaceHandle: 'run/netns/<attempt-id>',
-    transport: { guest: 'AF_VSOCK', host: 'AF_UNIX listener at Firecracker uds_path_<guest-port>', guestCid: 42, guestPort: 7000, tcpFallback: false, socketBoundBeforeLaunch: false, boundSocketIdentity: null, guestConnectionAccepted: false, proposalReceived: false, listenerCompleted: false, socketPathStillExistsAfterExchange: null },
+    transport: { guest: 'AF_VSOCK', host: 'AF_UNIX listener at Firecracker uds_path_<guest-port>', guestCid: 42, guestPort: 7000, tcpFallback: false, socketBoundBeforeLaunch: false, boundSocketIdentity: null, boundSocketIdentityBeforeAuthorization: null, socketAuthorizedForFirecracker: false, boundSocketIdentityAfterAuthorization: null, socketOtherWritable: null, authorizationRecord: null, guestConnectionAccepted: false, proposalReceived: false, listenerCompleted: false, socketPathStillExistsAfterExchange: null },
     guestAgentSource: { pathClass: 'pinned-Moirae-source', sha256: sha256Path(guestAgentSource), implementationCommit: moiraeImplementationCommit },
     guestProposal: { action: 'governed.memory-admission', ...guestProposal }, governance: null, runtime: null, cleanup: null,
     limitations: ['No model or external provider was run.', 'The guest receives no host credential or authority state.', '005A certifies proposal-channel containment, not guest workload execution.'],
@@ -402,8 +406,22 @@ async function execute() {
     if (!await waitForPath(readyFile, 60_000)) throw new Error('unprivileged governed host listener did not become ready');
     await inspectReadyFile(readyFile);
     if (readFileSync(readyFile, 'utf8').trim() !== expectedSocket) throw new Error('governed host listener readiness was not backed by the fixed guest-vsock UDS');
-    evidence.transport.boundSocketIdentity = await inspectBoundSocket(expectedSocket);
+    const listenerUid = process.getuid?.();
+    const listenerGid = process.getgid?.();
+    const boundSocketIdentityBeforeAuthorization = await inspectBoundSocket(expectedSocket);
+    if (listenerUid === undefined || listenerGid === undefined || listenerUid === 0 || listenerGid === 0 || boundSocketIdentityBeforeAuthorization.uid !== listenerUid || boundSocketIdentityBeforeAuthorization.gid !== listenerGid || (boundSocketIdentityBeforeAuthorization.mode & 0o002) !== 0) throw new Error('governed host listener pre-authorization socket identity is not the unprivileged fixed socket');
+    evidence.transport.boundSocketIdentityBeforeAuthorization = boundSocketIdentityBeforeAuthorization;
+    evidence.transport.boundSocketIdentity = boundSocketIdentityBeforeAuthorization;
     evidence.transport.socketBoundBeforeLaunch = true;
+    const authorizationRecord = authorizeListenerHostControl(sessionId);
+    evidence.transport.authorizationRecord = authorizationRecord;
+    if (authorizationRecord.operation !== 'authorize-listener' || authorizationRecord.attemptId !== sessionId || authorizationRecord.socketUid !== listenerUid || authorizationRecord.socketGid !== FIRECRACKER_GID || authorizationRecord.socketMode !== AUTHORIZED_SOCKET_MODE || authorizationRecord.socketModeOctal !== '0620' || authorizationRecord.socketOtherWritable !== false) throw new Error('host-control listener authorization response drifted from the fixed least-privilege identity');
+    const boundSocketIdentityAfterAuthorization = await inspectBoundSocket(expectedSocket);
+    if (boundSocketIdentityAfterAuthorization.dev !== boundSocketIdentityBeforeAuthorization.dev || boundSocketIdentityAfterAuthorization.ino !== boundSocketIdentityBeforeAuthorization.ino || boundSocketIdentityAfterAuthorization.uid !== listenerUid || boundSocketIdentityAfterAuthorization.gid !== FIRECRACKER_GID || boundSocketIdentityAfterAuthorization.mode !== AUTHORIZED_SOCKET_MODE || (boundSocketIdentityAfterAuthorization.mode & 0o002) !== 0 || authorizationRecord.socketDev !== boundSocketIdentityAfterAuthorization.dev || authorizationRecord.socketIno !== boundSocketIdentityAfterAuthorization.ino) throw new Error('host-control listener authorization changed or failed to prove the fixed socket inode');
+    evidence.transport.boundSocketIdentityAfterAuthorization = boundSocketIdentityAfterAuthorization;
+    evidence.transport.boundSocketIdentity = boundSocketIdentityAfterAuthorization;
+    evidence.transport.socketAuthorizedForFirecracker = true;
+    evidence.transport.socketOtherWritable = (boundSocketIdentityAfterAuthorization.mode & 0o002) !== 0;
     const launchResult = launchHostControl(sessionId);
     launched = true;
     if (launchResult.guestVsockSocket !== expectedSocket) throw new Error('host-control launch socket response drifted');
@@ -411,7 +429,7 @@ async function execute() {
     evidence.runtime = {
       firecrackerPid: runtimeFacts.firecrackerPid, firecrackerPidAlive: runtimeFacts.firecrackerPidAlive, firecrackerStartTime: runtimeFacts.firecrackerStartTime, firecrackerNamespacePid: runtimeFacts.firecrackerNamespacePid, firecrackerExe: runtimeFacts.firecrackerExe ? runtimeFacts.firecrackerExe.split('/').at(-1) : runtimeFacts.firecrackerExe, firecrackerUid: runtimeFacts.firecrackerUid, firecrackerGid: runtimeFacts.firecrackerGid,
       launcherPid: runtimeFacts.launcherPid, launcherAlive: runtimeFacts.launcherAlive, jailRoot: 'srv/jailer/firecracker/<attempt-id>/root', profileDigest: preflight.profileDigest,
-      effectiveConfigSha256: runtimeFacts.effectiveConfigSha256, guestVsockSocket: 'srv/jailer/firecracker/<attempt-id>/root/run/fates/vsock.sock_<guest-port>', socketBoundBeforeLaunch: evidence.transport.socketBoundBeforeLaunch, noGuestNic: runtimeFacts.noGuestNic,
+      effectiveConfigSha256: runtimeFacts.effectiveConfigSha256, guestVsockSocket: 'srv/jailer/firecracker/<attempt-id>/root/run/fates/vsock.sock_<guest-port>', socketBoundBeforeLaunch: evidence.transport.socketBoundBeforeLaunch, socketAuthorizedForFirecracker: evidence.transport.socketAuthorizedForFirecracker, socketOtherWritable: evidence.transport.socketOtherWritable, noGuestNic: runtimeFacts.noGuestNic,
       networkNamespace: { processIdentity: runtimeFacts.processNetnsIdentity, namedIdentity: runtimeFacts.namedNetnsIdentity, match: runtimeFacts.netnsMatch, linksOnlyLoopback: runtimeFacts.linksOnlyLoopback },
       identityError: runtimeFacts.identityError,
     };

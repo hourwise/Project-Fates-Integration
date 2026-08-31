@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { chmod, mkdir, readFile } from 'node:fs/promises';
+import { chmod, mkdir, readFile, stat } from 'node:fs/promises';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -18,12 +18,28 @@ async function main() {
   const compiler = arg('--compiler', 'cc');
   if (!isAbsolute(output)) throw new Error('--output must be absolute');
   await mkdir(dirname(output), { recursive: true, mode: 0o700 });
-  const built = spawnSync(compiler, ['-std=c11', '-O2', '-static', '-s', '-Wall', '-Wextra', '-Werror', '-o', output, source], { cwd: integrationRoot, encoding: 'utf8', shell: false });
+  const compileArguments = ['-std=c11', '-O2', '-static', '-s', '-Wall', '-Wextra', '-Werror', '-o', output, source];
+  const built = spawnSync(compiler, compileArguments, { cwd: integrationRoot, encoding: 'utf8', shell: false });
   if (built.error) throw new Error(`host-control compile failed: ${built.error.message}`);
   if (built.status !== 0) throw new Error(`host-control compile failed: ${(built.stderr ?? '').trim() || `exit ${built.status}`}`);
   await chmod(output, 0o755);
-  const digest = createHash('sha256').update(await readFile(output)).digest('hex');
-  process.stdout.write(`${JSON.stringify({ result: 'built', helperVersion: 'fates-005a-host-control-v1', source, output, sha256: digest, compiler, privilegedInstall: false }, null, 2)}\n`);
+  const sourceBytes = await readFile(source);
+  const binaryBytes = await readFile(output);
+  const compilerVersionResult = spawnSync(compiler, ['--version'], { cwd: integrationRoot, encoding: 'utf8', shell: false });
+  const compilerVersion = (compilerVersionResult.stdout ?? '').split(/\r?\n/).find(Boolean) ?? `unavailable (exit ${compilerVersionResult.status ?? 1})`;
+  process.stdout.write(`${JSON.stringify({
+    result: 'built',
+    helperVersion: 'fates-005a-host-control-v1',
+    source,
+    sourceSha256: createHash('sha256').update(sourceBytes).digest('hex'),
+    output,
+    binarySha256: createHash('sha256').update(binaryBytes).digest('hex'),
+    binaryBytes: (await stat(output)).size,
+    compiler,
+    compilerVersion,
+    compileCommand: [compiler, ...compileArguments],
+    privilegedInstall: false,
+  }, null, 2)}\n`);
 }
 
 main().catch((error) => { process.stderr.write(`FATES-005A HOST-CONTROL BUILD: FAIL\n${error.stack ?? error.message}\n`); process.exitCode = 1; });

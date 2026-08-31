@@ -1,9 +1,9 @@
 # FATES-005A — real Firecracker/KVM and Moirae-vsock acceptance
 
-Status: R5.4D retains the exact r7 governance baseline, the separately
-verified corrected-kernel path, and the root-installed R5.4B helper. It adds
-diagnostic-only guest-stage and bounded kernel-log observability; it does not
-claim live FATES-005A acceptance. Attempt 004 was
+Status: R5.4E retains the exact r7 governance baseline, the separately
+verified corrected-kernel path, and the root-installed R5.4B helper while
+preparing an uninstalled least-privilege listener-authorization helper. It
+does not claim live FATES-005A acceptance. Attempt 004 was
 invoked once and consumed by a pre-execution implementation-eligibility gate
 failure. Attempt 005 reached the real Firecracker/jailer launch path, and
 Attempt 006 reached the live VMM path, but their retained results are
@@ -194,6 +194,86 @@ with SHA-256
 `030df70f1ebc77659bae458bc6b2b45db8a6b4c50da4b9973e217bac8c52445e`.
 No helper rebuild, installation, kernel rebuild, or artifact replacement was
 performed by R5.4D.
+
+## R5.4E least-privilege listener authorization
+
+R5.4D's retained live diagnostic record proves the host `_7000` socket was
+owned by `1000:1000` with mode decimal `509`, which is octal `0775`, while
+the verified Firecracker process ran as `65532:65532`. Firecracker therefore
+matched neither the socket owner UID nor the socket group GID. The Unix-socket
+pathname permission used the `other` bits, whose write bit is absent in
+`0775`; Linux requires write permission on a pathname Unix socket for the
+connecting process. These facts identify a concrete permission-defect
+hypothesis; the acceptance classification remains pending the required
+root-gated local regression below.
+
+```text
+ROOT-GATED REPRODUCTION REQUIRED — NOT YET PROVEN
+```
+
+R5.4E adds a root-gated real AF_UNIX regression that creates the same
+`1000:1000 0775` listener, drops a child to `65532:65532`, requires
+`connect()` to return `EACCES`, changes only the same socket inode to
+`1000:65532 0620`, and requires the same child identity to connect. The
+regression also rejects symlinks, regular files, wrong owners, world-writable
+sockets, and missing associated sessions. It uses no network namespace,
+Firecracker, mock transport, or provider. A non-root invocation is explicitly
+reported as `NOT_RUN` and cannot satisfy this proof.
+
+The new fixed helper operations are:
+
+```text
+authorize-listener --attempt fates-005a-NNN
+diagnostic-authorize-listener
+```
+
+The normal operation derives only
+`/srv/jailer/firecracker/fates-005a-NNN/root/run/fates/vsock.sock_7000`.
+The diagnostic operation derives only the fixed
+`fates-r54-vsock-diagnostic` endpoint. Neither operation accepts a path, UID,
+GID, mode, port, or session argument. Before changing the socket, the helper
+requires the exact socket type, fatesadmin owner/group, non-world-writable
+pre-state, fixed sticky listener directory, associated session, and
+associated namespace. It uses a descriptor opened with `O_PATH|O_NOFOLLOW`,
+changes only that inode to owner UID `1000`, group GID `65532`, mode `0620`,
+then independently `lstat()`s the pathname and requires unchanged
+`st_dev`/`st_ino`, exact ownership, exact mode, and
+`socketOtherWritable: false`. The helper's `launch` operation also fails
+closed unless this exact post-authorization identity is present.
+
+The controller sequence is now:
+
+```text
+bind listener
+  → independently lstat and record pre-authorization identity
+  → sudo -n fixed authorization operation
+  → independently lstat and require the same inode, 1000:65532, 0620
+  → launch Firecracker
+```
+
+The diagnostic controller performs the same transition before immediate
+runtime inspection, concurrent guest-stage observation, and the real
+AF_VSOCK exchange. The `--plan` path describes the transition but does not
+bind, authorize, or mutate a socket. The new helper is compiled and tested
+as an uninstalled staging artifact; the installed R5.4B helper remains at
+SHA-256
+`192d9b42dbe10d3e621156cf7e30810eb1a697bd92f9abfc506dea8c779d68c7`.
+The uninstalled KVM staging build recorded source SHA-256
+`943fc9a180ccf3296132628f70905f4c0bf2cd68266069c0cccac175086e4d65`, binary
+SHA-256
+`5678e84dca9b38a6c09bd627d5334bc3e6a7b2b26146008bce177bed37178d29`, binary
+size `1128760` bytes, and compiler `cc (Ubuntu 15.2.0-16ubuntu1) 15.2.0`.
+The exact build command was:
+
+```text
+cc -std=c11 -O2 -static -s -Wall -Wextra -Werror -o <staging-output> <staging-source>/scripts/fates-005a-host-control.c
+```
+
+The current SSH account can compile and invoke this staging binary but is not
+root; the regression therefore reports `NOT_RUN requires-root` with exit 77.
+The available non-interactive sudo rule permits only the unchanged installed
+R5.4B binary, so no replacement or installation was attempted. No diagnostic
+rehearsal or Attempt 007 execution is authorized by R5.4E.
 
 ## Certified contract
 

@@ -88,13 +88,33 @@ test('R5.4A binds a fixed diagnostic identity and keeps the listener outside gov
   assert.match(helperSource, /#define GUEST_KERNEL_PATH "\/home\/fatesadmin\/firecracker-test\/vmlinux-6\.18\.44-fates-vsock-mmio"/);
   assert.match(helperSource, /#define DIAGNOSTIC_TEST_ID "fates-r54-vsock-diagnostic"/);
   assert.match(helperSource, /#define DIAGNOSTIC_TEST_INITRD_SHA256 "dae168395e78ccd74c5c3972050a4bd7ee83f45a7395dc894efe74e75edd5e1d"/);
-  for (const operation of ['diagnostic-prepare', 'diagnostic-launch', 'diagnostic-inspect', 'diagnostic-cleanup']) assert.match(helperSource, new RegExp(operation));
+  for (const operation of ['diagnostic-prepare', 'diagnostic-authorize-listener', 'diagnostic-launch', 'diagnostic-inspect', 'diagnostic-cleanup']) assert.match(helperSource, new RegExp(operation));
   assert.match(diagnosticSource, /FirecrackerVsockTransport/);
   assert.match(diagnosticSource, /parseFatesGuestDiagnosticLine/);
   assert.match(diagnosticSource, /guestConnectionAccepted: true/);
   assert.match(diagnosticSource, /diagnosticFrameReceived: true/);
   assert.doesNotMatch(diagnosticSource, /runGovernedSmoke|Ananke|Horae|Mnemosyne|provider|model/i);
   assert.doesNotMatch(diagnosticSource, /unlink/);
+});
+
+test('R5.4E authorizes the exact listener inode before either diagnostic or normal launch', () => {
+  const helperSource = readFileSync(hostControlSourcePath, 'utf8');
+  const diagnosticSource = readFileSync(join(integrationRoot, 'scripts', 'fates-005a-vsock-diagnostic.mjs'), 'utf8');
+  const liveSource = readFileSync(liveAcceptanceScript, 'utf8');
+  assert.match(helperSource, /#define AUTHORIZED_LISTENER_MODE 0620/);
+  assert.match(helperSource, /fchownat\(fd, "", fates_user->pw_uid, \(gid_t\)JAILER_GID, AT_EMPTY_PATH\)/);
+  assert.match(helperSource, /syscall\(SYS_fchmodat2, fd, "", \(mode_t\)AUTHORIZED_LISTENER_MODE, AT_EMPTY_PATH\)/);
+  assert.match(helperSource, /!socket_identity_same_inode\(&before, &after_path\)/);
+  assert.match(helperSource, /after_fd\.gid != \(gid_t\)JAILER_GID/);
+  const diagnosticAuthorize = diagnosticSource.indexOf("invokeFixedHelper('diagnostic-authorize-listener')");
+  const diagnosticLaunch = diagnosticSource.indexOf("invokeFixedHelper('diagnostic-launch')");
+  assert.ok(diagnosticAuthorize >= 0 && diagnosticAuthorize < diagnosticLaunch);
+  const normalAuthorize = liveSource.indexOf('authorizeListenerHostControl(sessionId)');
+  const normalLaunch = liveSource.indexOf('launchHostControl(sessionId)');
+  assert.ok(normalAuthorize >= 0 && normalAuthorize < normalLaunch);
+  assert.ok(liveSource.indexOf('const boundSocketIdentityBeforeAuthorization = await inspectBoundSocket') < normalAuthorize);
+  assert.ok(liveSource.indexOf('evidence.transport.boundSocketIdentityAfterAuthorization =', normalAuthorize) > normalAuthorize);
+  assert.match(liveSource, /performedDuringPlan: false/);
 });
 
 test('R5.4 leaves pathname/jail cleanup to the fixed helper after listener close', () => {
