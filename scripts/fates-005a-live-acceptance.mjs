@@ -129,6 +129,7 @@ const ALLOWED_DIRTY_PATHS = {
     'docs/evidence/FATES-005A-live-acceptance-attempt-006.json',
     'scripts/verify-boundaries.mjs',
     'tests/fates-005a-host-control.test.mjs',
+    'tests/fates-005a-staged-digest.test.c',
     'tests/fates-005a-r5-lifecycle.test.mjs',
     'tests/boundaries.test.mjs',
   ]),

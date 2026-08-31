@@ -261,18 +261,13 @@ static void sha256_final(sha256_ctx *ctx, uint8_t output[32]) {
     }
 }
 
-static int file_sha256(const char *path, char output[SHA256_LENGTH + 1]) {
-    int fd = open(path, O_RDONLY | O_CLOEXEC | O_NOFOLLOW);
-    if (fd < 0) return -1;
+static int file_sha256_fd(int fd, char output[SHA256_LENGTH + 1]) {
     sha256_ctx ctx;
     uint8_t buffer[1024 * 1024];
     ssize_t count;
-    int saved_errno = 0;
     sha256_init(&ctx);
     while ((count = read(fd, buffer, sizeof(buffer))) > 0) sha256_update(&ctx, buffer, (size_t)count);
-    if (count < 0) saved_errno = errno;
-    if (close(fd) != 0 && saved_errno == 0) saved_errno = errno;
-    if (saved_errno != 0) { errno = saved_errno; return -1; }
+    if (count < 0) return -1;
     uint8_t digest[32];
     sha256_final(&ctx, digest);
     for (size_t i = 0; i < 32; i++) snprintf(output + i * 2, 3, "%02x", digest[i]);
@@ -280,10 +275,28 @@ static int file_sha256(const char *path, char output[SHA256_LENGTH + 1]) {
     return 0;
 }
 
+static int file_sha256(const char *path, char output[SHA256_LENGTH + 1]) {
+    int fd = open(path, O_RDONLY | O_CLOEXEC | O_NOFOLLOW);
+    if (fd < 0) return -1;
+    int result = file_sha256_fd(fd, output);
+    int saved_errno = errno;
+    if (close(fd) != 0 && result == 0) { result = -1; saved_errno = errno; }
+    if (result != 0) errno = saved_errno;
+    return result;
+}
+
 static digest_result check_digest(const char *path, const char *expected) {
     char actual[SHA256_LENGTH + 1];
     if (!valid_sha256(expected)) { errno = EINVAL; return DIGEST_EXPECTED_INVALID; }
     if (file_sha256(path, actual) != 0) return DIGEST_SOURCE_IO;
+    if (strcmp(actual, expected) != 0) { errno = EBADMSG; return DIGEST_MISMATCH; }
+    return DIGEST_OK;
+}
+
+static digest_result check_digest_fd(int fd, const char *expected) {
+    char actual[SHA256_LENGTH + 1];
+    if (!valid_sha256(expected)) { errno = EINVAL; return DIGEST_EXPECTED_INVALID; }
+    if (file_sha256_fd(fd, actual) != 0) return DIGEST_SOURCE_IO;
     if (strcmp(actual, expected) != 0) { errno = EBADMSG; return DIGEST_MISMATCH; }
     return DIGEST_OK;
 }
@@ -466,6 +479,52 @@ static int copy_exact_file(const char *source, const char *target, mode_t mode) 
     close(source_fd); close(target_fd);
     if (!ok) unlink(target);
     return ok ? 0 : -1;
+}
+
+static int fail_with_phase(const char *phase, int failure_errno);
+static int digest_failure_errno(digest_result result);
+
+static int verify_staged_artifact(const char *path, const char *expected_digest, const char *phase, int require_root_owner) {
+    int fd = open(path, O_RDONLY | O_CLOEXEC | O_NOFOLLOW);
+    if (fd < 0) return fail_with_phase(phase, errno);
+    struct stat info;
+    if (fstat(fd, &info) != 0) {
+        int saved_errno = errno;
+        close(fd);
+        return fail_with_phase(phase, saved_errno);
+    }
+    if (!S_ISREG(info.st_mode)) {
+        close(fd);
+        return fail_with_phase(phase, EINVAL);
+    }
+    if (info.st_size <= 0) {
+        close(fd);
+        return fail_with_phase(phase, EINVAL);
+    }
+    if ((info.st_mode & 0022) != 0) {
+        close(fd);
+        return fail_with_phase(phase, EACCES);
+    }
+    if (require_root_owner && (info.st_uid != 0 || info.st_gid != 0)) {
+        close(fd);
+        return fail_with_phase(phase, EACCES);
+    }
+    digest_result result = check_digest_fd(fd, expected_digest);
+    int saved_errno = errno;
+    if (close(fd) != 0 && result == DIGEST_OK) { result = DIGEST_SOURCE_IO; saved_errno = errno; }
+    if (result != DIGEST_OK) {
+        int failure_errno = digest_failure_errno(result);
+        if (failure_errno == EIO) failure_errno = saved_errno;
+        return fail_with_phase(phase, failure_errno);
+    }
+    return 0;
+}
+
+static int copy_and_verify_staged_artifact(const char *source, const char *target, mode_t mode,
+                                           const char *expected_digest, const char *copy_phase,
+                                           const char *digest_phase, int require_root_owner) {
+    if (copy_exact_file(source, target, mode) != 0) return fail_with_phase(copy_phase, errno);
+    return verify_staged_artifact(target, expected_digest, digest_phase, require_root_owner);
 }
 
 static int namespace_has_only_loopback(void) {
@@ -964,11 +1023,14 @@ static int prepare(const char *attempt, const char *request_id, const char *corr
     if (create_jail_tree(mkdir_exact) != 0) return rollback_prepare_failure("create jail runtime directory", errno);
     char target[PATH_MAX];
     if (snprintf(target, sizeof(target), "%s/kernel", g_jail_root) >= (int)sizeof(target)) { errno = EOVERFLOW; g_failure_phase = "stage kernel"; goto fail; }
-    if (copy_exact_file(GUEST_KERNEL_PATH, target, 0644) != 0) { if (errno == 0) errno = EIO; g_failure_phase = "stage kernel"; goto fail; }
+    if (copy_and_verify_staged_artifact(GUEST_KERNEL_PATH, target, 0644, GUEST_KERNEL_SHA256,
+                                        "stage kernel", "verify staged kernel digest", 1) != 0) goto fail;
     if (snprintf(target, sizeof(target), "%s/rootfs", g_jail_root) >= (int)sizeof(target)) { errno = EOVERFLOW; g_failure_phase = "stage rootfs"; goto fail; }
-    if (copy_exact_file(GUEST_ROOTFS_PATH, target, 0644) != 0) { if (errno == 0) errno = EIO; g_failure_phase = "stage rootfs"; goto fail; }
+    if (copy_and_verify_staged_artifact(GUEST_ROOTFS_PATH, target, 0644, GUEST_ROOTFS_SHA256,
+                                        "stage rootfs", "verify staged rootfs digest", 1) != 0) goto fail;
     if (snprintf(target, sizeof(target), "%s/guest-initrd", g_jail_root) >= (int)sizeof(target)) { errno = EOVERFLOW; g_failure_phase = "stage guest initrd"; goto fail; }
-    if (copy_exact_file(g_initrd_source, target, 0644) != 0) { if (errno == 0) errno = EIO; g_failure_phase = "stage guest initrd"; goto fail; }
+    if (copy_and_verify_staged_artifact(g_initrd_source, target, 0644, initrd_sha256,
+                                        "stage guest initrd", "verify staged guest initrd digest", 1) != 0) goto fail;
     if (create_config(attempt, request_id, correlation_id, source_id, source_hash, memory_id, idempotency_key) != 0) { if (errno == 0) errno = EIO; g_failure_phase = "create Firecracker config"; goto fail; }
     struct passwd *fates_user = getpwnam("fatesadmin");
     if (fates_user == NULL) { errno = EINVAL; g_failure_phase = "set listener ownership"; goto fail; }
@@ -1487,6 +1549,7 @@ static void usage(void) {
     fprintf(stderr, "usage: fates-005a-host-control --version|--self-test|prepare|launch|inspect|cleanup|diagnostic-prepare|diagnostic-launch|diagnostic-inspect|diagnostic-cleanup ...\n");
 }
 
+#ifndef FATES_005A_TESTING
 int main(int argc, char **argv) {
     if (argc == 2 && strcmp(argv[1], "--version") == 0) { puts(HELPER_VERSION); return 0; }
     if (argc == 2 && strcmp(argv[1], "--self-test") == 0) return self_test();
@@ -1511,3 +1574,4 @@ int main(int argc, char **argv) {
     if (strcmp(operation, "inspect") == 0) return inspect(attempt) == 0 ? 0 : report_failure("inspect");
     return cleanup(attempt) == 0 ? 0 : report_failure("cleanup");
 }
+#endif

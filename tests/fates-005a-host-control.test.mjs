@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -17,6 +17,7 @@ import {
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const helperSource = join(root, 'scripts', 'fates-005a-host-control.c');
+const stagedDigestHarness = join(root, 'tests', 'fates-005a-staged-digest.test.c');
 
 test('host-control client accepts only the fixed attempt identity and proposal fields', () => {
   assert.equal(validateAttemptId('fates-005a-001'), 'fates-005a-001');
@@ -94,6 +95,44 @@ test('compiled helper self-test covers jail tree order, bounded modes, malformed
       const rejected = spawnSync(binary, args, { encoding: 'utf8', shell: false });
       assert.notEqual(rejected.status, 0, `unexpectedly accepted ${args.join(' ')}`);
     }
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('prepare verifies each staged artifact before creating Firecracker config', () => {
+  const source = readFileSync(helperSource, 'utf8');
+  const configIndex = source.indexOf('create_config(attempt, request_id');
+  assert.notEqual(configIndex, -1);
+  for (const [sourcePath, expectedDigest, copyPhase, digestPhase] of [
+    ['GUEST_KERNEL_PATH', 'GUEST_KERNEL_SHA256', 'stage kernel', 'verify staged kernel digest'],
+    ['GUEST_ROOTFS_PATH', 'GUEST_ROOTFS_SHA256', 'stage rootfs', 'verify staged rootfs digest'],
+    ['g_initrd_source', 'initrd_sha256', 'stage guest initrd', 'verify staged guest initrd digest'],
+  ]) {
+    const call = new RegExp(`copy_and_verify_staged_artifact\\(\\s*${sourcePath},\\s*target,\\s*0644,\\s*${expectedDigest},\\s*"${copyPhase}",\\s*"${digestPhase}",\\s*1\\s*\\)`, 's');
+    assert.match(source, call);
+    const digestIndex = source.indexOf(`"${digestPhase}"`);
+    assert.ok(digestIndex < configIndex, `${digestPhase} must precede config creation`);
+  }
+  assert.match(source, /open\(path, O_RDONLY \| O_CLOEXEC \| O_NOFOLLOW\)/);
+  assert.match(source, /\(info\.st_mode & 0022\) != 0/);
+  assert.match(source, /info\.st_uid != 0 \|\| info\.st_gid != 0/);
+});
+
+test('staged artifact digest regression blocks mutated source bytes and unsafe destinations', { skip: process.platform !== 'linux' ? 'staged-artifact harness is Linux-only' : false }, () => {
+  const compiler = spawnSync('cc', ['--version'], { encoding: 'utf8', shell: false });
+  if (compiler.status !== 0) return;
+  const directory = mkdtempSync(join(tmpdir(), 'fates-005a-staged-digest-test-'));
+  const binary = join(directory, 'staged-digest-regression');
+  try {
+    const built = spawnSync('cc', [
+      '-std=c11', '-O2', '-Wall', '-Wextra', '-Werror', '-Wno-unused-function',
+      '-o', binary, stagedDigestHarness,
+    ], { encoding: 'utf8', shell: false });
+    assert.equal(built.status, 0, built.stderr);
+    const result = spawnSync(binary, [], { encoding: 'utf8', shell: false });
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /FATES-005A staged artifact digest regression: PASS mutation=PASS kernel=PASS rootfs=PASS guest-initrd=PASS symlink=PASS non-regular=PASS empty=PASS writable=PASS owner=PASS/);
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }
