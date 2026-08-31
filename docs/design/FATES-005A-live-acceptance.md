@@ -1,9 +1,9 @@
 # FATES-005A — real Firecracker/KVM and Moirae-vsock acceptance
 
-Status: R5.4A has published the exact R5.4 source checkpoints, established a
-separate final corrected-kernel path, and added a fixed non-acceptance
-diagnostic lifecycle; the explicit helper replacement and real rehearsal are
-still pending. Live FATES-005A acceptance is not claimed. Attempt 004 was
+Status: R5.4D retains the exact r7 governance baseline, the separately
+verified corrected-kernel path, and the root-installed R5.4B helper. It adds
+diagnostic-only guest-stage and bounded kernel-log observability; it does not
+claim live FATES-005A acceptance. Attempt 004 was
 invoked once and consumed by a pre-execution implementation-eligibility gate
 failure. Attempt 005 reached the real Firecracker/jailer launch path, and
 Attempt 006 reached the live VMM path, but their retained results are
@@ -134,6 +134,66 @@ removal after verified VMM shutdown.
 The Attempt-006 implementation-aware plan is non-executing and must report
 `result: NOT_EXECUTED` with `implementationEligibility: PASS`. Attempt 006 is
 not run by this remediation.
+
+## R5.4C diagnostic record and R5.4D remediation
+
+R5.4C invoked the fixed non-acceptance diagnostic exactly once. Its retained
+controller result was:
+
+```text
+result: FAIL
+terminalError: timed out waiting for guest AF_VSOCK connection
+lastSuccessfulStage: null
+proposalReceived: false
+diagnosticResultSent: false
+inspected: null
+```
+
+The `lastSuccessfulStage: null` field came from the old controller's
+uninitialized stage accumulator. R5.4C retained no guest stage records, so it
+does not prove that the guest failed before `/init`, failed in kernel boot,
+failed while creating AF_VSOCK, or reached any later stage. The historical
+classification is therefore:
+
+```text
+R5.4C GUEST STAGE OUTCOME: HISTORICALLY UNPROVABLE FROM RETAINED RESULT
+```
+
+The old diagnostic sequence was
+`diagnostic-prepare → host listen → verify socket → diagnostic-launch →
+await guest connection → wait for guest stages → diagnostic-inspect`. A
+transport timeout consequently skipped both runtime inspection and the only
+stage-log read. R5.4D classifies that as a
+`DIAGNOSTIC FAILURE-EVIDENCE ORDERING DEFECT` and changes the sequence to
+`diagnostic-prepare → host listen → verify socket → diagnostic-launch →
+diagnostic-inspect immediately → start/continue bounded stage observation →
+await guest connection`. The observer reads only the fixed `jailer.log`,
+limits the bytes and event count, and passes each fixed
+`FATES_005A_GUEST_STAGE ...` record through the existing bounded
+`parseFatesGuestDiagnosticLine` parser. It records
+`OBSERVED`, `NO_STAGE_MARKERS_PRESENT`, or
+`LOG_UNAVAILABLE`, plus bounded kernel indicators from the same log. The
+final snapshot occurs before the fixed helper removes the diagnostic jail.
+
+The diagnostic guest source retries its fixed AF_VSOCK connect loop for 600
+attempts at 100 ms, approximately 60 seconds. R5.4C configured the host
+transport for 30 seconds and added a 45-second outer receive guard. R5.4D
+classifies that as a `HOST/GUEST CONNECT-BUDGET MISMATCH`; the diagnostic
+transport now uses a 90-second connect timeout and its outer guard is 95
+seconds. The production governed host listener is also 90 seconds. There is
+no TCP fallback, ordinary IP path, credential, provider, model, or guest
+network interface in this remediation. Attempt 007 remains unused.
+
+The R5.4D host preflight confirmed the root-installed helper remains the
+fixed R5.4B binary at `/usr/local/libexec/fates-005a-host-control`, SHA-256
+`192d9b42dbe10d3e621156cf7e30810eb1a697bd92f9abfc506dea8c779d68c7`,
+owned by `root:root` with mode `0755`. The immediate pre-R5.4B backup also
+exists at
+`/usr/local/libexec/.fates-005a-host-control.pre-r54b-030df70.backup`,
+with SHA-256
+`030df70f1ebc77659bae458bc6b2b45db8a6b4c50da4b9973e217bac8c52445e`.
+No helper rebuild, installation, kernel rebuild, or artifact replacement was
+performed by R5.4D.
 
 ## Certified contract
 

@@ -131,6 +131,7 @@ const ALLOWED_DIRTY_PATHS = {
     'tests/fates-005a-host-control.test.mjs',
     'tests/fates-005a-staged-digest.test.c',
     'tests/fates-005a-r5-lifecycle.test.mjs',
+    'tests/fates-005a-vsock-diagnostic.test.mjs',
     'tests/boundaries.test.mjs',
   ]),
 };

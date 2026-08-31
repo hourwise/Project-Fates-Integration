@@ -12,6 +12,7 @@ const SOURCE_CONTENT = 'The controlled FATES-005C source is admitted only after 
 const SOURCE_HASH = createHash('sha256').update(SOURCE_CONTENT, 'utf8').digest('hex');
 const MEMORY_ID = 'memory_fates_005c_001';
 const IDEMPOTENCY_KEY = 'fates-005c-idempotency-001';
+const HOST_CONNECT_TIMEOUT_MS = 90_000;
 
 function arg(name, fallback = undefined) {
   const index = process.argv.indexOf(name);
@@ -59,7 +60,7 @@ async function main() {
   const readyFile = arg('--ready-file');
   if (runtimeContractsArtifact) process.env.FATES_RUNTIME_CONTRACTS_ARTIFACT = resolve(runtimeContractsArtifact);
   const { FirecrackerVsockTransport, parseFatesGuestProposal, fatesProposalResultEnvelope } = await import(pathToFileURL(join(moiraeRoot, 'packages', 'sandbox-adapter', 'dist', 'index.js')).href);
-  const transport = new FirecrackerVsockTransport({ socketPath, maxFrameBytes: 64 * 1024, connectTimeoutMs: 60_000 });
+  const transport = new FirecrackerVsockTransport({ socketPath, maxFrameBytes: 64 * 1024, connectTimeoutMs: HOST_CONNECT_TIMEOUT_MS });
   let shutdownRequested = false;
   let closePromise;
   let guestConnectionAccepted = false;
