@@ -1,0 +1,202 @@
+{
+  "acceptance": "FATES-005A",
+  "remediation": "FATES-005A-R5.4E",
+  "classification": "R5.4E ROOT REGRESSION: PASS",
+  "permissionDefect": "PROVEN",
+  "permissionRemediation": "PROVEN",
+  "r5.4eStatus": "ACCEPTED",
+  "overallFates005aStatus": "NOT YET ACCEPTED",
+  "repository": {
+    "pathClass": "authoritative-integration-repository",
+    "path": ".",
+    "branch": "codex/fates-005a-integration-implementation",
+    "head": "d62951cf2eaf29a3635fb19ecad5b6b49d8fafa6",
+    "worktreeClean": true,
+    "synchronizedWithRemote": true
+  },
+  "provenance": {
+    "helperSource": {
+      "path": "scripts/fates-005a-host-control.c",
+      "implementationCommit": "d62951cf2eaf29a3635fb19ecad5b6b49d8fafa6",
+      "sha256": "943fc9a180ccf3296132628f70905f4c0bf2cd68266069c0cccac175086e4d65"
+    },
+    "r54eHelper": {
+      "pathClass": "bounded-uninstalled-r54e-provenance-staging",
+      "path": "fates-005a-r54e-provenance-001/fates-005a-host-control",
+      "sha256": "5678e84dca9b38a6c09bd627d5334bc3e6a7b2b26146008bce177bed37178d29",
+      "bytes": 1128760,
+      "installed": false,
+      "compiler": "cc (Ubuntu 15.2.0-16ubuntu1) 15.2.0",
+      "compileFlags": [
+        "-std=c11",
+        "-O2",
+        "-static",
+        "-s",
+        "-Wall",
+        "-Wextra",
+        "-Werror"
+      ]
+    },
+    "regressionHarness": {
+      "sourcePath": "tests/fates-005a-vsock-permission.test.c",
+      "sourceSha256": "80ebd5ed0707ac978f05fc837724eb11a699488c2ab403a0b8130677bda657da",
+      "binaryPathClass": "bounded-uninstalled-r54e-provenance-staging",
+      "binaryPath": "fates-005a-r54e-provenance-001/fates-005a-vsock-permission-regression",
+      "binarySha256": "848937e812b1f0c8fb8cc0f487ca3098552dcbdbb82208b50e99b645c310e789",
+      "binaryBytes": 30688,
+      "compileFlags": [
+        "-std=c11",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wno-unused-function"
+      ],
+      "sourceLinkedHelper": true
+    }
+  },
+  "operatorObservedRootExecution": {
+    "operatorExecuted": true,
+    "codexExecuted": false,
+    "command": "sudo <bounded-staged-r54e-permission-regression-harness>",
+    "commandPathClass": "bounded-uninstalled-r54e-provenance-staging",
+    "passwordHandledByCodex": false,
+    "exactOutput": [
+      "{\"operation\":\"authorize-listener\",\"attemptId\":\"session\",\"socketDev\":43,\"socketIno\":28758,\"socketUid\":1000,\"socketGid\":65532,\"socketMode\":400,\"socketModeOctal\":\"0620\",\"socketOtherWritable\":false}",
+      "FATES-005A AF_UNIX permission regression: PASS before=EACCES after=CONNECTED same-inode=PASS owner=1000 group=65532 mode=0620 other-writable=NO"
+    ]
+  },
+  "rootRegression": {
+    "status": "PASS",
+    "preAuthorization": {
+      "socketUid": 1000,
+      "socketGid": 1000,
+      "socketModeOctal": "0775",
+      "peerUid": 65532,
+      "peerGid": 65532,
+      "connection": "DENIED",
+      "errno": "EACCES",
+      "evidenceSource": "operator-supplied PASS output plus the exact source-linked harness assertions"
+    },
+    "authorization": {
+      "operation": "authorize-listener",
+      "socketDev": 43,
+      "socketIno": 28758,
+      "socketUid": 1000,
+      "socketGid": 65532,
+      "socketMode": 400,
+      "socketModeOctal": "0620",
+      "socketOtherWritable": false,
+      "sameInode": true
+    },
+    "postAuthorization": {
+      "peerUid": 65532,
+      "peerGid": 65532,
+      "connection": "CONNECTED"
+    },
+    "deviceInodeEvidence": {
+      "authorizedSocketDev": 43,
+      "authorizedSocketIno": 28758,
+      "prePostEquality": "PASS",
+      "preStateNumericDeviceAndInodeEmitted": false
+    }
+  },
+  "negativeProtections": {
+    "aggregateResult": "PASS",
+    "individualCasesWereNotEmittedBySuppliedStdout": true,
+    "cases": [
+      {
+        "case": "symlink",
+        "result": "PASS (rejected by harness)"
+      },
+      {
+        "case": "regular-file",
+        "result": "PASS (rejected by harness)"
+      },
+      {
+        "case": "wrong-owner",
+        "result": "PASS (rejected by harness)"
+      },
+      {
+        "case": "world-writable",
+        "result": "PASS (rejected by harness)"
+      },
+      {
+        "case": "unexpected-session",
+        "result": "PASS (rejected by harness)"
+      }
+    ],
+    "fixedCliArgumentRejection": "PASS in focused R5.4E tests"
+  },
+  "installedHelper": {
+    "pathClass": "fixed-installed-host-helper",
+    "path": "fates-005a-host-control",
+    "sha256Before": "192d9b42dbe10d3e621156cf7e30810eb1a697bd92f9abfc506dea8c779d68c7",
+    "sha256After": "192d9b42dbe10d3e621156cf7e30810eb1a697bd92f9abfc506dea8c779d68c7",
+    "unchanged": true,
+    "codexAction": "not installed or replaced"
+  },
+  "protectedArtifacts": {
+    "correctedKernel": {
+      "pathClass": "protected-corrected-guest-kernel",
+      "path": "vmlinux-6.18.44-fates-vsock-mmio",
+      "sha256": "8b872cf4b2dfab3e2b97af8554914aad08393f1b266e7b389991da457d4caa5c"
+    },
+    "guestRootfs": {
+      "pathClass": "protected-guest-rootfs",
+      "path": "ubuntu-24.04.ext4",
+      "sha256": "aa36ebaf68f67c1e232eb6575541de9f25763b2ce61f4bd0a062823e3d9fdf50"
+    },
+    "diagnosticInitrd": {
+      "pathClass": "protected-diagnostic-guest-initrd",
+      "path": "guest-initrd-diagnostic-r54a.cpio",
+      "sha256": "dae168395e78ccd74c5c3972050a4bd7ee83f45a7395dc894efe74e75edd5e1d"
+    }
+  },
+  "cleanupAndAttemptState": {
+    "stalePermissionTestDirectory": false,
+    "stalePermissionTestSocket": false,
+    "firecrackerProcessRemaining": false,
+    "jailerProcessRemaining": false,
+    "attempt007": "UNUSED",
+    "attempt007PathClass": "fixed-attempt-007-runtime-paths",
+    "attempt007Paths": {
+      "netns/fates-005a-007": false,
+      "jailer/fates-005a-007": false,
+      "attempts/fates-005a-007": false
+    },
+    "evidenceSource": "Codex read-only post-run revalidation"
+  },
+  "validation": {
+    "focusedR54ETests": {
+      "tests": 28,
+      "passed": 20,
+      "failed": 0,
+      "skipped": 8,
+      "status": "PASS"
+    },
+    "javascriptSyntax": "PASS",
+    "validators": {
+      "validateJson": "PASS",
+      "verifyCurrentCandidate": "PASS",
+      "verifyLock": "PASS",
+      "verifyMatrix": "PASS",
+      "verifySlices": "PASS",
+      "verifyBoundaries": "PASS",
+      "gitDiffCheck": "PASS"
+    },
+    "exactR7Fates005D": {
+      "tests": 1,
+      "passed": 1,
+      "failed": 0,
+      "status": "PASS",
+      "evidenceSource": "prior isolated exact-r7 remote validation; implementation unchanged"
+    }
+  },
+  "notes": [
+    "The operator output is recorded verbatim and is not represented as a Codex root execution.",
+    "The supplied output does not emit the pre-authorization numeric device/inode values; same-inode=PASS is recorded exactly.",
+    "This evidence accepts only the R5.4E permission regression/remediation. It does not accept the complete FATES-005A containment slice.",
+    "No helper installation, Attempt 007 execution, candidate update, release tag, or production-readiness claim was made."
+  ]
+}
