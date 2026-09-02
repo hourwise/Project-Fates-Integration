@@ -1,0 +1,203 @@
+{
+  "acceptance": "FATES-005A",
+  "remediation": "FATES-005A-R5.4F",
+  "record": "authoritative-post-activation",
+  "supersedes": "docs/evidence/FATES-005A-r5.4f-helper-activation.json",
+  "classification": "R5.4F HELPER ACTIVATION: PASS",
+  "installedHelper": "R5.4E / 5678e84dca9b38a6c09bd627d5334bc3e6a7b2b26146008bce177bed37178d29",
+  "sudoExactPathExecution": "PASS",
+  "attempt007Readiness": "PASS",
+  "attempt007": "UNUSED",
+  "overallFates005aStatus": "NOT YET ACCEPTED",
+  "repository": {
+    "pathClass": "authoritative-integration-repository",
+    "path": ".",
+    "branch": "codex/fates-005a-integration-implementation",
+    "startingHead": "35511fd693bedcfd532152b2d588fbb28341901f",
+    "worktreeClean": true,
+    "synchronizedWithRemote": true,
+    "implementationChanges": false
+  },
+  "activation": {
+    "operatorExecuted": true,
+    "codexExecuted": false,
+    "passwordHandledByCodex": false,
+    "installationMethod": "operator-executed bounded replacement in the destination filesystem; final hash and metadata independently revalidated",
+    "previousInstalledHelper": {
+      "pathClass": "fixed-installed-host-helper",
+      "path": "fates-005a-host-control",
+      "sha256": "192d9b42dbe10d3e621156cf7e30810eb1a697bd92f9abfc506dea8c779d68c7",
+      "bytes": 1124664
+    },
+    "activatedHelper": {
+      "pathClass": "fixed-installed-host-helper",
+      "path": "fates-005a-host-control",
+      "sha256": "5678e84dca9b38a6c09bd627d5334bc3e6a7b2b26146008bce177bed37178d29",
+      "bytes": 1128760,
+      "owner": "root",
+      "group": "root",
+      "mode": "0755",
+      "type": "regular file",
+      "symlink": false,
+      "sourceSha256": "943fc9a180ccf3296132628f70905f4c0bf2cd68266069c0cccac175086e4d65",
+      "sourceImplementationCommit": "d62951cf2eaf29a3635fb19ecad5b6b49d8fafa6"
+    },
+    "operatorObservedFinalOutput": [
+      "5678e84dca9b38a6c09bd627d5334bc3e6a7b2b26146008bce177bed37178d29  <fixed-installed-host-helper>",
+      "size=1128760 owner=root group=root mode=755 type=regular file",
+      "usage: fates-005a-host-control --version|--self-test|prepare|authorize-listener|launch|inspect|cleanup|diagnostic-prepare|diagnostic-authorize-listener|diagnostic-launch|diagnostic-inspect|diagnostic-cleanup ..."
+    ]
+  },
+  "sudoBoundary": {
+    "pathClass": "fixed-installed-host-helper",
+    "rule": "NOPASSWD exact installed helper path only",
+    "operatorReportedPasswordRule": "password-authenticated arbitrary sudo remains separate from the exact NOPASSWD rule",
+    "codexObservedSudoList": true,
+    "broadNopasswdRuleIntroduced": false,
+    "helpInvocation": {
+      "command": "sudo -n <fixed-installed-host-helper> --help",
+      "authorization": "PASS",
+      "helperResult": "usage displayed; helper exit 2 is expected for this usage form"
+    },
+    "versionInvocation": {
+      "command": "sudo -n <fixed-installed-host-helper> --version",
+      "result": "fates-005a-host-control-v1",
+      "status": "PASS"
+    }
+  },
+  "rollback": {
+    "pathClass": "sha-bound-installed-helper-rollback",
+    "path": "fates-005a-host-control.rollback-192d9b42",
+    "sha256": "192d9b42dbe10d3e621156cf7e30810eb1a697bd92f9abfc506dea8c779d68c7",
+    "bytes": 1124664,
+    "owner": "root",
+    "group": "root",
+    "mode": "0755",
+    "type": "regular file",
+    "symlink": false,
+    "preserved": true
+  },
+  "selfTest": {
+    "command": "sudo -n <fixed-installed-host-helper> --self-test",
+    "executedBy": "Codex through the exact NOPASSWD boundary; no password interaction",
+    "status": "PASS",
+    "exitCode": 0,
+    "digestFixtureChecks": "PASS",
+    "trustChecks": "metadata=PASS wrong-owner=PASS unsafe-directory=PASS symlink=PASS non-regular=PASS writable=PASS empty=PASS",
+    "processIdentityChecks": "pidfile=PASS malformed=PASS symlink=PASS start-time=PASS executable=PASS uid-gid=PASS namespace-object=PASS different-namespace=PASS verified-stop=PASS",
+    "nonNumberedLifecycle": {
+      "identity": "fates-r5-lifecycle-test",
+      "status": "PASS",
+      "checks": "identity=PASS launcher-distinct=PASS pidfile=PASS namespace-object=PASS loopback-only=PASS no-guest-nic=PASS inspect=PASS cleanup=PASS no-survivor=PASS"
+    },
+    "attempt007Executed": false,
+    "residueAfterSelfTest": {
+      "permissionTestDirectory": false,
+      "permissionTestSocket": false,
+      "lifecycleNamespace": false,
+      "lifecycleJail": false,
+      "lifecycleAttemptDirectory": false,
+      "firecrackerProcess": false,
+      "jailerProcess": false
+    }
+  },
+  "planReadiness": {
+    "command": "node <integration-repository>/scripts/fates-005a-live-acceptance.mjs --plan --attempt-id 007",
+    "mode": "plan",
+    "result": "NOT_EXECUTED",
+    "exitCode": 0,
+    "platform": "linux-x64",
+    "supported": true,
+    "candidate": "fates-durable-candidate-2026-08-27-r7",
+    "evidenceCreated": false,
+    "priorJailEvidenceTouched": false,
+    "transport": "AF_VSOCK guest to host AF_UNIX; TCP fallback false",
+    "authorization": "authorize-listener; owner fatesadmin; Firecracker GID 65532; mode 0620; other-writable false; same-inode required; not performed during plan",
+    "resourcesAfterPlan": {
+      "netns/fates-005a-007": false,
+      "jailer/fates-005a-007": false,
+      "attempts/fates-005a-007": false,
+      "evidence/fates-005a-007": false
+    },
+    "readiness": "PASS for the non-mutating helper/resource gate; this is not Attempt 007 execution or full FATES-005A acceptance",
+    "hostPlanRepositoryObservation": "The baseline plan was informational and non-executing; it did not authorize lifecycle execution or alter the host materializations."
+  },
+  "protectedArtifacts": {
+    "correctedKernel": {
+      "pathClass": "protected-corrected-guest-kernel",
+      "path": "vmlinux-6.18.44-fates-vsock-mmio",
+      "sha256": "8b872cf4b2dfab3e2b97af8554914aad08393f1b266e7b389991da457d4caa5c",
+      "bytes": 29995192
+    },
+    "guestRootfs": {
+      "pathClass": "protected-guest-rootfs",
+      "path": "ubuntu-24.04.ext4",
+      "sha256": "aa36ebaf68f67c1e232eb6575541de9f25763b2ce61f4bd0a062823e3d9fdf50",
+      "bytes": 1073741824
+    },
+    "diagnosticInitrd": {
+      "pathClass": "protected-diagnostic-guest-initrd",
+      "path": "guest-initrd-diagnostic-r54a.cpio",
+      "sha256": "dae168395e78ccd74c5c3972050a4bd7ee83f45a7395dc894efe74e75edd5e1d",
+      "bytes": 743936
+    }
+  },
+  "candidateAndGovernance": {
+    "candidate": "fates-durable-candidate-2026-08-27-r7",
+    "candidateStatus": "provisional",
+    "peerPins": {
+      "adrasteia": "a1c01bf9e6f9d6a126cfdcc1acfacd488b214210",
+      "ananke": "3d76adb162a0ff07b5630700ae30a823f1419cb4",
+      "mnemosyne": "f02df61be147d6fe716a98912d37eaaf1fe89f23",
+      "horae": "68508f5c37e1cb3b244116d45fa267e689a6e75c",
+      "moiraeCode": "b23f723fc5267c95fe9f7eccb2efa32465f8d2f1",
+      "integrationControl": "39f66dcb1a58b8cbc217a987942781f7b77fde7",
+      "integrationPublication": "35a00e881df8e5143eb86bf88332292b8baaa13d"
+    },
+    "governanceSemantics": "PRESERVED; no implementation, candidate, peer-pin, or governance change",
+    "validation": "PASS"
+  },
+  "cleanupAndAttemptState": {
+    "firecrackerProcess": false,
+    "jailerProcess": false,
+    "staleR54ePermissionDirectory": false,
+    "staleR54ePermissionSocket": false,
+    "attempt007": "UNUSED",
+    "attempt007ResourcesAbsent": true,
+    "attempt007EvidenceAbsent": true,
+    "historicalJailEvidenceTouched": false,
+    "evidenceSource": "Codex read-only post-activation revalidation"
+  },
+  "validation": {
+    "repositoryEvidenceParse": "PASS",
+    "currentCandidate": "PASS",
+    "fatesLock": "PASS",
+    "compatibilityMatrix": "PASS",
+    "slices": "PASS",
+    "boundaries": "PASS",
+    "gitDiffCheck": "PASS",
+    "focusedR54ETests": {
+      "tests": 28,
+      "passed": 20,
+      "failed": 0,
+      "skipped": 8,
+      "status": "PASS"
+    },
+    "javascriptSyntax": "PASS",
+    "exactR7Fates005D": {
+      "tests": 1,
+      "passed": 1,
+      "failed": 0,
+      "status": "PASS",
+      "evidenceSource": "prior isolated exact-r7 remote validation; implementation unchanged"
+    }
+  },
+  "notes": [
+    "The operator performed the privileged activation directly; Codex did not perform the replacement or handle credentials.",
+    "The activated helper is the canonical R5.4E binary from the accepted source provenance.",
+    "The self-test used only the fixed non-numbered fates-r5-lifecycle-test identity and cleaned it completely.",
+    "The plan path returned NOT_EXECUTED and created no Attempt 007 state.",
+    "This record accepts R5.4F helper activation and readiness only. It does not accept the complete FATES-005A containment slice.",
+    "No Attempt 007 execution, model/provider execution, candidate update, release tag, or production-readiness claim was made."
+  ]
+}
