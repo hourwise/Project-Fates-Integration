@@ -1,0 +1,172 @@
+{
+  "acceptance": "FATES-005A",
+  "remediation": "FATES-005A-R5.4F",
+  "classification": "R5.4F HELPER ACTIVATION: NOT_RUN",
+  "r5.4eStatus": "ACCEPTED",
+  "overallFates005aStatus": "NOT YET ACCEPTED",
+  "attempt007": "UNUSED",
+  "repository": {
+    "pathClass": "authoritative-integration-repository",
+    "path": ".",
+    "branch": "codex/fates-005a-integration-implementation",
+    "startingHead": "ffd0534c79bfcea49dc4f23cea32d906d2800bd8",
+    "worktreeClean": true,
+    "synchronizedWithRemote": true,
+    "evidenceCommit": null
+  },
+  "preflight": {
+    "r54eEvidence": {
+      "pathClass": "repository-evidence",
+      "path": "docs/evidence/FATES-005A-r5.4e-root-regression.json",
+      "parses": true,
+      "classification": "R5.4E ROOT REGRESSION: PASS",
+      "status": "ACCEPTED"
+    },
+    "helperSource": {
+      "pathClass": "authoritative-repository-source",
+      "path": "scripts/fates-005a-host-control.c",
+      "implementationCommit": "d62951cf2eaf29a3635fb19ecad5b6b49d8fafa6",
+      "sha256": "943fc9a180ccf3296132628f70905f4c0bf2cd68266069c0cccac175086e4d65"
+    },
+    "stagedR54eHelper": {
+      "pathClass": "bounded-uninstalled-r54e-provenance-staging",
+      "path": "fates-005a-r54e-provenance-001/fates-005a-host-control",
+      "sha256": "5678e84dca9b38a6c09bd627d5334bc3e6a7b2b26146008bce177bed37178d29",
+      "bytes": 1128760,
+      "regularFile": true,
+      "symlink": false,
+      "owner": "fatesadmin",
+      "group": "fatesadmin",
+      "mode": "0775",
+      "rehashedImmediatelyBeforeActivationDecision": true,
+      "installed": false
+    },
+    "currentlyInstalledHelper": {
+      "pathClass": "fixed-installed-host-helper",
+      "path": "fates-005a-host-control",
+      "sha256": "192d9b42dbe10d3e621156cf7e30810eb1a697bd92f9abfc506dea8c779d68c7",
+      "bytes": 1124664,
+      "regularFile": true,
+      "symlink": false,
+      "owner": "root",
+      "group": "root",
+      "mode": "0755"
+    },
+    "sudo": {
+      "operatorReportedPasswordAuthenticatedRoot": true,
+      "operatorReportedExactNopasswdPath": "fates-005a-host-control",
+      "codexRequestedPassword": false,
+      "codexReceivedPassword": false,
+      "codexHandledPassword": false,
+      "sudoNoninteractiveCheck": "UNAVAILABLE",
+      "rootMutationAvailableInSession": false
+    },
+    "attempt007Paths": {
+      "netns/fates-005a-007": false,
+      "jailer/fates-005a-007": false,
+      "attempts/fates-005a-007": false,
+      "evidence/fates-005a-007": false
+    },
+    "processes": {
+      "firecracker": false,
+      "jailer": false
+    },
+    "staleR54eFixtures": {
+      "permissionTestDirectories": false,
+      "permissionTestSockets": false
+    },
+    "protectedArtifacts": {
+      "correctedKernel": {
+        "pathClass": "protected-corrected-guest-kernel",
+        "path": "vmlinux-6.18.44-fates-vsock-mmio",
+        "sha256": "8b872cf4b2dfab3e2b97af8554914aad08393f1b266e7b389991da457d4caa5c",
+        "bytes": 29995192
+      },
+      "guestRootfs": {
+        "pathClass": "protected-guest-rootfs",
+        "path": "ubuntu-24.04.ext4",
+        "sha256": "aa36ebaf68f67c1e232eb6575541de9f25763b2ce61f4bd0a062823e3d9fdf50",
+        "bytes": 1073741824
+      },
+      "diagnosticInitrd": {
+        "pathClass": "protected-diagnostic-guest-initrd",
+        "path": "guest-initrd-diagnostic-r54a.cpio",
+        "sha256": "dae168395e78ccd74c5c3972050a4bd7ee83f45a7395dc894efe74e75edd5e1d",
+        "bytes": 743936
+      }
+    }
+  },
+  "candidateAndGovernance": {
+    "candidate": "fates-durable-candidate-2026-08-27-r7",
+    "candidateStatus": "provisional",
+    "peerPins": {
+      "adrasteia": "a1c01bf9e6f9d6a126cfdcc1acfacd488b214210",
+      "ananke": "3d76adb162a0ff07b5630700ae30a823f1419cb4",
+      "mnemosyne": "f02df61be147d6fe716a98912d37eaaf1fe89f23",
+      "horae": "68508f5c37e1cb3b244116d45fa267e689a6e75c",
+      "moiraeCode": "b23f723fc5267c95fe9f7eccb2efa32465f8d2f1",
+      "integrationControl": "39f66dcb1a58b8cbc217a987942781f7b77fde7",
+      "integrationPublication": "35a00e881df8e5143eb86bf88332292b8baaa13d"
+    },
+    "governanceSemantics": "PRESERVED; no implementation or peer-pin change in this slice",
+    "validation": "PASS"
+  },
+  "activation": {
+    "status": "NOT_RUN",
+    "reason": "The destination requires arbitrary root mutation, but no cached noninteractive sudo authorization was available. Codex did not request, receive, store, or handle the operator password.",
+    "rollbackCopyCreated": false,
+    "installationMethod": "not executed",
+    "installedHelperChanged": false,
+    "helperReplacementTarget": {
+      "pathClass": "fixed-installed-host-helper",
+      "path": "fates-005a-host-control",
+      "expectedSha256AfterActivation": "5678e84dca9b38a6c09bd627d5334bc3e6a7b2b26146008bce177bed37178d29"
+    }
+  },
+  "verification": {
+    "sudoCompatibility": "NOT_RUN; existing exact rule is operator-reported and was not modified",
+    "installedBinaryProvenance": "NOT_RUN; installation did not occur",
+    "installedBinaryOwnershipAndMode": "NOT_RUN; installation did not occur",
+    "helperVersion": "NOT_RUN",
+    "helperSelfTest": "NOT_RUN",
+    "authorizeListenerInterface": "NOT_RUN",
+    "diagnosticAuthorizeListenerInterface": "NOT_RUN",
+    "nonMutatingPlan": "NOT_RUN",
+    "stagedArtifactVerification": "PRESERVED; validated by existing R5.4E evidence and repository tests",
+    "observability": "PRESERVED; validated by existing R5.4E evidence and repository tests",
+    "attempt007Readiness": "NOT_RUN"
+  },
+  "cleanupAndReadiness": {
+    "activationResidue": false,
+    "firecrackerProcessRemaining": false,
+    "jailerProcessRemaining": false,
+    "attempt007": "UNUSED",
+    "attempt007ResourcesAbsent": true,
+    "hostReadyForAttempt007": false,
+    "readinessReason": "R5.4E helper activation was not run; the old installed helper remains in place",
+    "evidenceSource": "Codex read-only preflight and operator-supplied sudo capability statement"
+  },
+  "validation": {
+    "repositoryEvidenceParse": "PASS",
+    "currentCandidate": "PASS",
+    "fatesLock": "PASS",
+    "compatibilityMatrix": "PASS",
+    "slices": "PASS",
+    "boundaries": "PASS before this artifact was added",
+    "gitDiffCheck": "PASS before this artifact was added",
+    "focusedR54ETests": {
+      "tests": 28,
+      "passed": 20,
+      "failed": 0,
+      "skipped": 8,
+      "status": "PASS; prior R5.4E validation"
+    }
+  },
+  "notes": [
+    "This record documents a bounded R5.4F NOT_RUN outcome; it does not claim helper activation or readiness.",
+    "The installed helper was not overwritten and no rollback copy was created because activation did not begin.",
+    "Attempt 007 was not executed or consumed.",
+    "No model, provider, Firecracker lifecycle, sudo password, candidate update, release tag, or governance change was made."
+  ],
+  "evidenceCommit": null
+}
