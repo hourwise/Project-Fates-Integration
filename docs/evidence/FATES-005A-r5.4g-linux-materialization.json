@@ -1,0 +1,390 @@
+{
+  "acceptance": "FATES-005A",
+  "remediation": "FATES-005A-R5.4G-M1",
+  "record": "exact-linux-lifecycle-materialization",
+  "classification": "R5.4G LINUX MATERIALIZATION: PASS",
+  "authorizedLifecycleMaterialization": "PROVEN",
+  "attempt007Readiness": "PASS for the non-mutating materialization/resource plan gate only",
+  "attempt007": "UNUSED",
+  "overallFates005aStatus": "NOT YET ACCEPTED",
+  "repository": {
+    "authoritativeWindows": {
+      "pathClass": "authoritative-integration-repository",
+      "path": ".",
+      "branch": "codex/fates-005a-integration-implementation",
+      "head": "6f89d32c865aef2626de5a9722cc8dc163a76a8c",
+      "tree": "9b17b2deeb073ff9614ac8bf435b982f938ead80",
+      "worktreeClean": true,
+      "synchronizedWithRemote": true,
+      "aheadBehind": "0 0"
+    },
+    "linuxMaterialization": {
+      "pathClass": "fresh-dedicated-linux-lifecycle-materialization",
+      "path": "r5.4g-6f89d32",
+      "sourceTransport": "fresh repository clone followed by detached checkout of the exact authorized commit",
+      "head": "6f89d32c865aef2626de5a9722cc8dc163a76a8c",
+      "tree": "9b17b2deeb073ff9614ac8bf435b982f938ead80",
+      "detachedHead": true,
+      "worktreeClean": true,
+      "untrackedFiles": [],
+      "carriedOverAttemptEvidence": false
+    },
+    "implementationChanges": false,
+    "candidateChanged": false,
+    "peerPinsChanged": false,
+    "governanceSemanticsChanged": false
+  },
+  "criticalFileProvenance": [
+    {
+      "path": "scripts/fates-005a-host-control.c",
+      "windowsSha256": "943fc9a180ccf3296132628f70905f4c0bf2cd68266069c0cccac175086e4d65",
+      "linuxSha256": "943fc9a180ccf3296132628f70905f4c0bf2cd68266069c0cccac175086e4d65",
+      "gitBlobIdSha1": "dbc1f3091988329230adec94e5f58dbaff037970",
+      "identity": "MATCH"
+    },
+    {
+      "path": "scripts/fates-005a-live-acceptance.mjs",
+      "windowsSha256": "ec4a4bbcf983efdf66b1ea864a717257af632e0f3badd720268fc9fa882b566d",
+      "linuxSha256": "ec4a4bbcf983efdf66b1ea864a717257af632e0f3badd720268fc9fa882b566d",
+      "gitBlobIdSha1": "8970b27c417bcb228c10473f7689a275691da1af",
+      "identity": "MATCH"
+    },
+    {
+      "path": "scripts/fates-005a-vsock-host.mjs",
+      "windowsSha256": "7c4a53e075c46920425c75e83ef5f95ed3af881d74dc8eaf6f973ed4abbf2529",
+      "linuxSha256": "7c4a53e075c46920425c75e83ef5f95ed3af881d74dc8eaf6f973ed4abbf2529",
+      "gitBlobIdSha1": "74a2c1bd5f5272f45bfd0c2455ae9987c94b7166",
+      "identity": "MATCH"
+    },
+    {
+      "path": "scripts/fates-005a-host-control-client.mjs",
+      "windowsSha256": "953da772c3748f907c7dd2bb0019fa81643c417c85fa1d0cc091383090be1bb8",
+      "linuxSha256": "953da772c3748f907c7dd2bb0019fa81643c417c85fa1d0cc091383090be1bb8",
+      "gitBlobIdSha1": "eb40b79ae75aa824536a9bcc3fa09f8e78ca9966",
+      "identity": "MATCH"
+    },
+    {
+      "path": "scripts/fates-005a-vsock-diagnostic.mjs",
+      "windowsSha256": "e60f25b7ff06aaac8a3780b148234432526e22599e73f9ffeb73a312ccfe7abe",
+      "linuxSha256": "e60f25b7ff06aaac8a3780b148234432526e22599e73f9ffeb73a312ccfe7abe",
+      "gitBlobIdSha1": "f15ab83cb3e8f63f92b02c91ae59d90e6178b2df",
+      "identity": "MATCH"
+    },
+    {
+      "path": "scripts/fates-005a-build-guest-initrd.mjs",
+      "windowsSha256": "fc83e43095145cb264eeeb3c2acdda40333225a6fb238c5c252502d55442c638",
+      "linuxSha256": "fc83e43095145cb264eeeb3c2acdda40333225a6fb238c5c252502d55442c638",
+      "gitBlobIdSha1": "cd862d4756c6c79ddd55d017c20788020e7a551a",
+      "identity": "MATCH"
+    },
+    {
+      "path": "scripts/fates-005a-build-host-control.mjs",
+      "windowsSha256": "d840d2572fab1e658ae95bedd21e5efd9059c44d8a2a17e42adcc83b796e4261",
+      "linuxSha256": "d840d2572fab1e658ae95bedd21e5efd9059c44d8a2a17e42adcc83b796e4261",
+      "gitBlobIdSha1": "b48f95cbafbd65d0e0c99cea24578135e29ff4c5",
+      "identity": "MATCH"
+    },
+    {
+      "path": "scripts/fates-governed-smoke.mjs",
+      "windowsSha256": "571248b30daa87c5bb43041e23ef90737bd37589252c071fc863485a13340d48",
+      "linuxSha256": "571248b30daa87c5bb43041e23ef90737bd37589252c071fc863485a13340d48",
+      "gitBlobIdSha1": "387d9b4cfc0406d508aa04a33d84e23e7cb929fa",
+      "identity": "MATCH"
+    },
+    {
+      "path": "scripts/fates-checkout-current.mjs",
+      "windowsSha256": "fe867fb5dd34633338becbfba23e9d2402b352bf982ddb9078e1d7f2a0633433",
+      "linuxSha256": "fe867fb5dd34633338becbfba23e9d2402b352bf982ddb9078e1d7f2a0633433",
+      "gitBlobIdSha1": "3a870f2bdb28fb7da010e40b8b79ec91eb55c63a",
+      "identity": "MATCH"
+    },
+    {
+      "path": "current-candidate.json",
+      "windowsSha256": "c6adf2066aae1b1182419f7bc4750c54f18c1fc884a4a4bea58b90c303ae8459",
+      "linuxSha256": "c6adf2066aae1b1182419f7bc4750c54f18c1fc884a4a4bea58b90c303ae8459",
+      "gitBlobIdSha1": "1e018dc8a5523419e6b0893eb2a13552be9cd466",
+      "identity": "MATCH"
+    },
+    {
+      "path": "compatibility-sets/fates-durable-candidate-2026-08-27-r7.json",
+      "windowsSha256": "8ccd2a65e26cd29102cd7a7d06094a087353482b2fc9fa56eb321682d56aec33",
+      "linuxSha256": "8ccd2a65e26cd29102cd7a7d06094a087353482b2fc9fa56eb321682d56aec33",
+      "gitBlobIdSha1": "d8d77cff3c2a9f79f00cabf22b620e033d741034",
+      "identity": "MATCH"
+    },
+    {
+      "path": "tests/fates-005a-host-control.test.mjs",
+      "windowsSha256": "bf80c46c3bb69a82b8a66ed938b5fffd76bf4bc6e9fcf0c1ca222918116fb827",
+      "linuxSha256": "bf80c46c3bb69a82b8a66ed938b5fffd76bf4bc6e9fcf0c1ca222918116fb827",
+      "gitBlobIdSha1": "e25d4afe1e083a176666a87bee72872bee0924eb",
+      "identity": "MATCH"
+    },
+    {
+      "path": "tests/fates-005a-r5-lifecycle.test.mjs",
+      "windowsSha256": "3acfea1328d9db23ffcf0acee7bafd78797814c3159b1e72cdf6982eb6c4cfd1",
+      "linuxSha256": "3acfea1328d9db23ffcf0acee7bafd78797814c3159b1e72cdf6982eb6c4cfd1",
+      "gitBlobIdSha1": "9b50e1f666277c8486a4530499c0dc2b316d1ba5",
+      "identity": "MATCH"
+    },
+    {
+      "path": "tests/fates-005a-vsock-diagnostic.test.mjs",
+      "windowsSha256": "968d29a15105f85efde3127dc2f59d662e6a3111c37421035f7ccc391379b7ea",
+      "linuxSha256": "968d29a15105f85efde3127dc2f59d662e6a3111c37421035f7ccc391379b7ea",
+      "gitBlobIdSha1": "dafb72b5f36ff8db3e3c956bf6c3c972be58f7e7",
+      "identity": "MATCH"
+    },
+    {
+      "path": "tests/fates-005a-staged-digest.test.c",
+      "windowsSha256": "343583f90ea6c3ea8259480629fa21041effd159d6c49b8d0340cfce0ef09dd7",
+      "linuxSha256": "343583f90ea6c3ea8259480629fa21041effd159d6c49b8d0340cfce0ef09dd7",
+      "gitBlobIdSha1": "e1ef39b4ba1425f8ac1c2d046916f2e3a8851544",
+      "identity": "MATCH"
+    },
+    {
+      "path": "tests/fates-005a-vsock-permission.test.c",
+      "windowsSha256": "80ebd5ed0707ac978f05fc837724eb11a699488c2ab403a0b8130677bda657da",
+      "linuxSha256": "80ebd5ed0707ac978f05fc837724eb11a699488c2ab403a0b8130677bda657da",
+      "gitBlobIdSha1": "8ff60e57af33ec549883ea6b9e94e025f8ccd372",
+      "identity": "MATCH"
+    },
+    {
+      "path": "docs/design/FATES-005A-live-acceptance.md",
+      "windowsSha256": "68d4deaa83ed7cbbaade0fe2dded3b894d61e69d9dce510b9e87c8a586d3f4aa",
+      "linuxSha256": "68d4deaa83ed7cbbaade0fe2dded3b894d61e69d9dce510b9e87c8a586d3f4aa",
+      "gitBlobIdSha1": "b378216c90fc25f3a898c6026d03154cf840dfd1",
+      "identity": "MATCH"
+    },
+    {
+      "path": "package.json",
+      "windowsSha256": "176867cfb439a4998c0cd8daad4f8ac74051138db8a9590eb35393439e407ca6",
+      "linuxSha256": "95352172e4989855f062c5d17657bf1fffcf4943b78a93c374bbeb640af45008",
+      "gitBlobIdSha1": "7561141233925f9db4ed8936ab56741dcbc6ac9b",
+      "identity": "BLOB_MATCH_PLATFORM_EOL",
+      "note": "Windows working tree is mixed-line-ending; Linux checkout is LF; repository has no .gitattributes conversion rule. Git-normalized repository content matches."
+    },
+    {
+      "path": "package-lock.json",
+      "windowsSha256": "57d432a332019270002c55fa084f35f4b77e3a92d3b59144673fb098769be6ed",
+      "linuxSha256": "2753cb51fa995f39758ecff9a3d11d066f6388c000053d9399e6f6fa9c33597c",
+      "gitBlobIdSha1": "3e1ac9af181a848a8d29130059162d9b0f6c30f2",
+      "identity": "BLOB_MATCH_PLATFORM_EOL",
+      "note": "Windows working tree is CRLF under core.autocrlf=true; Linux checkout is LF; repository has no .gitattributes conversion rule."
+    },
+    {
+      "path": "fates-lock.json",
+      "windowsSha256": "92b4c630c10b3182c76ce89cf5c54ca0bd6eb6e77f4d92a4e2bae64d8737cdff",
+      "linuxSha256": "ca4ad42bc9613c1ad9992c717cae84da612e6211f2561f956afc818247ebea06",
+      "gitBlobIdSha1": "0df8790974bb949b86e4f5c45abbf043c4946ff1",
+      "identity": "BLOB_MATCH_PLATFORM_EOL",
+      "note": "Windows working tree is CRLF under core.autocrlf=true; Linux checkout is LF; repository has no .gitattributes conversion rule."
+    },
+    {
+      "path": "compatibility-matrix.json",
+      "windowsSha256": "5cf2c87a5f22c8cd1f6cc28bd77fd5675d495bbccf62eb7f9f3e81202a5bf6a2",
+      "linuxSha256": "98fd60637c9373c91c6abe9b184d8a0db3867e4247242b8d15fb579a4aaa8383",
+      "gitBlobIdSha1": "8eb9425957b5b492ec52a9330918221f1bff9018",
+      "identity": "BLOB_MATCH_PLATFORM_EOL",
+      "note": "Windows working tree is CRLF under core.autocrlf=true; Linux checkout is LF; repository has no .gitattributes conversion rule."
+    },
+    {
+      "path": "scripts/verify-boundaries.mjs",
+      "windowsSha256": "36ea2a28b62c8d1d2985e3abea8c70f438592f567ef4903f604c5f3530475661",
+      "linuxSha256": "8f2ff4998c2d349adc174e69cd9e0f5d10480b4766ea7368ac8cf5aa2ab4fb79",
+      "gitBlobIdSha1": "9750fa941ef5247e90e8898c264fdeef3d4b97d7",
+      "identity": "BLOB_MATCH_PLATFORM_EOL",
+      "note": "Windows working tree is mixed-line-ending; Linux checkout is LF; repository has no .gitattributes conversion rule."
+    },
+    {
+      "path": "scripts/verify-compatibility-matrix.mjs",
+      "windowsSha256": "4f4302d45e463c49a213bf69e4e4c100c78e091cdfaca7a12cf89ed16af38d21",
+      "linuxSha256": "ece1a560908d5dffecaf8b5ef220d49659f02bd616818002ebaca25fb4e4d4d2",
+      "gitBlobIdSha1": "02325677f9cc706fafa5538ccb04ca6837b54e9a",
+      "identity": "BLOB_MATCH_PLATFORM_EOL",
+      "note": "Windows working tree is CRLF under core.autocrlf=true; Linux checkout is LF; repository has no .gitattributes conversion rule."
+    },
+    {
+      "path": "scripts/verify-current-candidate.mjs",
+      "windowsSha256": "fc8aa9c2a7ec20a45ff598c546fafa5e86695bb6027f5be985a328142c83bff4",
+      "linuxSha256": "fc8aa9c2a7ec20a45ff598c546fafa5e86695bb6027f5be985a328142c83bff4",
+      "gitBlobIdSha1": "9bd892941c0cacdbab23e2b37134e09e69841878",
+      "identity": "MATCH"
+    },
+    {
+      "path": "scripts/verify-fates-lock.mjs",
+      "windowsSha256": "34afb02b7f4ca390edcfefe0863ab78d3c0894454015f288bff887fa8990df65",
+      "linuxSha256": "f1aabe2d9510daa6c36e6f45c03405a965b2dfbfeb62d2c223363f43354989ec",
+      "gitBlobIdSha1": "02558284d5dbfea638d7897e099f0d9d4867880c",
+      "identity": "BLOB_MATCH_PLATFORM_EOL",
+      "note": "Windows working tree is CRLF under core.autocrlf=true; Linux checkout is LF; repository has no .gitattributes conversion rule."
+    },
+    {
+      "path": "scripts/verify-slices.mjs",
+      "windowsSha256": "c5197ff89c5233931006a73bd4f5ae4a3293102398d9890589263105f7a63547f",
+      "linuxSha256": "232c586e0e975b1fbf4365745867685b14038bd1f70a2a3a891e6d4e1663dcc3",
+      "gitBlobIdSha1": "fa17c700ad45af28fd912e03c0989c9b18a55f56",
+      "identity": "BLOB_MATCH_PLATFORM_EOL",
+      "note": "Windows working tree is CRLF under core.autocrlf=true; Linux checkout is LF; repository has no .gitattributes conversion rule."
+    },
+    {
+      "path": "tests/boundaries.test.mjs",
+      "windowsSha256": "24359fb8b96e2e5c15417244688621a0bd06ea116fe7de9d50d9e3aefc236061",
+      "linuxSha256": "712288ab146d379bc4c25490eecde56735651fbc9d3e4ac727ebb135722f887f",
+      "gitBlobIdSha1": "52aaab9dff155e3bfb1b820a2bf93ffb8bd3c43e",
+      "identity": "BLOB_MATCH_PLATFORM_EOL",
+      "note": "Windows working tree is mixed-line-ending; Linux checkout is LF; repository has no .gitattributes conversion rule."
+    }
+  ],
+  "lineEndingPolicy": {
+    "windowsCoreAutocrlf": true,
+    "windowsCoreEol": null,
+    "repositoryGitattributesPresent": false,
+    "linuxCheckoutMaterialization": "LF",
+    "executableAndLifecycleSourceByteIdentity": "PASS",
+    "platformDifferences": "Limited to Windows working-tree line endings for non-executable JSON/manifests/validator files; Git blob identity is equal and no repository attribute prescribes a platform conversion. No files were normalized or edited for this check."
+  },
+  "installedHelper": {
+    "pathClass": "fixed-installed-host-helper",
+    "path": "fates-005a-host-control",
+    "sha256": "5678e84dca9b38a6c09bd627d5334bc3e6a7b2b26146008bce177bed37178d29",
+    "bytes": 1128760,
+    "owner": "root",
+    "group": "root",
+    "mode": "0755",
+    "type": "regular file",
+    "symlink": false,
+    "versionViaExactSudoPath": "fates-005a-host-control-v1",
+    "sha256BeforeAndAfterPlan": "UNCHANGED",
+    "installationChanged": false
+  },
+  "protectedArtifacts": {
+    "correctedKernel": {
+      "pathClass": "protected-corrected-guest-kernel",
+      "path": "vmlinux-6.18.44-fates-vsock-mmio",
+      "sha256": "8b872cf4b2dfab3e2b97af8554914aad08393f1b266e7b389991da457d4caa5c"
+    },
+    "guestRootfs": {
+      "pathClass": "protected-guest-rootfs",
+      "path": "ubuntu-24.04.ext4",
+      "sha256": "aa36ebaf68f67c1e232eb6575541de9f25763b2ce61f4bd0a062823e3d9fdf50"
+    },
+    "diagnosticInitrd": {
+      "pathClass": "protected-diagnostic-guest-initrd",
+      "path": "diagnostics/r54/guest-initrd-diagnostic-r54a.cpio",
+      "sha256": "dae168395e78ccd74c5c3972050a4bd7ee83f45a7395dc894efe74e75edd5e1d",
+      "bytes": 743936
+    }
+  },
+  "candidateAndGovernance": {
+    "candidate": "fates-durable-candidate-2026-08-27-r7",
+    "candidateStatus": "provisional",
+    "integrationLevel": "partial_runtime",
+    "peerPins": {
+      "adrasteia": "a1c01bf9e6f9d6a126cfdcc1acfacd488b214210",
+      "ananke": "3d76adb162a0ff07b5630700ae30a823f1419cb4",
+      "mnemosyne": "f02df61be147d6fe716a98912d37eaaf1fe89f23",
+      "horae": "68508f5c37e1cb3b244116d45fa267e689a6e75c",
+      "moiraeCode": "b23f723fc5267c95fe9f7eccb2efa32465f8d2f1",
+      "integrationControl": "39f66dcb1a58b8cbc217a987942781f7b77fde7a",
+      "integrationPublication": "35a00e881df8e5143eb86bf88332292b8baaa13d"
+    },
+    "governanceSemantics": "PRESERVED; no candidate, peer-pin, or governance change"
+  },
+  "historicalLinuxCheckout": {
+    "pathClass": "protected-historical-linux-lifecycle-checkout",
+    "path": "repos/integration",
+    "headBefore": "db6db59e5799998dfcfaa0b02fc1fd90410172ab",
+    "headAfter": "db6db59e5799998dfcfaa0b02fc1fd90410172ab",
+    "statusBefore": ["?? docs/evidence/FATES-005A-live-acceptance-attempt-006.json"],
+    "statusAfter": ["?? docs/evidence/FATES-005A-live-acceptance-attempt-006.json"],
+    "lifecycleSha256Before": "bec313e9f489907854da4503d5b55c80b427521ea0b547bab68c4670259783bb",
+    "lifecycleSha256After": "bec313e9f489907854da4503d5b55c80b427521ea0b547bab68c4670259783bb",
+    "hostControlSourceSha256Before": "1fe49219221e69d645a6683090f0a3d1859c166c3e943b97ffeb500e9c5f52c4",
+    "hostControlSourceSha256After": "1fe49219221e69d645a6683090f0a3d1859c166c3e943b97ffeb500e9c5f52c4",
+    "preserved": true,
+    "attempt006UntrackedEvidencePreserved": true
+  },
+  "planReadiness": {
+    "nonMutatingPlan": {
+      "command": "cd <new-linux-materialization> && node scripts/fates-005a-live-acceptance.mjs --plan --attempt-id 007 --repos-root <fates-005a-repos>",
+      "exitCode": 0,
+      "mode": "plan",
+      "result": "NOT_EXECUTED",
+      "platform": "linux-x64",
+      "supported": true,
+      "candidate": "fates-durable-candidate-2026-08-27-r7",
+      "evidenceCreated": false,
+      "priorJailEvidenceTouched": false,
+      "tcpFallback": false,
+      "authorizationPerformedDuringPlan": false,
+      "attempt007StateAfterPlan": "UNUSED"
+    },
+    "checkpointAwareDiagnostic": {
+      "command": "cd <new-linux-materialization> && node scripts/fates-005a-live-acceptance.mjs --plan --attempt-id 007 --repos-root <fates-005a-repos> --moirae-implementation-commit 8e8502aef13e5940fd14865449be422e057fb0f7 --integration-implementation-commit 6f89d32c865aef2626de5a9722cc8dc163a76a8c",
+      "exitCode": 1,
+      "implementationEligibility": "BLOCKED",
+      "error": "integration-publication implementation checkpoint contains unsupported changes: previously sealed R5.4E/R5.4F evidence files are not included in the existing implementation allowlist",
+      "runtimeStateCreated": false,
+      "attempt007Consumed": false,
+      "action": "STOPPED; no lifecycle validator or runtime code was changed"
+    }
+  },
+  "attempt007ProtectedState": {
+    "resourcesAbsent": true,
+    "paths": {
+      "netns/fates-005a-007": false,
+      "jailer/fates-005a-007": false,
+      "fates/vsock.sock_7000": false,
+      "attempts/fates-005a-007": false,
+      "runtime/fates-005a-007": false,
+      "evidence/fates-005a-007": false,
+      "state/fates-005a-007": false,
+      "locks/fates-005a-007": false
+    },
+    "nameSearch": "NONE",
+    "firecrackerProcess": false,
+    "jailerProcess": false,
+    "attempt007Process": false,
+    "staleListener": false,
+    "kvmAvailable": true,
+    "noAttempt007Mutation": true
+  },
+  "validation": {
+    "authoritativeWindowsTree": "PASS",
+    "newLinuxHeadAndTree": "PASS",
+    "newLinuxCleanAndUntracked": "PASS",
+    "criticalExecutableAndLifecycleSourceHashes": "PASS",
+    "gitBlobIdentityForPlatformEolFiles": "PASS",
+    "installedHelperAndExactSudoVersion": "PASS",
+    "protectedArtifactHashes": "PASS",
+    "candidateAndPeerPins": "PASS",
+    "historicalCheckoutUnchanged": "PASS",
+    "attempt007AbsenceAfterPlan": "PASS",
+    "jsonAndBoundaryValidation": "PASS",
+    "focusedR54Fates005ATests": {
+      "tests": 28,
+      "passed": 20,
+      "failed": 0,
+      "skipped": 8,
+      "status": "PASS"
+    },
+    "repositoryValidate": {
+      "status": "FAIL due to one protected-peer checkout mismatch",
+      "json": "PASS",
+      "candidate": "PASS",
+      "lock": "PASS",
+      "matrix": "PASS",
+      "slices": "PASS",
+      "boundaries": "PASS",
+      "failedTest": "FATES-005D crash-after-effect-success recovers without a duplicate effect",
+      "failure": "peer HEAD mismatch: expected pinned baseline b23f723fc5267c95fe9f7eccb2efa32465f8d2f1, got protected R5.4 implementation checkout 8e8502aef13e5940fd14865449be422e057fb0f7",
+      "notCausedByMaterialization": true,
+      "action": "not repaired; protected peer checkout and governance state were not modified"
+    }
+  },
+  "notes": [
+    "The fresh Linux materialization was created by repository clone and exact detached checkout; no files were copied from the historical checkout.",
+    "The Windows worktree has core.autocrlf=true and no .gitattributes file; LF source/runtime files are byte-identical, while listed non-executable platform-materialized files are recorded with equal Git blob identity rather than silently normalized.",
+    "The no-checkpoint plan is the bounded M1 non-mutating readiness result. The checkpoint-aware diagnostic exposed a pre-existing implementation allowlist gap in the authorized 6f89d32 commit; it was not patched here and it does not authorize Attempt 007.",
+    "No helper installation, guest-artifact rebuild, Attempt 007 lifecycle operation, model/provider execution, candidate update, release tag, merge, or production-readiness claim was made."
+  ]
+}
