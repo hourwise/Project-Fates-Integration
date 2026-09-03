@@ -1,0 +1,282 @@
+{
+  "acceptance": "FATES-007B",
+  "decision": "ACCEPTED",
+  "acceptedAt": "2026-09-03T17:00:37.072Z",
+  "evidenceOnly": true,
+  "runtimeDependencyLockChanged": false,
+  "adrasteia": {
+    "sha": "a1c01bf9e6f9d6a126cfdcc1acfacd488b214210",
+    "license": "MIT"
+  },
+  "ananke": {
+    "tag": "ananke-fates-007a-claim-aware-execution-v0.1.0-protocol-1.4.0",
+    "tagObject": "9fb9fc4d8183db64aa37f0a4e167fdf41ca856e5",
+    "commit": "114063e03332af3389fe805193e88a62111d9323",
+    "tree": "46e962e73405e159ac0329e331ec0377046a0f8d",
+    "parent": "6bf8902c55c4f3f7593a987582b50783c8a7b5a0",
+    "acceptedParentTag": "ananke-fates-006b-mp03-admission-v0.1.0-protocol-1.4.0",
+    "acceptedParentTagObject": "6425d4b34fba62ab60381a4a2237786d0d6173ad",
+    "acceptedParent": "6bf8902c55c4f3f7593a987582b50783c8a7b5a0",
+    "message": "feat(ananke): add claim-aware execution boundary",
+    "horaePeer": {
+      "tag": "horae-fates-007a-claim-aware-execution-v0.1.0-protocol-1.4.0",
+      "commit": "aa296b420fbcf578089ca66dc03f6d09d9b06f00"
+    }
+  },
+  "horae": {
+    "tag": "horae-fates-007a-claim-aware-execution-v0.1.0-protocol-1.4.0",
+    "tagObject": "59763d34644567c59d1041b3acef24efc5a1d072",
+    "commit": "aa296b420fbcf578089ca66dc03f6d09d9b06f00",
+    "tree": "2d472b9c90a0699f8902f39874760754310da473",
+    "parent": "7b24cb0af083e505bd2dc9fa55c6c3387f849131",
+    "runtimeCommit": "7b24cb0af083e505bd2dc9fa55c6c3387f849131",
+    "runtimeParent": "68508f5c37e1cb3b244116d45fa267e689a6e75c",
+    "runtimeTree": "a372ca00a69b35152583c050c752f683d67c6bb6",
+    "runtimeMessage": "feat(horae): bind durable claims to Fates authority",
+    "testRemediationMessage": "test(horae): stabilize cross-process durable dispatch regression",
+    "testRemediation": {
+      "files": ["packages/session-orchestrator/src/durable-execution.test.ts"],
+      "change": "module-relative child-script resolution via fileURLToPath(new URL(..., import.meta.url))",
+      "runtimeFilesChanged": false,
+      "arbitrationAssertionsSkipped": false,
+      "sleepOrTimeoutIncreased": false
+    },
+    "anankePeer": {
+      "tag": "ananke-fates-007a-claim-aware-execution-v0.1.0-protocol-1.4.0",
+      "commit": "114063e03332af3389fe805193e88a62111d9323"
+    }
+  },
+  "authorityEnvelope": {
+    "schemaVersion": "1",
+    "type": "GovernedExecutionAuthorityV1",
+    "fields": [
+      "operation.server",
+      "operation.toolName",
+      "operation.version",
+      "nativeActionHash",
+      "durableExecutionId",
+      "authorityInstanceDigest",
+      "approval.grantId",
+      "approval.approvalActionHash",
+      "approval.approvalBindingHash",
+      "approval.expiresAt",
+      "approval.bindRequestIdentity",
+      "approval.operatorId",
+      "approval.operatorSessionId",
+      "authenticatedContext",
+      "requestIdentity.requestId",
+      "requestIdentity.correlationId",
+      "requestIdentity.causationId",
+      "resourceScope",
+      "purpose",
+      "policyVersion",
+      "argumentsDigest",
+      "targetDigest",
+      "effectAdapter.id",
+      "effectAdapter.version"
+    ],
+    "validation": [
+      "exact registered operation and arguments",
+      "recomputed native action, arguments, and target digests",
+      "authenticated context, scope, purpose, policy, and request/correlation binding",
+      "approval action/binding hashes and expiry",
+      "durable execution and authority-instance canonical digests",
+      "no credentials, provider secrets, model prose, caller authority strings, or caller-trusted native hashes"
+    ]
+  },
+  "identity": {
+    "durableExecutionDomain": "fates-007a/durable-execution/v1",
+    "authorityInstanceDomain": "fates-007a/authority-instance/v1",
+    "claimDomain": "fates-007a/claim/v1",
+    "receiptDomain": "fates-007a/effect-receipt/v1",
+    "durableExecutionCanonicalMaterial": [
+      "requestIdentity",
+      "nativeActionHash",
+      "operation",
+      "authenticatedContext",
+      "resourceScope",
+      "purpose",
+      "policyVersion",
+      "argumentsDigest",
+      "targetDigest",
+      "effectAdapter"
+    ],
+    "authorityInstanceCanonicalMaterial": [
+      "durableExecutionId",
+      "approval.grantId",
+      "approval.approvalActionHash",
+      "approval.approvalBindingHash",
+      "approval.expiresAt",
+      "approval.bindRequestIdentity",
+      "approval.operatorId",
+      "approval.operatorSessionId"
+    ],
+    "renewedApproval": "same durable effect identity, different authority-instance digest while unclaimed",
+    "sensitivityProof": [
+      "request identity",
+      "native action",
+      "server/tool/version",
+      "principal/context",
+      "resource scope",
+      "purpose",
+      "arguments and target",
+      "effect adapter identity/version"
+    ],
+    "anankeHoraeFormulaParity": true
+  },
+  "horaeDurableBinding": {
+    "persistedAndChecksummed": [
+      "authority envelope in full",
+      "nativeActionHash",
+      "exact operation",
+      "argumentsDigest",
+      "targetDigest",
+      "authenticated and acting principals",
+      "represented principal, tenant, runtime, runtime instance, session",
+      "request/correlation/causation identity",
+      "resource scope",
+      "purpose and policy version",
+      "authority-instance digest",
+      "effect adapter identity/version",
+      "claim owner, generation, timestamp, and claim digest",
+      "effect receipt and result"
+    ],
+    "states": [
+      "authority_validated",
+      "execution_reserved",
+      "executor_invocation_started",
+      "effect_reconciliation_required",
+      "terminal"
+    ],
+    "corruptionBehavior": "missing, truncated, replaced, or checksum-invalid state fails closed as a store error; it never authorizes execution"
+  },
+  "claim": {
+    "type": "FatesClaimV1/DurableExecutionClaimV1",
+    "fields": [
+      "durableExecutionId",
+      "owner",
+      "generation",
+      "claimedAt",
+      "claimDigest",
+      "nativeActionHash",
+      "authorityInstanceDigest",
+      "argumentsDigest",
+      "operation",
+      "effectAdapter"
+    ],
+    "verification": "Horae persisted-state verifier port; Ananke never trusts caller-created claim flags",
+    "rejects": [
+      "missing, fake, malformed, stale-owner, stale-generation, wrong execution, wrong action, wrong operation, wrong arguments, wrong authority, wrong adapter, and copied claims"
+    ]
+  },
+  "execution": {
+    "anankeApi": ["Gateway.executeClaimed", "Gateway.reconcileClaimed"],
+    "ordering": [
+      "Ananke admission and ALLOW",
+      "authority envelope creation and durable Ananke authority put",
+      "Horae durable intent",
+      "Horae owner/generation claim",
+      "Ananke exact authority and claim validation",
+      "Horae reservation",
+      "Ananke durable reservation",
+      "Horae invocation-start record",
+      "Ananke invocation-start record",
+      "single registered Ananke executor choke point",
+      "receipt validation or UNKNOWN classification",
+      "Horae durable terminal/recovery projection",
+      "approval consumption only for terminal safe result"
+    ],
+    "executorPath": "executeTool inside Gateway.executeClaimed only; Horae calls the structural Ananke binding and never invokes an effect adapter directly",
+    "reconciliation": "Gateway.reconcileClaimed calls only the adapter reconcile method and never the executor path"
+  },
+  "effectReceipt": {
+    "type": "GovernedEffectReceiptV1/FatesEffectReceiptV1",
+    "fields": [
+      "durableExecutionId",
+      "nativeActionHash",
+      "exact operation",
+      "authorityInstanceDigest",
+      "effectAdapter",
+      "argumentsDigest",
+      "targetDigest",
+      "providerOperationId",
+      "providerIdempotencyKey",
+      "result",
+      "receiptProvenance",
+      "observedAt",
+      "resultDigest",
+      "checksum"
+    ],
+    "confirmationRule": "executor return or arbitrary success text is not confirmation; exact checksum-valid receipt or authoritative reconciliation is required",
+    "providerIdempotency": "future-provider abstraction derives a stable key from durable execution ID and adapter identity/version; unavailable provider deduplication remains UNKNOWN"
+  },
+  "effectTruth": {
+    "CONFIRMED": "exact authenticated/checksummed receipt or authoritative reconciliation proves the effect",
+    "ABSENT": "authoritative reconciliation proves the exact effect did not occur",
+    "UNKNOWN": "receipt/effect truth cannot be proven; automatic redispatch is blocked",
+    "unknownToConfirmed": "real cross-Fate restart test: execute count 1, Horae recovery claim generation 2, Ananke reconcileClaimed, terminal CONFIRMED, execute count remains 1",
+    "absentNextStep": "old uncertain identity remains closed/terminal; any future attempt requires fresh authority and a fresh Horae claim"
+  },
+  "crashMatrix": {
+    "A_after_admission_before_claim": "Horae authority_validated intent persists; Ananke binding is not called; no executor",
+    "B_after_horae_claim_before_ananke": "claim persists with owner/generation; no Ananke call until valid recovery",
+    "C_after_reservation_before_invocation": "Ananke state is durable reserved; resumed valid claim can make the one invocation, with no blind duplicate",
+    "D_after_invocation_start": "invocation_started is durable; recovery reconciles and does not invoke again",
+    "E_effect_before_receipt_persistence": "missing receipt is UNKNOWN/reconciliation-required after restart; no blind redispatch",
+    "F_receipt_before_response": "terminal receipt survives response loss; replay returns stored state and executor count remains one",
+    "G_recovery_race": "cross-process owner/generation arbitration leaves one winner and loser without a second effect invocation"
+  },
+  "validation": {
+    "ananke": {
+      "cleanInstall": "PASS; 311 added, 325 audited",
+      "focusedFates007a": "29/29 PASS",
+      "fates006a6bRegression": "20/20 PASS",
+      "fullSuite": "31 files, 316 tests PASS",
+      "buildTypecheck": "PASS",
+      "lint": "PASS",
+      "focusedPrettier": "PASS",
+      "gitDiffCheck": "PASS",
+      "secretScan": "PASS",
+      "advisories": "3 moderate, 6 high full install; production-only audit 3 moderate, 2 high, 0 critical",
+      "baselineDemo": "PRE-EXISTING NON-CANDIDATE VALIDATION FAILURE: accepted 6bf8902 baseline and candidate both return filesystem.read_file DENIED while demo expects COMPLETED"
+    },
+    "horae": {
+      "cleanInstall": "PASS; 182 added, 198 audited",
+      "focusedFates007a": "8/8 PASS",
+      "durableRegression": "31/31 PASS",
+      "fullSuite": "8 files, 95 tests PASS",
+      "aggregateValidate": "PASS",
+      "aggregateStability": "5 consecutive PASS runs",
+      "crossProcessArbitration": "PASS in direct regression and three additional candidate benchmark runs",
+      "compositionAdrasteiaCliComparators": "PASS; composition 10, Adrasteia 10, Ananke comparator, Mnemosyne comparator, CLI smoke",
+      "buildTypecheck": "PASS",
+      "lint": "PASS",
+      "gitDiffCheck": "PASS",
+      "secretScan": "PASS",
+      "formatting": "repository-wide Prettier check reports pre-existing style drift; no source was rewritten during acceptance",
+      "advisories": "3 moderate, 5 high, 1 critical full install; critical is dev-only vitest; production-only audit 0 vulnerabilities"
+    }
+  },
+  "scope": {
+    "supported": ["local durable filesystem", "single host", "cross-process arbitration", "checksums", "atomic replacement", "owner/generation recovery"],
+    "notClaimed": ["distributed consensus", "multi-host exactly-once", "network-partition safety", "distributed transactions", "power-loss proof"],
+    "effects": "synthetic/offline only; no provider, network, filesystem customer export, credentials, or external effect"
+  },
+  "isolation": {
+    "mnemosyne": "MNEMOSYNE_NOT_INTEGRATED",
+    "firecrackerRef": "fates-005a-firecracker-r7-integration-frozen",
+    "firecrackerPeeled": "c117a5c1d8744d7847447f86492d1f30a26d319c",
+    "attempt007": "UNUSED",
+    "moiraeProtocolHead": "4d71a208aa0861626008eb93e16f3104defddb06",
+    "moiraeProtocolChanged": false,
+    "moiraeConsoleChanged": false,
+    "adrasteiaChanged": false,
+    "firecrackerLifecycleExecuted": false
+  },
+  "publication": {
+    "pushes": [],
+    "ci": "not run for local-only tags",
+    "remotePublication": "REMOTE_PUBLICATION_PENDING",
+    "tagRetargeted": false
+  }
+}
