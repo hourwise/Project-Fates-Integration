@@ -120,6 +120,30 @@
     "unknownToAbsent": "authoritative reconciliation only; executor remains 1",
     "persistentUnknown": "remains UNKNOWN without redispatch"
   },
+  "independentAcceptanceHarness": {
+    "terminalEffectBeforeApprovalConsume": {
+      "terminalAuthorityState": "consumed",
+      "executorCalls": 1,
+      "duplicateExecutionBlockedAfterRestart": true,
+      "approvalConsumptionRecovered": true
+    },
+    "adapterEntryBoundary": {
+      "result": "CONFIRMED",
+      "executorCalls": 1,
+      "adapterEnteredBeforeFirstPostReservationYield": true
+    },
+    "outerAuditFailure": {
+      "nativeDecisionCommitted": true,
+      "firstHttpObservation": "bounded 5xx after simulated outer audit failure",
+      "restartReplay": "IDEMPOTENT_REPLAY",
+      "genericApprovalEventsOnReplay": 0
+    },
+    "approvalRenewal": {
+      "unchangedMaterialPreservesDurableExecutionId": true,
+      "terminalRenewalBlocked": true,
+      "changedRequestIdentityGetsNewDurableExecutionId": true
+    }
+  },
   "validation": {
     "cleanInstall": "npm ci passed from committed package-lock.json; 311 packages installed, 325 audited",
     "fates008A": "13 tests passed",
