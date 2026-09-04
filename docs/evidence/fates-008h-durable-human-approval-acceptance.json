@@ -1,0 +1,177 @@
+{
+  "profile": "FATES-008H",
+  "acceptanceDecision": "ACCEPTED",
+  "classification": "ACCEPTED FATES-008 DURABLE HUMAN APPROVAL DECISION BOUNDARY",
+  "candidate": {
+    "repository": "hourwise/Project-Ananke",
+    "branch": "codex/fates-008g-fresh-dispatch-time",
+    "terminalSha": "b888d61adf180d33e2ae2e61d276cb9b0f13bd12",
+    "terminalTree": "ed5e268e6b3b0630a798b9131341a2c13ef9830f",
+    "terminalMessage": "docs(ananke): record dispatch-time expiry remediation evidence",
+    "runtimeRemediationSha": "c89b83de40ed0275969fe3931220f440bf082aa3",
+    "runtimeRemediationTree": "78ba1ed3cafe96fa624a708dcbbb8e5f313adade",
+    "runtimeRemediationMessage": "fix(ananke): refresh trusted time at approval dispatch"
+  },
+  "acceptedParent": {
+    "tag": "ananke-fates-007a-claim-aware-execution-v0.1.0-protocol-1.4.0",
+    "tagObject": "9fb9fc4d8183db64aa37f0a4e167fdf41ca856e5",
+    "peeledSha": "114063e03332af3389fe805193e88a62111d9323",
+    "tree": "46e962e73405e159ac0329e331ec0377046a0f8d"
+  },
+  "remediationLineage": {
+    "fates008ARejectedTerminal": "2b586d0418cedd6c85e6ffa580ee1ad6ddf13688",
+    "fates008C": "36c9cefb1dcbbdd03e98a2a63b72ecbb79b75709",
+    "fates008DRejectedTerminal": "fedfa97f9664bf597b6e28d5355d8f4191af9ea0",
+    "fates008E": "046eb98a40fe6628f80d8daec5b224c130a8ea7b",
+    "fates008FRejectedTerminal": "80178e7c416c9d2134beacb105de6f046c3b1042",
+    "fates008G": "c89b83de40ed0275969fe3931220f440bf082aa3"
+  },
+  "immutableSeal": {
+    "tag": "ananke-fates-008a-durable-human-approval-v0.1.0-protocol-1.4.0",
+    "tagType": "annotated",
+    "tagObject": "0fa08f78f27e2f79c895402f3f53a8aada5837b4",
+    "peeledTarget": "b888d61adf180d33e2ae2e61d276cb9b0f13bd12",
+    "publicRemote": "https://github.com/hourwise/Project-Ananke.git",
+    "publicVerification": "tag object and peeled target verified by ls-remote"
+  },
+  "durableApproval": {
+    "backend": "SqliteActionApprovalStore",
+    "schemaVersion": 1,
+    "states": [
+      "pending",
+      "approved",
+      "rejected",
+      "expired",
+      "revoked",
+      "consumed"
+    ],
+    "nativeOpaqueRequestId": true,
+    "nativeActionHash": true,
+    "nativePresentationBinding": "fates-008a/approval-presentation/v1",
+    "stableHumanDecisionId": true,
+    "durableRequiredCannotDowngrade": true,
+    "integrity": "checksummed record plus revision/CAS; corruption fails closed under the trusted local-host model"
+  },
+  "decisionReplay": {
+    "approve": {
+      "first": "applied",
+      "replay": "idempotent",
+      "stableDecisionId": true,
+      "genericApprovalEvents": 1,
+      "replayObservation": "explicit idempotent audit event"
+    },
+    "reject": {
+      "first": "applied",
+      "replay": "idempotent",
+      "stableDecisionId": true,
+      "genericDenialEvents": 1,
+      "replayObservation": "explicit idempotent audit event"
+    },
+    "differentOperator": "replay actor is recorded without changing the original decision maker/session/time",
+    "outerAuditFailure": "native decision remained authoritative; post-restart retry was idempotent with zero second generic decision event",
+    "executorCalls": 0,
+    "horaeCalls": 0
+  },
+  "dispatchBoundary": {
+    "reservation": "Ananke-owned durable approval dispatch reservation",
+    "binding": [
+      "approval request",
+      "durableExecutionId",
+      "nativeActionHash",
+      "authorityInstanceDigest",
+      "effectAdapter id/version",
+      "reservedAt"
+    ],
+    "ordering": "fresh trusted time after awaited claim/Horae coordination, reserveDispatch, synchronous adapter entry",
+    "noAsyncYieldAfterReservation": true,
+    "revokeWins": "revoke applied before reservation; reservation rejected; executor 0",
+    "dispatchWins": "reservation applied; revoke conflict; executor may run once",
+    "crossProcessStress": {
+      "repetitions": 20,
+      "result": "every iteration produced exactly one applied and one conflict"
+    },
+    "postReservationExpiry": "reservation remains historical/irrevocable and revoke conflicts"
+  },
+  "trustedTime": {
+    "owner": "trusted Ananke host/runtime configuration",
+    "api": "GatewayConfig.claimAwareExecution.trustedTime.now()",
+    "initialTime": "ClaimAwareExecutionOptions.now",
+    "dispatchTime": "fresh sample immediately before native reserveDispatch",
+    "failureModes": [
+      "TRUSTED_TIME_REQUIRED",
+      "TRUSTED_TIME_UNAVAILABLE",
+      "TRUSTED_TIME_INVALID",
+      "TRUSTED_TIME_REGRESSION"
+    ],
+    "expiryRule": "native store rejects dispatch when dispatchNow >= expiresAt; a successful reservation is the expiry/revocation irrevocability boundary",
+    "fates008FRegression": "initial 10:00, expiry 10:01, resumed dispatch sample 10:02; reservation rejected and executor 0",
+    "freshReservedAt": "initial 10:00, dispatch 10:02, persisted reservedAt 10:02",
+    "noApprovalCompatibility": true
+  },
+  "recovery": {
+    "terminalEffectBeforeApprovalConsume": "receipt/terminal authority persisted; restart blocked duplicate executor; safe approval consumption completed",
+    "executeCalls": 1,
+    "duplicateBlocked": true,
+    "renewalUnchangedMaterial": "same durableExecutionId before terminal execution",
+    "renewalAfterTerminal": "blocked",
+    "changedRequestIdentity": "new durableExecutionId",
+    "unknown": "not consumed, not retry permission, no redispatch",
+    "unknownToConfirmed": "reconciliation only; executor remains 1",
+    "unknownToAbsent": "authoritative reconciliation only; executor remains 1",
+    "persistentUnknown": "remains UNKNOWN without redispatch"
+  },
+  "validation": {
+    "cleanInstall": "npm ci passed from committed package-lock.json; 311 packages installed, 325 audited",
+    "fates008A": "13 tests passed",
+    "fates008C": "13 tests passed",
+    "fates008E": "10 tests passed",
+    "fates008G": "14 tests passed",
+    "fates007AClaimAware": "29 tests passed",
+    "fates006": "3 files / 21 tests passed",
+    "combinedFocused": "5 files / 79 tests passed for durable store, replay, dispatch fence, trusted time, and claim-aware execution",
+    "fullDeterministicTrustedTime": "35 files / 366 tests passed",
+    "build": "passed",
+    "typecheck": "passed via build",
+    "lint": "passed",
+    "changedFileFormatting": "passed",
+    "repositoryFormatting": "49 baseline warnings reproduced identically on rejected predecessor; candidate files pass",
+    "diffCheck": "passed",
+    "secretScan": "passed; bounded matches are existing synthetic test fixtures only",
+    "nativeWallClockComparison": "candidate and rejected predecessor both have 12 fixed-date replay expirations; classified pre-existing"
+  },
+  "advisories": {
+    "production": "5 vulnerabilities: 3 moderate, 2 high, 0 critical",
+    "fullTree": "9 vulnerabilities: 3 moderate, 6 high, 0 critical",
+    "action": "no audit fix and no dependency upgrade"
+  },
+  "scope": {
+    "supported": [
+      "local durable filesystem",
+      "single host",
+      "cross-process SQLite arbitration",
+      "restart recovery",
+      "checksummed state",
+      "owner/generation claims",
+      "injectable trusted host time"
+    ],
+    "notClaimed": [
+      "multi-host exactly-once",
+      "distributed consensus",
+      "network-partition safety",
+      "distributed transactions",
+      "time attestation",
+      "arbitrary power-loss proof"
+    ]
+  },
+  "isolation": {
+    "adrasteia": "a1c01bf9e6f9d6a126cfdcc1acfacd488b214210",
+    "horae": "horae-fates-007a-claim-aware-execution-v0.1.0-protocol-1.4.0; tag object 59763d34644567c59d1041b3acef24efc5a1d072; terminal aa296b420fbcf578089ca66dc03f6d09d9b06f00; unchanged",
+    "horaeClassification": "HORAE_NOT_REQUIRED_UNTIL_POST_APPROVAL_EXECUTION",
+    "mnemosyne": "MNEMOSYNE_NOT_INTEGRATED",
+    "solLuna": "SOL_FRONTEND_LUNA_BACKEND_PRESERVED",
+    "firecracker": "fates-005a-firecracker-r7-integration-frozen preserved at c117a5c1d8744d7847447f86492d1f30a26d319c; no lifecycle operation; Attempt 007 unused",
+    "console": "HEAD 893ef94fa0dfad3606bd83e8b46351210cfc0d51; source/deployment/contest state unchanged; .devpost-hackathon-state.json preserved",
+    "protocol": "MP-05D design 2e13f7743acb1021b757f9579be47806bc62fe09; no runtime modification"
+  },
+  "status": "MP-05_RUNTIME_DEPENDENCY_UNBLOCKED"
+}
